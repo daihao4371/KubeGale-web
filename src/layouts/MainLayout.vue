@@ -55,15 +55,15 @@
             </el-icon>
           </div>
           <div class="header-right">
-            <el-dropdown>
+            <el-dropdown @command="handleCommand">
               <span class="user-info">
                 管理员 <el-icon><el-icon-arrow-down /></el-icon>
               </span>
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item>个人信息</el-dropdown-item>
-                  <el-dropdown-item>修改密码</el-dropdown-item>
-                  <el-dropdown-item divided>退出登录</el-dropdown-item>
+                  <el-dropdown-item command="profile">个人信息</el-dropdown-item>
+                  <el-dropdown-item command="password">修改密码</el-dropdown-item>
+                  <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -79,10 +79,14 @@
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessageBox, ElMessage } from 'element-plus'
+import { logout } from '@/api/user'
+import { removeToken } from '@/utils/auth'
 
 const isCollapse = ref(false)
 const route = useRoute()
+const router = useRouter()
 
 const activeMenu = computed(() => {
   return route.path
@@ -90,6 +94,51 @@ const activeMenu = computed(() => {
 
 const toggleSidebar = () => {
   isCollapse.value = !isCollapse.value
+}
+
+// 处理下拉菜单命令
+const handleCommand = (command: string) => {
+  if (command === 'logout') {
+    handleLogout()
+  } else if (command === 'profile') {
+    // 处理个人信息
+    ElMessage.info('个人信息功能开发中')
+  } else if (command === 'password') {
+    // 处理修改密码
+    ElMessage.info('修改密码功能开发中')
+  }
+}
+
+// 处理退出登录
+const handleLogout = () => {
+  ElMessageBox.confirm('确定要退出登录吗?', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async () => {
+    try {
+      // 调用退出登录API
+      const res = await logout()
+      console.log('退出登录响应:', res)
+      
+      // 清除token
+      removeToken()
+      
+      // 清除localStorage中的用户信息
+      localStorage.removeItem('userInfo')
+      
+      // 提示用户
+      ElMessage.success('退出登录成功')
+      
+      // 跳转到登录页
+      router.push('/login')
+    } catch (error) {
+      console.error('退出登录失败:', error)
+      ElMessage.error('退出登录失败，请重试')
+    }
+  }).catch(() => {
+    // 用户取消操作
+  })
 }
 </script>
 

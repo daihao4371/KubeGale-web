@@ -15,7 +15,7 @@ export default defineConfig({
     port: 3000,  // 已经设置为3000
     proxy: {
       '/api': {
-        target: 'http://192.168.1.197:8080',
+        target: 'http://192.168.1.197:3000',
         changeOrigin: true,
       }
     }
@@ -23,9 +23,3 @@ export default defineConfig({
 })
 
 
-// proxy: {
-//   '/api': {
-//     target: 'http://106.54.215.193:8010',
-//     changeOrigin: true,
-//   },
-// }

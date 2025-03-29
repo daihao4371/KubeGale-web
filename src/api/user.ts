@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { API_URLS } from './system/config'
+import { getToken } from '@/utils/auth'
 
 // 创建axios实例
 const service = axios.create({
@@ -11,6 +12,13 @@ const service = axios.create({
 service.interceptors.request.use(
   config => {
     console.log('发送请求:', config.url)
+    
+    // 添加token到请求头
+    const token = getToken()
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`
+    }
+    
     return config
   },
   error => {
@@ -41,6 +49,15 @@ export function login(data: { username: string; password: string }) {
     url: API_URLS.login,
     method: 'post',
     data
+  })
+}
+
+// 用户退出登录
+export function logout() {
+  console.log('调用退出登录API')
+  return service({
+    url: API_URLS.logout,
+    method: 'post'
   })
 }
 

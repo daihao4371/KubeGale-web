@@ -93,7 +93,6 @@ const whiteList = ['/login', '/404']
 router.beforeEach((to, from, next) => {
   // 获取token
   const hasToken = getToken()
-  
   // 判断是否有token
   if (hasToken) {
     // 已登录状态下访问登录页，重定向到首页

@@ -21,3 +21,6 @@ app.use(ElementPlus, {
 })
 
 app.mount('#app')
+
+// 设置网站标题
+document.title = 'KubeGale平台'
