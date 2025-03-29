@@ -25,6 +25,6 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 
 # 挑战一行前端代码不全部交给AI编写
 - 登录页面
-![img.png](image/img.png)
+![img.png](image/登录.png)
 - 首页
-![img.png](首页—image/img.png)
+![img.png](image/首页.png)
