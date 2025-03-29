@@ -1,0 +1,189 @@
+<template>
+  <div class="main-layout" :class="{ 'is-collapse': isCollapse }">
+    <el-container>
+      <el-aside width="220px" class="aside">
+        <div class="logo">
+          <h2>KubeGale</h2>
+        </div>
+        <el-menu
+          :default-active="activeMenu"
+          class="el-menu-vertical"
+          background-color="#1e1e1e"
+          text-color="#bfcbd9"
+          active-text-color="#409EFF"
+          :collapse="isCollapse"
+          router
+        >
+          <el-menu-item index="/dashboard">
+            <el-icon><el-icon-odometer /></el-icon>
+            <span>仪表盘</span>
+          </el-menu-item>
+          <!-- 系统管理移到第二位 -->
+          <el-sub-menu index="/system">
+            <template #title>
+              <el-icon><el-icon-setting /></el-icon>
+              <span>系统管理</span>
+            </template>
+            <el-menu-item index="/system/users">用户管理</el-menu-item>
+            <el-menu-item index="/system/roles">角色管理</el-menu-item>
+            <el-menu-item index="/system/permissions">权限管理</el-menu-item>
+          </el-sub-menu>
+          <el-menu-item index="/cmdb">
+            <el-icon><el-icon-files /></el-icon>
+            <span>CMDB配置管理</span>
+          </el-menu-item>
+          <el-menu-item index="/kubernetes">
+            <el-icon><el-icon-connection /></el-icon>
+            <span>Kubernetes管理</span>
+          </el-menu-item>
+          <el-menu-item index="/prometheus">
+            <el-icon><el-icon-data-line /></el-icon>
+            <span>Prometheus监控</span>
+          </el-menu-item>
+          <el-menu-item index="/cicd">
+            <el-icon><el-icon-finished /></el-icon>
+            <span>CICD管理</span>
+          </el-menu-item>
+        </el-menu>
+      </el-aside>
+      <el-container>
+        <el-header class="header">
+          <div class="header-left">
+            <el-icon class="collapse-btn" @click="toggleSidebar">
+              <el-icon-fold v-if="!isCollapse" />
+              <el-icon-expand v-else />
+            </el-icon>
+          </div>
+          <div class="header-right">
+            <el-dropdown>
+              <span class="user-info">
+                管理员 <el-icon><el-icon-arrow-down /></el-icon>
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item>个人信息</el-dropdown-item>
+                  <el-dropdown-item>修改密码</el-dropdown-item>
+                  <el-dropdown-item divided>退出登录</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+        </el-header>
+        <el-main :class="{ collapsed: isCollapse }">
+          <router-view />
+        </el-main>
+      </el-container>
+    </el-container>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
+
+const isCollapse = ref(false)
+const route = useRoute()
+
+const activeMenu = computed(() => {
+  return route.path
+})
+
+const toggleSidebar = () => {
+  isCollapse.value = !isCollapse.value
+}
+</script>
+
+<style lang="scss" scoped>
+.main-layout {
+  height: 100vh;
+  display: flex;
+
+  .aside {
+    background-color: #1e1e1e;
+    transition: width 0.3s;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+
+    .logo {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #1e1e1e;
+
+      h2 {
+        color: #fff;
+        margin: 0;
+      }
+    }
+
+    .el-menu {
+      border-right: none;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+
+      // 添加菜单项选中时的样式
+      :deep(.el-menu-item.is-active) {
+        background-color: transparent !important;
+        color: #409eff !important;
+        font-weight: bold;
+
+        // 添加左侧边框标识选中状态
+        &::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 3px;
+          background-color: #409eff;
+        }
+      }
+
+      // 子菜单项选中样式
+      :deep(.el-sub-menu.is-active .el-sub-menu__title) {
+        color: #409eff !important;
+      }
+    }
+  }
+
+  .header {
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+
+    .collapse-btn {
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .user-info {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+  }
+}
+
+.el-container {
+  width: 100%;
+
+  .el-main {
+    margin-left: 220px;
+    transition: margin-left 0.3s;
+
+    &.collapsed {
+      margin-left: 64px;
+    }
+  }
+}
+
+.is-collapse .el-main {
+  margin-left: 64px;
+}
+</style>
