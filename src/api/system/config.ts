@@ -6,5 +6,8 @@ export const API_URLS = {
   login: '/api/user/login',  // 移除末尾的斜杠，避免潜在问题
   logout: '/api/user/logout', // 添加退出登录接口
   changePassword: '/api/user/change_password', // 添加修改密码接口
+  
+  // 用户管理相关接口
+  getUserList: '/api/user/list', // 获取用户列表
   // 可以添加更多API路径...
 }
