@@ -12,4 +12,13 @@ export function login(data: { username: string; password: string }) {
   })
 }
 
+// 用户退出登录
+export function logout() {
+  console.log('调用退出登录API')
+  return service({
+    url: API_URLS.logout,
+    method: 'post'
+  })
+}
+
 // 可以添加更多用户相关API...

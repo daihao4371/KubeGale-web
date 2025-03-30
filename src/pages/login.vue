@@ -29,9 +29,11 @@
                 <template #suffix>
                   <el-icon 
                     class="password-eye" 
-                    @click="passwordVisible = !passwordVisible"
+                    @click="togglePasswordVisibility"
+                    :title="passwordVisible ? '隐藏密码' : '显示密码'"
                   >
-                    <component :is="passwordVisible ? 'View' : 'Hide'" />
+                    <el-icon-view v-if="passwordVisible"/>
+                    <el-icon-hide v-else/>
                   </el-icon>
                 </template>
               </el-input>
@@ -64,7 +66,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { User, Lock, View, Hide } from '@element-plus/icons-vue'
+import { User, Lock, View as ElIconView, Hide as ElIconHide } from '@element-plus/icons-vue'
 import { login } from '@/api/user'  // 确保这个路径正确
 import { setToken } from '@/utils/auth'
 
@@ -72,7 +74,7 @@ const router = useRouter()
 const loginFormRef = ref<FormInstance>()
 const loading = ref(false)
 const rememberMe = ref(false)
-const passwordVisible = ref(false)  // 添加密码可见性状态
+const passwordVisible = ref(false)  // 控制密码可见性的状态
 
 const loginForm = reactive({
   username: 'admin',  // 默认填充用户名为admin
@@ -132,16 +134,19 @@ const handleLogin = async () => {
           }
           else {
             console.error('无法从响应中提取token:', result.data)
-            ElMessage.error('登录响应数据格式不正确')
+            // 修改错误提示为更友好的信息
+            ElMessage.error(result.data.msg || '用户名或密码错误')
           }
         } 
         else {
-          ElMessage.error('登录响应数据格式不正确')
+          // 修改错误提示为更友好的信息
+          ElMessage.error('用户名或密码错误')
           console.error('无效的响应数据结构:', result)
         }
       } catch (error) {
         console.error('登录请求失败:', error)
-        ElMessage.error('登录失败，请检查网络连接或服务器状态')
+        // 修改错误提示为更友好的信息
+        ElMessage.error('用户名或密码错误')
       } finally {
         loading.value = false
       }
@@ -165,6 +170,12 @@ const handleLoginSuccess = (accessToken: string, username: string, realName: str
   
   ElMessage.success('登录成功')
   router.push('/')
+}
+
+// 切换密码可见性
+const togglePasswordVisibility = () => {
+  passwordVisible.value = !passwordVisible.value
+  console.log('密码可见性:', passwordVisible.value ? '显示' : '隐藏')
 }
 </script>
 

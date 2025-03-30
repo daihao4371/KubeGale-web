@@ -61,4 +61,17 @@ export function logout() {
   })
 }
 
-// 可以添加更多用户相关API...
+// 修改密码
+export function changePassword(data: { 
+  username: string; 
+  password: string; 
+  newPassword: string;
+  confirmPassword: string;
+}) {
+  console.log('调用修改密码API')
+  return service({
+    url: API_URLS.changePassword,
+    method: 'post',
+    data
+  })
+}

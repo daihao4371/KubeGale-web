@@ -6,8 +6,12 @@ module.exports = defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://192.168.1.197:3000',
-        changeOrigin: true
+        target: 'http://127.0.0.1:8080', // 修改为本地后端服务地址，端口根据实际情况调整
+        changeOrigin: true,
+        timeout: 60000, // 增加超时时间到60秒
+        onError: (err, req, res) => {
+          console.log('代理请求错误:', err);
+        }
       }
     }
   },

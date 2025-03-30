@@ -74,6 +74,75 @@
         </el-main>
       </el-container>
     </el-container>
+    
+    <!-- 添加修改密码对话框 -->
+    <el-dialog
+      v-model="passwordDialogVisible"
+      title="修改密码"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <el-form
+        :model="passwordForm"
+        :rules="passwordRules"
+        ref="passwordFormRef"
+        label-width="100px"
+      >
+        <el-form-item label="原密码" prop="password">
+          <el-input
+            v-model="passwordForm.password"
+            placeholder="请输入原密码"
+            :type="oldPasswordVisible ? 'text' : 'password'"
+          >
+            <template #suffix>
+              <el-icon class="password-eye" @click="oldPasswordVisible = !oldPasswordVisible">
+                <el-icon-view v-if="oldPasswordVisible"/>
+                <el-icon-hide v-else/>
+              </el-icon>
+            </template>
+          </el-input>
+        </el-form-item>
+        
+        <el-form-item label="新密码" prop="newPassword">
+          <el-input
+            v-model="passwordForm.newPassword"
+            placeholder="请输入新密码"
+            :type="newPasswordVisible ? 'text' : 'password'"
+          >
+            <template #suffix>
+              <el-icon class="password-eye" @click="newPasswordVisible = !newPasswordVisible">
+                <el-icon-view v-if="newPasswordVisible"/>
+                <el-icon-hide v-else/>
+              </el-icon>
+            </template>
+          </el-input>
+        </el-form-item>
+        
+        <el-form-item label="确认新密码" prop="confirmPassword">
+          <el-input
+            v-model="passwordForm.confirmPassword"
+            placeholder="请再次输入新密码"
+            :type="confirmPasswordVisible ? 'text' : 'password'"
+          >
+            <template #suffix>
+              <el-icon class="password-eye" @click="confirmPasswordVisible = !confirmPasswordVisible">
+                <el-icon-view v-if="confirmPasswordVisible"/>
+                <el-icon-hide v-else/>
+              </el-icon>
+            </template>
+          </el-input>
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="passwordDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitChangePassword" :loading="passwordLoading">
+            确认
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -83,6 +152,24 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { logout } from '@/api/user'
 import { removeToken } from '@/utils/auth'
+// 导入修改密码相关功能
+import { usePasswordDialog } from '@/api/system/usePasswordDialog'
+import { View as ElIconView, Hide as ElIconHide } from '@element-plus/icons-vue'
+
+// 初始化修改密码相关功能
+const {
+  passwordDialogVisible,
+  passwordLoading,
+  passwordFormRef,
+  oldPasswordVisible,
+  newPasswordVisible,
+  confirmPasswordVisible,
+  passwordForm,
+  passwordRules,
+  openPasswordDialog,
+  resetPasswordForm,
+  submitChangePassword
+} = usePasswordDialog()
 
 const isCollapse = ref(false)
 const route = useRoute()
@@ -104,8 +191,8 @@ const handleCommand = (command: string) => {
     // 处理个人信息
     ElMessage.info('个人信息功能开发中')
   } else if (command === 'password') {
-    // 处理修改密码
-    ElMessage.info('修改密码功能开发中')
+    // 修改为调用修改密码对话框
+    openPasswordDialog()
   }
 }
 
@@ -140,6 +227,9 @@ const handleLogout = () => {
     // 用户取消操作
   })
 }
+
+
+
 </script>
 
 <style lang="scss" scoped>
@@ -236,3 +326,32 @@ const handleLogout = () => {
   margin-left: 64px;
 }
 </style>
+
+
+<!-- 修改密码对话框中的表单项
+<el-form-item label="原密码" prop="password">
+  <el-input
+      v-model="passwordForm.password"
+      placeholder="请输入原密码"
+      :type="oldPasswordVisible ? 'text' : 'password'"
+  >
+    <template #suffix>
+      <el-icon class="password-eye" @click="oldPasswordVisible = !oldPasswordVisible">
+        <el-icon-view v-if="oldPasswordVisible"/>
+        <el-icon-hide v-else/>
+      </el-icon>
+    </template>
+  </el-input>
+</el-form-item>
+
+// 添加密码输入框中眼睛图标的样式
+.password-eye {
+  cursor: pointer;
+  color: #909399;
+  
+  &:hover {
+    color: #409EFF;
+  }
+} -->
+
+
