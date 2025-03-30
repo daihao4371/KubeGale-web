@@ -67,7 +67,7 @@
           {{ formatDate(scope.row.created_at) }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" fixed="right" width="250">
+      <el-table-column label="操作" fixed="right" width="300">
         <template #default="scope">
           <el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
           <el-button type="warning" size="small" @click="handleAssignRole(scope.row)">分配角色</el-button>
@@ -78,6 +78,14 @@
             @click="handleToggleStatus(scope.row)"
           >
             {{ scope.row.enable === 1 ? '禁用' : '启用' }}
+          </el-button>
+          <!-- 添加删除按钮 -->
+          <el-button 
+            type="danger" 
+            size="small" 
+            @click="handleDelete(scope.row)"
+          >
+            删除
           </el-button>
         </template>
       </el-table-column>
@@ -116,7 +124,8 @@ import {
   type ApiResponse, 
   type PageResponse, 
   disableUser,
-  enableUser 
+  enableUser,
+  deleteUser
 } from '@/api/system/userManage';
 import UserDialog from './UserDialog.vue'
 
@@ -260,6 +269,36 @@ const handleToggleStatus = (row: UserInfo) => {
     } catch (error) {
       console.error(`${action}用户失败:`, error);
       ElMessage.error(`${action}用户失败，请重试`);
+    }
+  }).catch(() => {
+    // 用户取消操作
+  });
+};
+
+// 添加删除用户函数
+const handleDelete = (row: UserInfo) => {
+  console.log('删除用户:', row);
+  
+  ElMessageBox.confirm(`确定要永久删除用户 ${row.username} 吗? 此操作不可恢复!`, '警告', {
+    confirmButtonText: '确定删除',
+    cancelButtonText: '取消',
+    type: 'warning',
+    confirmButtonClass: 'el-button--danger'
+  }).then(async () => {
+    try {
+      console.log('发送删除请求，用户ID:', row.id);
+      const response = await deleteUser(row.id);
+      console.log('删除用户响应:', response);
+      
+      if (response.data.code === 0) {
+        ElMessage.success('用户已永久删除');
+        fetchUserList(); // 刷新用户列表
+      } else {
+        ElMessage.error(response.data.msg || '删除用户失败');
+      }
+    } catch (error) {
+      console.error('删除用户失败:', error);
+      ElMessage.error('删除用户失败，请重试');
     }
   }).catch(() => {
     // 用户取消操作

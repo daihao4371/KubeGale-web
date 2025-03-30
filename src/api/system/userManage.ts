@@ -120,3 +120,15 @@ export function enableUser(userId: number) {
   });
 }
 
+// 真正删除用户
+export function deleteUser(userId: number) {
+  console.log('调用删除用户API, 用户ID:', userId);
+  return service({
+    url: `${API_URLS.deleteUser}/${userId}`,
+    method: 'delete',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+}
+

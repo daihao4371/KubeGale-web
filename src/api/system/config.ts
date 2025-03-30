@@ -14,6 +14,6 @@ export const API_URLS = {
   updateUser: '/api/user/profile/update', // 添加更新用户接口
   disableUser: '/api/user', // 禁用用户接口
   enableUser: '/api/user/enable', // 启用用户接口
-  deleteUser: '/api/user', // 确保这个路径正确
+  deleteUser: '/api/user', // 真正删除用户接口
   // 可以添加更多API路径...
 }
