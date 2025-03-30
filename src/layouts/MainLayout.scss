@@ -1,0 +1,190 @@
+.main-layout {
+  height: 100vh;
+  display: flex;
+
+  .aside {
+    background-color: #1e1e1e;
+    transition: width 0.3s;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+
+    .logo {
+      height: 50px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      background-color: #1e1e1e;
+      overflow: hidden; // 防止图片溢出
+      
+      // 修改 Logo 图片样式
+      .logo-image {
+        height: 32px;
+        width: 32px;
+        object-fit: contain; // 确保图片完整显示
+        margin-right: 8px;
+      }
+
+      h2 {
+        color: #fff;
+        margin: 0;
+        font-size: 18px;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+    }
+
+    // 添加用户信息样式
+    .user-profile {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      border-bottom: 1px solid #2c2c2c;
+      margin-bottom: 10px;
+      
+      .username {
+        color: #bfcbd9;
+        margin-left: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .el-menu {
+      border-right: none;
+      height: calc(100vh - 120px); // 调整高度以适应新增的用户信息区域
+      overflow-y: auto;
+      padding-bottom: 50px; // 为底部的退出登录按钮留出空间
+
+      // 添加菜单项选中时的样式
+      :deep(.el-menu-item.is-active) {
+        background-color: transparent !important;
+        color: #409eff !important;
+        font-weight: bold;
+
+        // 添加左侧边框标识选中状态
+        &::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 3px;
+          background-color: #409eff;
+        }
+      }
+
+      // 子菜单项选中样式
+      :deep(.el-sub-menu.is-active .el-sub-menu__title) {
+        color: #409eff !important;
+      }
+      
+      // 添加子菜单缩进样式
+      :deep(.el-sub-menu .el-menu-item) {
+        padding-left: 54px !important;
+        min-width: 200px;
+        
+        &::before {
+          left: 0;
+        }
+      }
+      
+      // 确保子菜单背景色一致
+      :deep(.el-menu--inline) {
+        background-color: #1a1a1a !important;
+      }
+      
+      // 子菜单悬停效果
+      :deep(.el-menu-item:hover) {
+        background-color: #2c2c2c !important;
+      }
+      
+      // 子菜单标题样式
+      :deep(.el-sub-menu__title) {
+        &:hover {
+          background-color: #2c2c2c !important;
+        }
+      }
+      
+      // 退出登录菜单项样式
+      .logout-item {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        border-top: 1px solid #2c2c2c;
+      }
+    }
+  }
+
+  .header {
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+    height: 50px; // 减小头部高度
+    padding: 0 16px; // 调整内边距
+
+    .collapse-btn {
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      
+      .action-icon {
+        font-size: 18px;
+        cursor: pointer;
+        margin-left: 16px;
+        
+        &:hover {
+          color: #409EFF;
+        }
+      }
+    }
+  }
+}
+
+.el-container {
+  width: 100%;
+
+  .el-main {
+    margin-left: 220px;
+    transition: margin-left 0.3s;
+    padding: 0; // 移除内边距
+
+    &.collapsed {
+      margin-left: 64px;
+    }
+  }
+  
+  // 修改面包屑样式
+  :deep(.breadcrumb-container) {
+    margin-left: 220px;
+    transition: margin-left 0.3s;
+    padding: 0;
+    
+    &.collapsed {
+      margin-left: 64px;
+    }
+  }
+}
+
+.is-collapse .el-main {
+  margin-left: 64px;
+}
+
+// 添加密码输入框中眼睛图标的样式
+.password-eye {
+  cursor: pointer;
+  color: #909399;
+  
+  &:hover {
+    color: #409EFF;
+  }
+}

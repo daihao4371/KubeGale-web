@@ -3,8 +3,17 @@
     <el-container>
       <el-aside width="220px" class="aside">
         <div class="logo">
-          <h2>KubeGale</h2>
+          <!-- 添加 Logo 图片 -->
+          <img src="@/assets/kubegale.png" alt="KubeGale Logo" class="logo-image" />
+          <h2 v-if="!isCollapse">KubeGale</h2>
         </div>
+        
+        <!-- 添加用户信息到菜单顶部 -->
+        <div class="user-profile">
+          <el-avatar size="small">管</el-avatar>
+          <span class="username" v-if="!isCollapse">管理员</span>
+        </div>
+        
         <el-menu
           :default-active="activeMenu"
           class="el-menu-vertical"
@@ -14,38 +23,64 @@
           :collapse="isCollapse"
           router
         >
+          <!-- 仪表盘菜单项 -->
           <el-menu-item index="/dashboard">
             <el-icon><el-icon-odometer /></el-icon>
             <span>仪表盘</span>
           </el-menu-item>
-          <!-- 系统管理移到第二位 -->
+          
+          <!-- 系统管理菜单项 -->
           <el-sub-menu index="/system">
             <template #title>
               <el-icon><el-icon-setting /></el-icon>
               <span>系统管理</span>
             </template>
-            <el-menu-item index="/system/users">用户管理</el-menu-item>
-            <el-menu-item index="/system/roles">角色管理</el-menu-item>
-            <el-menu-item index="/system/permissions">权限管理</el-menu-item>
+            <el-menu-item index="/system/users">
+              <el-icon><el-icon-user /></el-icon>
+              <span>用户管理</span>
+            </el-menu-item>
+            <el-menu-item index="/system/roles">
+              <el-icon><el-icon-key /></el-icon>
+              <span>角色管理</span>
+            </el-menu-item>
+            <el-menu-item index="/system/permissions">
+              <el-icon><el-icon-lock /></el-icon>
+              <span>权限管理</span>
+            </el-menu-item>
           </el-sub-menu>
+          
+          <!-- CMDB配置管理菜单项 -->
           <el-menu-item index="/cmdb">
             <el-icon><el-icon-files /></el-icon>
             <span>CMDB配置管理</span>
           </el-menu-item>
+          
+          <!-- Kubernetes管理菜单项 -->
           <el-menu-item index="/kubernetes">
             <el-icon><el-icon-connection /></el-icon>
             <span>Kubernetes管理</span>
           </el-menu-item>
+          
+          <!-- Prometheus监控菜单项 -->
           <el-menu-item index="/prometheus">
             <el-icon><el-icon-data-line /></el-icon>
             <span>Prometheus监控</span>
           </el-menu-item>
+          
+          <!-- CICD管理菜单项 -->
           <el-menu-item index="/cicd">
             <el-icon><el-icon-finished /></el-icon>
             <span>CICD管理</span>
           </el-menu-item>
+          
+          <!-- 退出登录菜单项 -->
+          <el-menu-item @click="handleLogout" class="logout-item">
+            <el-icon><el-icon-switch-button /></el-icon>
+            <span>退出登录</span>
+          </el-menu-item>
         </el-menu>
       </el-aside>
+      
       <el-container>
         <el-header class="header">
           <div class="header-left">
@@ -56,93 +91,34 @@
           </div>
           <div class="header-right">
             <el-dropdown @command="handleCommand">
-              <span class="user-info">
-                管理员 <el-icon><el-icon-arrow-down /></el-icon>
+              <span class="action-icon">
+                <el-icon><el-icon-setting /></el-icon>
               </span>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="profile">个人信息</el-dropdown-item>
                   <el-dropdown-item command="password">修改密码</el-dropdown-item>
-                  <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
           </div>
         </el-header>
+        
+        <!-- 添加面包屑导航 -->
+        <Breadcrumb :class="{ collapsed: isCollapse }" />
+        
         <el-main :class="{ collapsed: isCollapse }">
           <router-view />
         </el-main>
       </el-container>
     </el-container>
     
-    <!-- 添加修改密码对话框 -->
-    <el-dialog
-      v-model="passwordDialogVisible"
-      title="修改密码"
-      width="500px"
-      :close-on-click-modal="false"
-    >
-      <el-form
-        :model="passwordForm"
-        :rules="passwordRules"
-        ref="passwordFormRef"
-        label-width="100px"
-      >
-        <el-form-item label="原密码" prop="password">
-          <el-input
-            v-model="passwordForm.password"
-            placeholder="请输入原密码"
-            :type="oldPasswordVisible ? 'text' : 'password'"
-          >
-            <template #suffix>
-              <el-icon class="password-eye" @click="oldPasswordVisible = !oldPasswordVisible">
-                <el-icon-view v-if="oldPasswordVisible"/>
-                <el-icon-hide v-else/>
-              </el-icon>
-            </template>
-          </el-input>
-        </el-form-item>
-        
-        <el-form-item label="新密码" prop="newPassword">
-          <el-input
-            v-model="passwordForm.newPassword"
-            placeholder="请输入新密码"
-            :type="newPasswordVisible ? 'text' : 'password'"
-          >
-            <template #suffix>
-              <el-icon class="password-eye" @click="newPasswordVisible = !newPasswordVisible">
-                <el-icon-view v-if="newPasswordVisible"/>
-                <el-icon-hide v-else/>
-              </el-icon>
-            </template>
-          </el-input>
-        </el-form-item>
-        
-        <el-form-item label="确认新密码" prop="confirmPassword">
-          <el-input
-            v-model="passwordForm.confirmPassword"
-            placeholder="请再次输入新密码"
-            :type="confirmPasswordVisible ? 'text' : 'password'"
-          >
-            <template #suffix>
-              <el-icon class="password-eye" @click="confirmPasswordVisible = !confirmPasswordVisible">
-                <el-icon-view v-if="confirmPasswordVisible"/>
-                <el-icon-hide v-else/>
-              </el-icon>
-            </template>
-          </el-input>
-        </el-form-item>
-      </el-form>
-      
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="passwordDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitChangePassword" :loading="passwordLoading">
-            确认
-          </el-button>
-        </span>
-      </template>
-    </el-dialog>
+    <!-- 使用密码对话框组件 -->
+    <PasswordDialog 
+      v-model:visible="passwordDialogVisible"
+      :loading="passwordLoading"
+      @submit="submitChangePassword"
+    />
   </div>
 </template>
 
@@ -154,20 +130,32 @@ import { logout } from '@/api/user'
 import { removeToken } from '@/utils/auth'
 // 导入修改密码相关功能
 import { usePasswordDialog } from '@/api/system/usePasswordDialog'
-import { View as ElIconView, Hide as ElIconHide } from '@element-plus/icons-vue'
+// 导入组件
+import Breadcrumb from '@/components/layout/Breadcrumb.vue'
+// 修改导入路径
+import PasswordDialog from '@/pages/system/PasswordDialog.vue'
+// 导入需要的图标组件
+import {
+  Odometer as ElIconOdometer,
+  Setting as ElIconSetting,
+  Files as ElIconFiles,
+  Connection as ElIconConnection,
+  DataLine as ElIconDataLine,
+  Finished as ElIconFinished,
+  Fold as ElIconFold,
+  Expand as ElIconExpand,
+  ArrowDown as ElIconArrowDown,
+  User as ElIconUser,
+  Key as ElIconKey,
+  Lock as ElIconLock,
+  SwitchButton as ElIconSwitchButton
+} from '@element-plus/icons-vue'
 
 // 初始化修改密码相关功能
 const {
   passwordDialogVisible,
   passwordLoading,
-  passwordFormRef,
-  oldPasswordVisible,
-  newPasswordVisible,
-  confirmPasswordVisible,
-  passwordForm,
-  passwordRules,
   openPasswordDialog,
-  resetPasswordForm,
   submitChangePassword
 } = usePasswordDialog()
 
@@ -227,131 +215,10 @@ const handleLogout = () => {
     // 用户取消操作
   })
 }
-
-
-
 </script>
 
 <style lang="scss" scoped>
-.main-layout {
-  height: 100vh;
-  display: flex;
-
-  .aside {
-    background-color: #1e1e1e;
-    transition: width 0.3s;
-    height: 100vh;
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 1000;
-
-    .logo {
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #1e1e1e;
-
-      h2 {
-        color: #fff;
-        margin: 0;
-      }
-    }
-
-    .el-menu {
-      border-right: none;
-      height: calc(100vh - 60px);
-      overflow-y: auto;
-
-      // 添加菜单项选中时的样式
-      :deep(.el-menu-item.is-active) {
-        background-color: transparent !important;
-        color: #409eff !important;
-        font-weight: bold;
-
-        // 添加左侧边框标识选中状态
-        &::before {
-          content: '';
-          position: absolute;
-          left: 0;
-          top: 0;
-          bottom: 0;
-          width: 3px;
-          background-color: #409eff;
-        }
-      }
-
-      // 子菜单项选中样式
-      :deep(.el-sub-menu.is-active .el-sub-menu__title) {
-        color: #409eff !important;
-      }
-    }
-  }
-
-  .header {
-    background-color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
-
-    .collapse-btn {
-      font-size: 20px;
-      cursor: pointer;
-    }
-
-    .user-info {
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-    }
-  }
-}
-
-.el-container {
-  width: 100%;
-
-  .el-main {
-    margin-left: 220px;
-    transition: margin-left 0.3s;
-
-    &.collapsed {
-      margin-left: 64px;
-    }
-  }
-}
-
-.is-collapse .el-main {
-  margin-left: 64px;
-}
+@import './MainLayout.scss';
 </style>
-
-
-<!-- 修改密码对话框中的表单项
-<el-form-item label="原密码" prop="password">
-  <el-input
-      v-model="passwordForm.password"
-      placeholder="请输入原密码"
-      :type="oldPasswordVisible ? 'text' : 'password'"
-  >
-    <template #suffix>
-      <el-icon class="password-eye" @click="oldPasswordVisible = !oldPasswordVisible">
-        <el-icon-view v-if="oldPasswordVisible"/>
-        <el-icon-hide v-else/>
-      </el-icon>
-    </template>
-  </el-input>
-</el-form-item>
-
-// 添加密码输入框中眼睛图标的样式
-.password-eye {
-  cursor: pointer;
-  color: #909399;
-  
-  &:hover {
-    color: #409EFF;
-  }
-} -->
 
 
