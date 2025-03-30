@@ -71,7 +71,14 @@
         <template #default="scope">
           <el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
           <el-button type="warning" size="small" @click="handleAssignRole(scope.row)">分配角色</el-button>
-          <el-button type="danger" size="small" @click="handleDelete(scope.row)">删除</el-button>
+          <!-- 根据用户当前状态显示不同的按钮 -->
+          <el-button 
+            :type="scope.row.enable === 1 ? 'danger' : 'success'" 
+            size="small" 
+            @click="handleToggleStatus(scope.row)"
+          >
+            {{ scope.row.enable === 1 ? '禁用' : '启用' }}
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -103,7 +110,14 @@
 <script lang="ts" setup name="SystemUsers">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getUserList, type UserInfo, type ApiResponse, type PageResponse } from '@/api/system/userManage'
+import { 
+  getUserList, 
+  type UserInfo, 
+  type ApiResponse, 
+  type PageResponse, 
+  disableUser,
+  enableUser 
+} from '@/api/system/userManage';
 import UserDialog from './UserDialog.vue'
 
 // 搜索表单
@@ -212,19 +226,45 @@ const handleAssignRole = (row: UserInfo) => {
   ElMessage.info('分配角色功能开发中')
 }
 
-// 删除用户
-const handleDelete = (row: UserInfo) => {
-  console.log('删除用户:', row)
-  ElMessageBox.confirm(`确定要删除用户 ${row.username} 吗?`, '提示', {
+// 修改用户状态切换函数
+const handleToggleStatus = (row: UserInfo) => {
+  const action = row.enable === 1 ? '禁用' : '启用';
+  console.log(`${action}用户:`, row);
+  
+  ElMessageBox.confirm(`确定要${action}用户 ${row.username} 吗?`, '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
-    ElMessage.info('删除用户功能开发中')
+  }).then(async () => {
+    try {
+      // 根据当前状态调用不同的API
+      let response;
+      if (row.enable === 1) {
+        // 当前为启用状态，调用禁用接口
+        console.log('发送禁用请求，用户ID:', row.id);
+        response = await disableUser(row.id);
+      } else {
+        // 当前为禁用状态，调用启用接口
+        console.log('发送启用请求，用户ID:', row.id);
+        response = await enableUser(row.id);
+      }
+      
+      console.log('用户状态切换响应:', response);
+      
+      if (response.data.code === 0) {
+        ElMessage.success(`${action}用户成功`);
+        fetchUserList(); // 刷新用户列表
+      } else {
+        ElMessage.error(response.data.msg || `${action}用户失败`);
+      }
+    } catch (error) {
+      console.error(`${action}用户失败:`, error);
+      ElMessage.error(`${action}用户失败，请重试`);
+    }
   }).catch(() => {
     // 用户取消操作
-  })
-}
+  });
+};
 
 // 用户对话框成功回调
 const handleUserDialogSuccess = () => {

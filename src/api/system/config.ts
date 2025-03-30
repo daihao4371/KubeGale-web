@@ -12,5 +12,8 @@ export const API_URLS = {
   createUser: '/api/user/create', // 添加创建用户接口
   signup: '/api/user/signup', // 添加用户注册接口
   updateUser: '/api/user/profile/update', // 添加更新用户接口
+  disableUser: '/api/user', // 禁用用户接口
+  enableUser: '/api/user/enable', // 启用用户接口
+  deleteUser: '/api/user', // 确保这个路径正确
   // 可以添加更多API路径...
 }

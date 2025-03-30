@@ -93,3 +93,30 @@ export function updateUser(data: UpdateUserParams) {
   })
 }
 
+// 删除用户
+// 将deleteUser函数改名为toggleUserStatus，更符合实际功能
+// 将toggleUserStatus函数拆分为两个独立函数
+// 禁用用户
+export function disableUser(userId: number) {
+  console.log('调用禁用用户API, 用户ID:', userId);
+  return service({
+    url: `${API_URLS.disableUser}/${userId}`,
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+}
+
+// 启用用户
+export function enableUser(userId: number) {
+  console.log('调用启用用户API, 用户ID:', userId);
+  return service({
+    url: `${API_URLS.enableUser}/${userId}`,
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+}
+
