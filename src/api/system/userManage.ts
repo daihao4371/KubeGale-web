@@ -47,3 +47,26 @@ export function getUserList(params: UserListParams) {
     params
   })
 }
+
+// 在现有代码基础上添加创建用户的接口
+
+// 创建用户参数类型
+export interface CreateUserParams {
+  username: string;
+  password: string;
+  confirmPassword: string;
+  realName: string;
+  mobile?: string;
+  feiShuUserId?: string;
+  homePath?: string;
+  description?: string;
+}
+
+// 创建用户
+export function signup(data: CreateUserParams) {
+  return service({
+    url: API_URLS.signup,
+    method: 'post',
+    data
+  })
+}

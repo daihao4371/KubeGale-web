@@ -9,5 +9,7 @@ export const API_URLS = {
   
   // 用户管理相关接口
   getUserList: '/api/user/list', // 获取用户列表
+  createUser: '/api/user/create', // 添加创建用户接口
+  signup: '/api/user/signup', // 添加用户注册接口
   // 可以添加更多API路径...
 }

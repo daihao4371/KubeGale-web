@@ -34,6 +34,7 @@
       border
       style="width: 100%"
     >
+      <!-- 表格列保持不变 -->
       <el-table-column prop="id" label="用户ID" width="80" />
       <el-table-column prop="username" label="用户名" width="120" />
       <el-table-column prop="realName" label="真实姓名" width="120" />
@@ -87,6 +88,15 @@
         @current-change="handleCurrentChange"
       />
     </div>
+    
+    <!-- 添加用户对话框 -->
+    <UserDialog
+      v-model:visible="userDialogVisible"
+      :loading="userDialogLoading"
+      :is-edit="isEdit"
+      :user-data="currentUser"
+      @success="handleUserDialogSuccess"
+    />
   </div>
 </template>
 
@@ -94,6 +104,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getUserList, type UserInfo, type ApiResponse, type PageResponse } from '@/api/system/userManage'
+import UserDialog from './UserDialog.vue'
 
 // 搜索表单
 const searchForm = reactive({
@@ -112,6 +123,12 @@ const pagination = reactive({
   pageSize: 10,
   total: 0
 })
+
+// 用户对话框控制
+const userDialogVisible = ref(false)
+const userDialogLoading = ref(false)
+const isEdit = ref(false)
+const currentUser = ref<Partial<UserInfo>>({})
 
 // 获取用户列表
 const fetchUserList = async () => {
@@ -176,13 +193,17 @@ const handleCurrentChange = (page: number) => {
 
 // 添加用户
 const handleAdd = () => {
-  ElMessage.info('添加用户功能开发中')
+  isEdit.value = false
+  currentUser.value = {}
+  userDialogVisible.value = true
 }
 
 // 编辑用户
 const handleEdit = (row: UserInfo) => {
   console.log('编辑用户:', row)
-  ElMessage.info('编辑用户功能开发中')
+  isEdit.value = true
+  currentUser.value = { ...row }
+  userDialogVisible.value = true
 }
 
 // 分配角色
@@ -203,6 +224,11 @@ const handleDelete = (row: UserInfo) => {
   }).catch(() => {
     // 用户取消操作
   })
+}
+
+// 用户对话框成功回调
+const handleUserDialogSuccess = () => {
+  fetchUserList() // 刷新用户列表
 }
 
 // 格式化日期
