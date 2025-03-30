@@ -70,3 +70,26 @@ export function signup(data: CreateUserParams) {
     data
   })
 }
+
+// 添加更新用户的接口
+export interface UpdateUserParams {
+  user_id: number;
+  username: string;
+  real_name: string;
+  mobile?: string;
+  fei_shu_user_id?: string;
+  desc?: string;
+  account_type?: number;
+  enable?: number;
+  // 不包含home_path字段
+}
+
+// 删除重复的函数定义，只保留一个updateUser函数
+export function updateUser(data: UpdateUserParams) {
+  return service({
+    url: API_URLS.updateUser,
+    method: 'post', // 修改为POST请求，符合后端接口要求
+    data
+  })
+}
+

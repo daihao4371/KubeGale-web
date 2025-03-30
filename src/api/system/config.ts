@@ -11,5 +11,6 @@ export const API_URLS = {
   getUserList: '/api/user/list', // 获取用户列表
   createUser: '/api/user/create', // 添加创建用户接口
   signup: '/api/user/signup', // 添加用户注册接口
+  updateUser: '/api/user/profile/update', // 添加更新用户接口
   // 可以添加更多API路径...
 }

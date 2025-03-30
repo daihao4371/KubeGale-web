@@ -76,8 +76,11 @@
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="handleCancel" :disabled="submitting">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitting">
-          确认
+        <el-button v-if="!isEdit" type="primary" @click="handleCreate" :loading="submitting">
+          创建
+        </el-button>
+        <el-button v-else type="primary" @click="handleUpdate" :loading="submitting">
+          更新
         </el-button>
       </span>
     </template>
@@ -85,11 +88,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, watch } from 'vue'
 import { View as ElIconView, Hide as ElIconHide } from '@element-plus/icons-vue'
-import type { FormInstance } from 'element-plus'
-import { ElMessage } from 'element-plus'
-import { signup } from '@/api/system/userManage'
+import { useUserDialog } from '@/api/system/useUserDialog'
 
 // 定义Props
 const props = defineProps({
@@ -114,120 +114,18 @@ const props = defineProps({
 // 定义Emits
 const emit = defineEmits(['update:visible', 'cancel', 'success'])
 
-// 表单引用
-const formRef = ref<FormInstance>()
-
-// 密码可见性
-const passwordVisible = ref(false)
-const confirmVisible = ref(false)
-
-// 提交状态
-const submitting = ref(false)
-
-// 表单数据 - 移除了homePath字段
-const form = reactive({
-  username: '',
-  password: '',
-  confirmPassword: '',
-  realName: '',
-  mobile: '',
-  feiShuUserId: '',
-  description: ''
-})
-
-// 监听userData变化，用于编辑模式
-watch(() => props.userData, (newVal) => {
-  if (newVal && Object.keys(newVal).length > 0) {
-    Object.keys(form).forEach(key => {
-      if (key !== 'password' && key !== 'confirmPassword') {
-        // @ts-ignore
-        form[key] = newVal[key] || ''
-      }
-    })
-  }
-}, { immediate: true, deep: true })
-
-// 表单验证规则
-const rules = {
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
-  ],
-  password: [
-    { required: !props.isEdit, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码长度不能小于6个字符', trigger: 'blur' }
-  ],
-  confirmPassword: [
-    { required: !props.isEdit, message: '请再次输入密码', trigger: 'blur' },
-    {
-      validator: (rule: any, value: string, callback: Function) => {
-        if (!props.isEdit && value !== form.password) {
-          callback(new Error('两次输入的密码不一致'))
-        } else {
-          callback()
-        }
-      },
-      trigger: 'blur'
-    }
-  ],
-  realName: [
-    { required: true, message: '请输入真实姓名', trigger: 'blur' }
-  ],
-  mobile: [
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
-  ]
-}
-
-// 取消
-const handleCancel = () => {
-  emit('update:visible', false)
-  emit('cancel')
-  resetForm()
-}
-
-// 提交
-const handleSubmit = async () => {
-  if (!formRef.value) return
-  
-  await formRef.value.validate(async (valid, fields) => {
-    if (valid) {
-      submitting.value = true
-      try {
-        // 创建用户
-        const response = await signup(form)
-        
-        if (response.data.code === 0) {
-          ElMessage.success('用户创建成功')
-          emit('success')
-          emit('update:visible', false)
-          resetForm()
-        } else {
-          ElMessage.error(response.data.msg || '创建用户失败')
-        }
-      } catch (error) {
-        console.error('创建用户失败:', error)
-        ElMessage.error('创建用户失败，请重试')
-      } finally {
-        submitting.value = false
-      }
-    }
-  })
-}
-
-// 重置表单
-const resetForm = () => {
-  if (formRef.value) {
-    formRef.value.resetFields()
-  }
-  
-  Object.keys(form).forEach(key => {
-    // @ts-ignore
-    form[key] = ''
-  })
-  
-  passwordVisible.value = false
-  confirmVisible.value = false
-}
+// 使用useUserDialog钩子函数
+const {
+  formRef,
+  form,
+  rules,
+  passwordVisible,
+  confirmVisible,
+  submitting,
+  handleCancel,
+  handleCreate,
+  handleUpdate
+} = useUserDialog(props, emit)
 </script>
 
 <style lang="scss" scoped>
