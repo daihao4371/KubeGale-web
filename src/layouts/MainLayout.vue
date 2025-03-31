@@ -1,11 +1,12 @@
 <template>
   <div class="main-layout" :class="{ 'is-collapse': isCollapse }">
     <el-container>
-      <el-aside width="220px" class="aside">
+      <el-aside :width="isCollapse ? '64px' : '220px'" class="aside">
         <div class="logo">
-          <!-- 添加 Logo 图片 -->
+          <!-- Logo 图片 -->
           <img src="@/assets/kubegale.png" alt="KubeGale Logo" class="logo-image" />
-          <h2 v-if="!isCollapse">KubeGale</h2>
+          <!-- 只在非折叠状态显示文字 -->
+          <h2 v-show="!isCollapse">KubeGale</h2>
         </div>
         
         <!-- 添加用户信息到菜单顶部 -->
@@ -14,6 +15,7 @@
           <span class="username" v-if="!isCollapse">管理员</span>
         </div>
         
+        <!-- 其余部分保持不变 -->
         <el-menu
           :default-active="activeMenu"
           class="el-menu-vertical"

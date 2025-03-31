@@ -10,29 +10,57 @@
     left: 0;
     top: 0;
     z-index: 1000;
+    display: flex;
+    flex-direction: column; // 使用弹性布局，便于固定顶部和底部元素
 
     .logo {
-      height: 50px;
+      height: 120px;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      padding: 0 16px;
+      justify-content: center;
+      padding: 15px 10px;
       background-color: #1e1e1e;
-      overflow: hidden; // 防止图片溢出
+      overflow: hidden;
+      margin-bottom: 10px;
+      flex-shrink: 0; // 防止Logo被压缩
       
       // 修改 Logo 图片样式
       .logo-image {
-        height: 32px;
-        width: 32px;
-        object-fit: contain; // 确保图片完整显示
-        margin-right: 8px;
+        height: 80px;
+        width: 80px;
+        object-fit: contain;
+        margin-bottom: 10px;
+        transition: all 0.3s;
+        
+        // 优化阴影效果
+        filter: drop-shadow(0 0 4px rgba(64, 158, 255, 0.7));
       }
 
       h2 {
         color: #fff;
         margin: 0;
-        font-size: 18px;
+        font-size: 22px; // 调整为更合适的大小
+        font-weight: bold;
         white-space: nowrap;
         overflow: hidden;
+        text-overflow: ellipsis; // 确保文字过长时显示省略号
+        text-shadow: 0 0 5px rgba(64, 158, 255, 0.5);
+        max-width: 100%; // 确保文字不会溢出容器
+        text-align: center; // 居中显示
+      }
+    }
+
+    // 调整折叠状态下的 Logo 样式
+    &:deep(.el-menu--collapse) + .logo {
+      .logo-image {
+        height: 50px;
+        width: 50px;
+        margin-bottom: 0;
+      }
+      
+      h2 {
+        display: none; // 确保折叠时不显示文字
       }
     }
 
@@ -43,6 +71,7 @@
       padding: 10px 16px;
       border-bottom: 1px solid #2c2c2c;
       margin-bottom: 10px;
+      flex-shrink: 0; // 防止用户信息被压缩
       
       .username {
         color: #bfcbd9;
@@ -55,9 +84,9 @@
 
     .el-menu {
       border-right: none;
-      height: calc(100vh - 120px); // 调整高度以适应新增的用户信息区域
+      height: calc(100vh - 180px); // 调整高度，为底部的退出登录按钮留出空间
       overflow-y: auto;
-      padding-bottom: 50px; // 为底部的退出登录按钮留出空间
+      position: relative; // 确保相对定位，作为退出按钮的参考
 
       // 添加菜单项选中时的样式
       :deep(.el-menu-item.is-active) {
@@ -111,10 +140,24 @@
       
       // 退出登录菜单项样式
       .logout-item {
-        position: absolute;
+        position: fixed;
         bottom: 0;
-        width: 100%;
+        width: 220px;
         border-top: 1px solid #2c2c2c;
+        background-color: #1e1e1e;
+        z-index: 10;
+        transition: width 0.3s;
+      }
+    }
+  }
+
+  // 折叠状态下调整退出按钮宽度
+  &.is-collapse {
+    .aside {
+      .el-menu {
+        .logout-item {
+          width: 64px; // 折叠状态下的宽度
+        }
       }
     }
   }
