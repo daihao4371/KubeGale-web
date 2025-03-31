@@ -106,8 +106,16 @@
           </div>
         </el-header>
         
-        <!-- 添加面包屑导航 -->
-        <Breadcrumb :class="{ collapsed: isCollapse }" />
+        <!-- 添加面包屑导航，并在其中添加折叠按钮 -->
+        <Breadcrumb :class="{ collapsed: isCollapse }">
+          <!-- 在面包屑组件内添加折叠按钮插槽 -->
+          <template #prefix>
+            <el-icon class="collapse-btn" @click="toggleSidebar">
+              <el-icon-fold v-if="!isCollapse" />
+              <el-icon-expand v-else />
+            </el-icon>
+          </template>
+        </Breadcrumb>
         
         <el-main :class="{ collapsed: isCollapse }">
           <router-view />
