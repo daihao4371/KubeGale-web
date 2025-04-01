@@ -19,6 +19,8 @@ export const API_URLS = {
   // 角色管理相关接口
   getRoleList: '/api/roles/list', // 获取角色列表
   createRole: '/api/roles/create', // 创建角色
+  updateRole: '/api/roles/update', // 更新角色
+  deleteRole: '/api/roles', // 删除角色 - 这里可能有问题
   
   // 可以添加更多API路径...
 }

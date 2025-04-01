@@ -35,15 +35,6 @@ export interface ApiResponse<T> {
   msg: string;
 }
 
-// 创建角色参数类型
-export interface CreateRoleParams {
-  name: string;
-  description: string;
-  role_type: number;
-  is_default: number;
-  apis?: number[]; // API权限ID列表，可选
-}
-
 // 获取角色列表
 export function getRoleList(params: RoleListParams) {
   return service({
@@ -51,6 +42,25 @@ export function getRoleList(params: RoleListParams) {
     method: 'post',
     data: params
   })
+}
+
+// 更新角色参数类型
+export interface UpdateRoleParams {
+  id: number;
+  name: string;
+  description: string;
+  role_type: number;
+  is_default: 0 | 1; // 是否默认角色
+  apis?: number[]; // API权限ID列表，可选
+}
+
+// 创建角色参数类型
+export interface CreateRoleParams {
+  name: string;
+  description: string;
+  role_type: number;
+  is_default: 0 | 1; // 修改为更精确的类型
+  apis?: number[]; // API权限ID列表，可选
 }
 
 // 创建角色
@@ -62,11 +72,19 @@ export function createRole(data: CreateRoleParams) {
   })
 }
 
-// 更新角色参数类型
-export interface UpdateRoleParams {
-  id: number;
-  name: string;
-  description: string;
-  role_type: number;
-  is_default: number;
+// 更新角色
+export function updateRole(data: UpdateRoleParams) {
+  return service({
+    url: API_URLS.updateRole,
+    method: 'post',
+    data
+  })
+}
+
+// 删除角色
+export function deleteRole(id: number) {
+  return service({
+    url: `${API_URLS.deleteRole}/${id}`,
+    method: 'delete'
+  })
 }

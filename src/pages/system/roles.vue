@@ -106,12 +106,14 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
-  getRoleList, 
+  getRoleList,
+  updateRole,
   type RoleInfo, 
   type ApiResponse, 
   type PageResponse 
 } from '@/api/system/roleManage'
 import RoleDialog from './RoleDialog.vue'
+import service from '@/api/system/service'
 
 // 搜索表单
 const searchForm = reactive({
@@ -238,21 +240,73 @@ const handleDelete = (row: RoleInfo) => {
     confirmButtonText: '确定删除',
     cancelButtonText: '取消',
     type: 'warning',
-  }).then(() => {
-    // 删除后重新获取列表
-    ElMessage.success(`删除角色 ${row.name} 成功`)
-    fetchRoleList()
+  }).then(async () => {
+    try {
+      loading.value = true
+      // 添加日志，帮助调试
+      console.log(`准备删除角色，ID: ${row.id}，名称: ${row.name}`)
+      
+      // 直接使用 service 发起请求，避免可能的导入问题
+      const response = await service({
+        url: `/api/roles/${row.id}`,
+        method: 'delete'
+      })
+      console.log('删除角色响应:', response.data)
+      
+      const apiResponse = response.data as ApiResponse<any>
+      
+      if (apiResponse.code === 0) {
+        ElMessage.success(`删除角色 ${row.name} 成功`)
+        // 重新获取列表数据
+        fetchRoleList()
+      } else {
+        ElMessage.error(apiResponse.msg || '删除角色失败')
+      }
+    } catch (error) {
+      console.error('删除角色失败:', error)
+      ElMessage.error('删除角色失败，请重试')
+    } finally {
+      loading.value = false
+    }
   }).catch(() => {
     // 用户取消操作
+    console.log('用户取消删除操作')
   })
 }
 
 // 修改默认角色状态
-const handleDefaultChange = (row: RoleInfo) => {
+const handleDefaultChange = async (row: RoleInfo) => {
   console.log('修改默认角色状态:', row)
-  // 修改后重新获取列表
-  ElMessage.success(`${row.is_default === 1 ? '设置' : '取消'}默认角色成功`)
-  fetchRoleList()
+  
+  try {
+    // 准备更新数据
+    const updateData = {
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      role_type: row.role_type,
+      is_default: row.is_default
+    }
+    
+    // 调用更新接口
+    const response = await updateRole(updateData)
+    console.log('更新默认角色响应:', response.data)
+    
+    if (response.data.code === 0) {
+      ElMessage.success(`${row.is_default === 1 ? '设置' : '取消'}默认角色成功`)
+      // 重新获取列表数据
+      fetchRoleList()
+    } else {
+      // 如果失败，恢复原状态
+      row.is_default = row.is_default === 1 ? 0 : 1
+      ElMessage.error(response.data.msg || '操作失败')
+    }
+  } catch (error) {
+    // 发生错误时恢复原状态
+    row.is_default = row.is_default === 1 ? 0 : 1
+    console.error('修改默认角色失败:', error)
+    ElMessage.error('修改默认角色失败，请重试')
+  }
 }
 
 // 组件挂载时加载数据

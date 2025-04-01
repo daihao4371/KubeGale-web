@@ -67,7 +67,7 @@ import { ref, reactive, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { RoleInfo } from '@/api/system/roleManage'
-import { createRole } from '@/api/system/roleManage'
+import { createRole, updateRole } from '@/api/system/roleManage'
 
 // 定义Props
 const props = defineProps({
@@ -234,29 +234,27 @@ const handleSubmit = async () => {
           Object.assign(submitData, { id: form.id })
         }
         
-        // 创建角色
+        let response;
+        // 创建或更新角色
         if (!props.isEdit) {
-          const response = await createRole(submitData)
+          response = await createRole(submitData)
           console.log('创建角色响应:', response.data)
-          
-          if (response.data.code === 0) {
-            ElMessage.success('角色创建成功')
-          } else {
-            ElMessage.error(response.data.msg || '创建角色失败')
-            return
-          }
         } else {
-          // 编辑角色逻辑将在后续实现
-          console.log('编辑角色数据:', submitData)
-          ElMessage.success('角色更新成功')
+          response = await updateRole(submitData)
+          console.log('更新角色响应:', response.data)
         }
         
-        // 提交表单数据到父组件
-        emit('submit', submitData)
-        
-        // 关闭对话框
-        emit('update:visible', false)
-        
+        if (response.data.code === 0) {
+          ElMessage.success(props.isEdit ? '角色更新成功' : '角色创建成功')
+          
+          // 提交表单数据到父组件
+          emit('submit', submitData)
+          
+          // 关闭对话框
+          emit('update:visible', false)
+        } else {
+          ElMessage.error(response.data.msg || (props.isEdit ? '更新角色失败' : '创建角色失败'))
+        }
       } catch (error) {
         console.error('提交角色表单失败:', error)
         ElMessage.error('操作失败，请重试')
