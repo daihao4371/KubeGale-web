@@ -1,9 +1,12 @@
+import service from './service'
+import { API_URLS } from './config'
+
 // 角色信息类型定义
 export interface RoleInfo {
   id: number;
   name: string;
   description: string;
-  role_type: number; // 1: 系统角色, 2: 自定义角色
+  role_type: number; // 1: 普通用户, 2: 管理员
   is_default: number; // 0: 否, 1: 是
   create_time: number;
   update_time: number;
@@ -19,12 +22,44 @@ export interface RoleListParams {
   role_type?: number;
 }
 
+// 分页响应类型
+export interface PageResponse<T> {
+  list: T[];
+  total: number;
+}
+
+// API响应类型
+export interface ApiResponse<T> {
+  code: number;
+  data: T;
+  msg: string;
+}
+
 // 创建角色参数类型
 export interface CreateRoleParams {
   name: string;
   description: string;
   role_type: number;
   is_default: number;
+  apis?: number[]; // API权限ID列表，可选
+}
+
+// 获取角色列表
+export function getRoleList(params: RoleListParams) {
+  return service({
+    url: API_URLS.getRoleList,
+    method: 'post',
+    data: params
+  })
+}
+
+// 创建角色
+export function createRole(data: CreateRoleParams) {
+  return service({
+    url: API_URLS.createRole,
+    method: 'post',
+    data
+  })
 }
 
 // 更新角色参数类型

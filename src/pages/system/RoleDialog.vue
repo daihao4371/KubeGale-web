@@ -67,6 +67,7 @@ import { ref, reactive, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { RoleInfo } from '@/api/system/roleManage'
+import { createRole } from '@/api/system/roleManage'
 
 // 定义Props
 const props = defineProps({
@@ -99,9 +100,9 @@ const form = reactive({
   id: 0,
   name: '',
   description: '',
-  role_type: 2, // 默认为自定义角色
-  is_default: 0,
-  apis: [] as number[] // 选中的API ID列表
+  role_type: 2, // 默认为管理员
+  is_default: 0, // 默认不是默认角色
+  apis: [] as number[]
 })
 
 // 表单验证规则
@@ -168,14 +169,6 @@ const resetForm = () => {
   
   // 重置API树选择
   if (apiTreeRef.value) {
-    apiTreeRef.value.setCheckedKeys([])
-  }
-}
-
-// 处理API选择变化
-const handleApiCheck = () => {
-  if (apiTreeRef.value) {
-    // 获取选中的节点ID
     form.apis = apiTreeRef.value.getCheckedKeys()
   }
 }
@@ -227,17 +220,43 @@ const handleSubmit = async () => {
           form.apis = apiTreeRef.value.getCheckedKeys()
         }
         
-        // 提交表单数据
-        emit('submit', { ...form })
+        // 准备提交的数据
+        const submitData = {
+          name: form.name,
+          description: form.description,
+          role_type: form.role_type,
+          is_default: form.is_default,
+          apis: form.apis
+        }
+        
+        // 如果是编辑模式，添加ID
+        if (props.isEdit) {
+          Object.assign(submitData, { id: form.id })
+        }
+        
+        // 创建角色
+        if (!props.isEdit) {
+          const response = await createRole(submitData)
+          console.log('创建角色响应:', response.data)
+          
+          if (response.data.code === 0) {
+            ElMessage.success('角色创建成功')
+          } else {
+            ElMessage.error(response.data.msg || '创建角色失败')
+            return
+          }
+        } else {
+          // 编辑角色逻辑将在后续实现
+          console.log('编辑角色数据:', submitData)
+          ElMessage.success('角色更新成功')
+        }
+        
+        // 提交表单数据到父组件
+        emit('submit', submitData)
         
         // 关闭对话框
         emit('update:visible', false)
         
-        // 重置表单
-        resetForm()
-        
-        // 显示成功消息
-        ElMessage.success(props.isEdit ? '角色更新成功' : '角色创建成功')
       } catch (error) {
         console.error('提交角色表单失败:', error)
         ElMessage.error('操作失败，请重试')
@@ -246,6 +265,13 @@ const handleSubmit = async () => {
       }
     }
   })
+}
+
+// API树节点选择变化处理
+const handleApiCheck = () => {
+  if (apiTreeRef.value) {
+    form.apis = apiTreeRef.value.getCheckedKeys()
+  }
 }
 </script>
 

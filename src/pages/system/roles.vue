@@ -105,7 +105,12 @@
 <script lang="ts" setup name="SystemRoles">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import type { RoleInfo } from '@/api/system/roleManage'
+import { 
+  getRoleList, 
+  type RoleInfo, 
+  type ApiResponse, 
+  type PageResponse 
+} from '@/api/system/roleManage'
 import RoleDialog from './RoleDialog.vue'
 
 // 搜索表单
@@ -114,52 +119,52 @@ const searchForm = reactive({
   role_type: undefined as number | undefined
 })
 
-// 角色列表数据 - 模拟数据
-const roleList = ref<RoleInfo[]>([
-  {
-    id: 1,
-    name: '超级管理员',
-    description: '系统最高权限角色，拥有所有权限',
-    role_type: 1,
-    is_default: 0,
-    create_time: Date.now() - 86400000 * 30,
-    update_time: Date.now() - 86400000 * 10,
-    is_deleted: 0
-  },
-  {
-    id: 2,
-    name: '普通用户',
-    description: '普通用户角色，拥有基本操作权限',
-    role_type: 1,
-    is_default: 1,
-    create_time: Date.now() - 86400000 * 20,
-    update_time: Date.now() - 86400000 * 5,
-    is_deleted: 0
-  },
-  {
-    id: 3,
-    name: '开发人员',
-    description: '开发人员角色，拥有开发相关权限',
-    role_type: 2,
-    is_default: 0,
-    create_time: Date.now() - 86400000 * 10,
-    update_time: Date.now() - 86400000 * 2,
-    is_deleted: 0
-  }
-])
-
+// 角色列表数据
+const roleList = ref<RoleInfo[]>([])
 const loading = ref(false)
 
 // 分页信息
 const pagination = reactive({
   page: 1,
   pageSize: 10,
-  total: 3 // 模拟数据总数
+  total: 0
 })
+
+// 获取角色列表
+const fetchRoleList = async () => {
+  loading.value = true
+  try {
+    const params = {
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      name: searchForm.name || undefined,
+      role_type: searchForm.role_type
+    }
+    
+    const response = await getRoleList(params)
+    console.log('角色列表响应:', response.data)
+    
+    // 处理响应数据
+    const apiResponse = response.data as ApiResponse<PageResponse<RoleInfo>>
+    
+    if (apiResponse.code === 0 && apiResponse.data) {
+      roleList.value = apiResponse.data.list
+      pagination.total = apiResponse.data.total
+      console.log('角色列表数据:', roleList.value)
+    } else {
+      ElMessage.error(apiResponse.msg || '获取角色列表失败')
+    }
+  } catch (error) {
+    console.error('获取角色列表失败:', error)
+    ElMessage.error('获取角色列表失败，请重试')
+  } finally {
+    loading.value = false
+  }
+}
 
 // 格式化日期
 const formatDate = (timestamp: number) => {
-  const date = new Date(timestamp)
+  const date = new Date(timestamp * 1000) // 转换为毫秒
   return date.toLocaleString('zh-CN', {
     year: 'numeric',
     month: '2-digit',
@@ -173,8 +178,7 @@ const formatDate = (timestamp: number) => {
 // 搜索
 const handleSearch = () => {
   pagination.page = 1 // 重置到第一页
-  // 模拟搜索功能
-  ElMessage.success('搜索功能开发中')
+  fetchRoleList()
 }
 
 // 重置搜索
@@ -185,22 +189,19 @@ const resetSearch = () => {
   
   // 重新加载数据
   pagination.page = 1
-  // 模拟重置功能
-  ElMessage.success('重置功能开发中')
+  fetchRoleList()
 }
 
 // 分页大小变化
 const handleSizeChange = (size: number) => {
   pagination.pageSize = size
-  // 模拟分页功能
-  ElMessage.success('分页大小变化功能开发中')
+  fetchRoleList()
 }
 
 // 页码变化
 const handleCurrentChange = (page: number) => {
   pagination.page = page
-  // 模拟分页功能
-  ElMessage.success('页码变化功能开发中')
+  fetchRoleList()
 }
 
 // 对话框控制
@@ -225,34 +226,8 @@ const handleEdit = (row: RoleInfo) => {
 // 处理角色表单提交
 const handleRoleSubmit = (formData: any) => {
   console.log('提交的角色数据:', formData)
-  
-  // 模拟提交成功后刷新列表
-  if (isEdit.value) {
-    // 更新现有角色
-    const index = roleList.value.findIndex(item => item.id === formData.id)
-    if (index !== -1) {
-      roleList.value[index] = {
-        ...roleList.value[index],
-        ...formData,
-        update_time: Date.now()
-      }
-    }
-  } else {
-    // 添加新角色
-    const newRole: RoleInfo = {
-      id: roleList.value.length + 1,
-      name: formData.name,
-      description: formData.description,
-      role_type: formData.role_type,
-      is_default: formData.is_default,
-      create_time: Date.now(),
-      update_time: Date.now(),
-      is_deleted: 0,
-      apis: formData.apis.map((id: number) => ({ id }))
-    }
-    roleList.value.push(newRole)
-    pagination.total += 1
-  }
+  // 提交后重新获取列表数据
+  fetchRoleList()
 }
 
 // 删除角色
@@ -264,8 +239,9 @@ const handleDelete = (row: RoleInfo) => {
     cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
-    // 模拟删除功能
+    // 删除后重新获取列表
     ElMessage.success(`删除角色 ${row.name} 成功`)
+    fetchRoleList()
   }).catch(() => {
     // 用户取消操作
   })
@@ -274,17 +250,14 @@ const handleDelete = (row: RoleInfo) => {
 // 修改默认角色状态
 const handleDefaultChange = (row: RoleInfo) => {
   console.log('修改默认角色状态:', row)
-  // 模拟修改默认角色功能
+  // 修改后重新获取列表
   ElMessage.success(`${row.is_default === 1 ? '设置' : '取消'}默认角色成功`)
+  fetchRoleList()
 }
 
 // 组件挂载时加载数据
 onMounted(() => {
-  // 模拟加载数据
-  loading.value = true
-  setTimeout(() => {
-    loading.value = false
-  }, 500)
+  fetchRoleList()
 })
 </script>
 
