@@ -43,6 +43,29 @@ const routes: Array<RouteRecordRaw> = [
             name: 'Permissions',
             component: () => import('../pages/system/permissions.vue'),
             meta: { title: '权限管理' }
+          },
+          // 系统管理相关路由
+          {
+            path: 'system/users',
+            name: 'SystemUsers',
+            component: () => import('../pages/system/users.vue'),
+            meta: { title: '用户管理' }
+          },
+          {
+            path: 'system/roles',
+            name: 'SystemRoles',
+            component: () => import('../pages/system/roles.vue'),
+            meta: { title: '角色管理' }
+          },
+          // 在系统管理相关路由中添加
+          {
+            path: '/system/menus',
+            name: 'Menus',
+            component: () => import('../pages/system/menus.vue'),
+            meta: {
+              title: '菜单管理',
+              requiresAuth: true
+            }
           }
         ]
       },

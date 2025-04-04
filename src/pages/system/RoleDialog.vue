@@ -111,9 +111,7 @@ const rules = reactive<FormRules>({
     { required: true, message: '请输入角色名称', trigger: 'blur' },
     { min: 2, max: 50, message: '角色名称长度应为2-50个字符', trigger: 'blur' }
   ],
-  description: [
-    { max: 255, message: '角色描述最多255个字符', trigger: 'blur' }
-  ],
+  description: [{ max: 255, message: '角色描述最多255个字符', trigger: 'blur' }],
   role_type: [
     { required: true, message: '请选择角色类型', trigger: 'change' }
   ]
@@ -221,12 +219,12 @@ const handleSubmit = async () => {
         }
         
         // 准备提交的数据
-        const submitData = {
+        const submitData: any = {
           name: form.name,
           description: form.description,
           role_type: form.role_type,
           is_default: form.is_default,
-          apis: form.apis
+          api_ids: form.apis
         }
         
         // 如果是编辑模式，添加ID

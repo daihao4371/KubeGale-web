@@ -280,7 +280,7 @@ const handleDefaultChange = async (row: RoleInfo) => {
   
   try {
     // 准备更新数据
-    const updateData = {
+    const updateData: any = {
       id: row.id,
       name: row.name,
       description: row.description,

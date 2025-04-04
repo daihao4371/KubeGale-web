@@ -20,7 +20,13 @@ export const API_URLS = {
   getRoleList: '/api/roles/list', // 获取角色列表
   createRole: '/api/roles/create', // 创建角色
   updateRole: '/api/roles/update', // 更新角色
-  deleteRole: '/api/roles', // 删除角色 - 这里可能有问题
+  deleteRole: '/api/roles', // 删除角色
+  
+  // 菜单管理相关接口
+  getMenuList: '/api/menus/list', // 获取菜单列表
+  createMenu: '/api/menus/create', // 创建菜单
+  updateMenu: '/api/menus/update', // 更新菜单
+  deleteMenu: '/api/menus', // 删除菜单
   
   // 可以添加更多API路径...
 }
