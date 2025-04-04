@@ -60,10 +60,8 @@ export function useMenus() {
     ],
     sort_order: [
       { required: true, message: '请输入排序', trigger: 'blur' }
-    ],
-    'meta.title': [
-      { required: true, message: '请输入菜单标题', trigger: 'blur' }
     ]
+    // 移除了 'meta.title' 的验证规则
   }
 
   // 表单引用
@@ -214,16 +212,77 @@ export function useMenus() {
   }
 
   // 提交表单
-  const handleSubmit = () => {
-    formRef.value.validate((valid: boolean) => {
+  const handleSubmit = async () => {
+    if (!formRef.value) return;
+    
+    formRef.value.validate(async (valid: boolean) => {
       if (valid) {
-        console.log('表单数据:', form)
-        dialogVisible.value = false
-        ElMessage.success(isEdit.value ? '编辑成功' : '添加成功')
-        fetchMenuList()
+        loading.value = true;
+        try {
+          // 自动使用菜单名称作为标题
+          form.meta.title = form.name;
+          
+          let response;
+          
+          if (isEdit.value) {
+            // 编辑菜单
+            const updateData = {
+              id: form.id,
+              name: form.name,
+              path: form.path,
+              parent_id: form.parent_id,
+              component: form.component,
+              icon: form.icon,
+              sort_order: form.sort_order,
+              route_name: form.route_name,
+              hidden: form.hidden,
+              redirect: form.redirect,
+              meta: {
+                title: form.name, // 确保标题与菜单名称一致
+                icon: form.icon, // 确保图标一致
+                keepAlive: form.meta.keepAlive,
+                hidden: form.meta.hidden
+              }
+            };
+            
+            // 调用更新菜单API
+            response = await updateMenu(updateData);
+          } else {
+            // 创建菜单
+            const createData = {
+              name: form.name,
+              path: form.path,
+              parent_id: form.parent_id,
+              component: form.component,
+              icon: form.icon,
+              sort_order: form.sort_order,
+              route_name: form.route_name,
+              hidden: form.hidden,
+              redirect: form.redirect,
+              meta: form.meta
+            };
+            
+            response = await createMenu(createData);
+          }
+          
+          if (response.data.code === 0) {
+            // 操作成功
+            ElMessage.success(isEdit.value ? '菜单更新成功' : '菜单创建成功');
+            dialogVisible.value = false;
+            fetchMenuList(); // 刷新菜单列表
+          } else {
+            // 操作失败
+            ElMessage.error(response.data.msg || (isEdit.value ? '更新菜单失败' : '创建菜单失败'));
+          }
+        } catch (error) {
+          console.error(isEdit.value ? '更新菜单失败:' : '创建菜单失败:', error);
+          ElMessage.error(isEdit.value ? '更新菜单失败，请重试' : '创建菜单失败，请重试');
+        } finally {
+          loading.value = false;
+        }
       }
-    })
-  }
+    });
+  };
 
   // 删除菜单
   const handleDelete = (row: MenuInfo) => {
@@ -231,14 +290,27 @@ export function useMenus() {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
-    }).then(() => {
-      console.log('删除菜单:', row)
-      ElMessage.success('删除成功')
-      fetchMenuList()
+    }).then(async () => {
+      loading.value = true;
+      try {
+        const response = await deleteMenu(row.id);
+        
+        if (response.data.code === 0) {
+          ElMessage.success('删除成功');
+          fetchMenuList(); // 刷新菜单列表
+        } else {
+          ElMessage.error(response.data.msg || '删除菜单失败');
+        }
+      } catch (error) {
+        console.error('删除菜单失败:', error);
+        ElMessage.error('删除菜单失败，请重试');
+      } finally {
+        loading.value = false;
+      }
     }).catch(() => {
       // 取消删除
-    })
-  }
+    });
+  };
 
   // 组件挂载时加载数据
   onMounted(() => {

@@ -173,9 +173,12 @@
           <el-input v-model="form.redirect" placeholder="请输入重定向路径" />
         </el-form-item>
         
+        <!-- 移除以下表单项 -->
+        <!--
         <el-form-item label="菜单标题" prop="meta.title">
           <el-input v-model="form.meta.title" placeholder="请输入菜单标题" />
         </el-form-item>
+        -->
       </el-form>
       
       <template #footer>

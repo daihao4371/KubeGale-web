@@ -72,7 +72,7 @@ export function updateMenu(data: Partial<MenuInfo> & { id: number }) {
     url: API_URLS.updateMenu,
     method: 'post',
     data
-  })
+  });
 }
 
 // 删除菜单
