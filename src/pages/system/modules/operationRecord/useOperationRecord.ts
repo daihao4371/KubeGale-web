@@ -250,9 +250,8 @@ export function useOperationRecord() {
       const obj = JSON.parse(jsonString);
       // 限制JSON字符串的长度，避免过长导致性能问题
       const formatted = JSON.stringify(obj, null, 2);
-      // 如果JSON太长，可以考虑截断
-      // return formatted.length > 5000 ? formatted.substring(0, 5000) + '...' : formatted;
-      return formatted;
+      // 如果JSON太长，截断显示
+      return formatted.length > 10000 ? formatted.substring(0, 10000) + '...(内容过长已截断)' : formatted;
     } catch (e) {
       return jsonString;
     }

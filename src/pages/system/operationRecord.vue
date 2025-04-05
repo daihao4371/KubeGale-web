@@ -118,9 +118,11 @@
       v-model="detailDialogVisible"
       width="70%"
       destroy-on-close
+      :close-on-click-modal="false"
+      :close-on-press-escape="true"
     >
       <div v-loading="detailLoading">
-        <el-descriptions :column="2" border>
+        <el-descriptions :column="2" border size="small">
           <el-descriptions-item label="操作人">
             {{ currentRecord ? formatUser(currentRecord.user, currentRecord) : '-' }}
           </el-descriptions-item>

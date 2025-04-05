@@ -67,6 +67,7 @@
     width: 100%;
     padding: 10px;
     box-sizing: border-box;
+    overflow: hidden; // 防止内容溢出
   }
   
   // 详情对话框中的错误信息样式
@@ -81,9 +82,35 @@
   // 确保详情对话框中的JSON内容区域也有固定高度和滚动效果
   .el-descriptions :deep(.el-descriptions-item__content) {
     .json-content-wrapper {
-      height: 300px;
+      height: 200px; // 减小高度，避免内容过长
       padding: 0;
       overflow: hidden;
+    }
+  }
+  
+  // 添加详情对话框样式
+  :deep(.el-dialog__body) {
+    padding: 10px 20px;
+    max-height: 70vh; // 限制对话框最大高度
+    overflow-y: auto; // 添加垂直滚动条
+  }
+  
+  // 修改JSON内容区域样式
+  .json-content {
+    height: 100%; // 使用100%高度
+    width: 100%;
+    overflow-y: auto !important; // 强制启用垂直滚动
+    overflow-x: auto !important; // 强制启用水平滚动
+    padding: 8px;
+    border: 1px solid #ebeef5;
+    border-radius: 4px;
+    
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: monospace;
+      font-size: 12px;
     }
   }
 }
