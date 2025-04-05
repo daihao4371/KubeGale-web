@@ -57,7 +57,6 @@ const routes: Array<RouteRecordRaw> = [
             component: () => import('../pages/system/roles.vue'),
             meta: { title: '角色管理' }
           },
-          // 在系统管理相关路由中添加
           {
             path: '/system/menus',
             name: 'Menus',
@@ -66,6 +65,19 @@ const routes: Array<RouteRecordRaw> = [
               title: '菜单管理',
               requiresAuth: true
             }
+          },
+          {
+            path: '/system/permissions',
+            name: 'SystemPermissions',
+            component: () => import('../pages/system/permissions.vue'),
+            meta: { title: '权限管理', requiresAuth: true }
+          },
+          // 添加操作记录路由
+          {
+            path: '/system/operation-logs',
+            name: 'SystemOperationLogs',
+            component: () => import('../pages/system/operationRecord.vue'),
+            meta: { title: '操作记录', requiresAuth: true }
           }
         ]
       },

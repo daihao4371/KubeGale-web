@@ -28,5 +28,11 @@ export const API_URLS = {
   updateMenu: '/api/menus/update', // 更新菜单
   deleteMenu: '/api/menus', // 删除菜单
   
+  // 系统操作记录相关接口
+  getSysOperationRecordList: '/api/sysOperationRecord/getSysOperationRecordList', // 获取系统操作记录列表
+  findSysOperationRecord: '/api/sysOperationRecord/findSysOperationRecord', // 根据ID获取系统操作记录
+  deleteSysOperationRecord: '/api/sysOperationRecord', // 删除系统操作记录
+  batchDeleteSysOperationRecord: '/api/sysOperationRecord/batchDelete', // 批量删除系统操作记录
+  
   // 可以添加更多API路径...
 }

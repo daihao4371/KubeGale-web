@@ -1,0 +1,105 @@
+.operation-record-container {
+  padding: 20px;
+  
+  .operation-record-header {
+    margin-bottom: 20px;
+    
+    h2 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 20px;
+      font-weight: 500;
+    }
+    
+    .operation-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      
+      .search-form {
+        margin-bottom: 10px;
+      }
+      
+      .button-group {
+        margin-bottom: 10px;
+      }
+    }
+  }
+  
+  .pagination-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .json-content {
+    height: 400px; // 固定高度，可以根据需要调整
+    width: 100%; // 确保宽度填满容器
+    overflow-y: auto !important; // 强制启用垂直滚动
+    overflow-x: auto !important; // 强制启用水平滚动
+    padding: 8px;
+    position: relative; // 添加相对定位
+    border: 1px solid #ebeef5; // 添加边框使滚动区域更明显
+    border-radius: 4px; // 圆角边框
+    
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: monospace;
+      font-size: 12px;
+    }
+  }
+  
+  /* 为JSON弹出框添加样式 */
+  :deep(.json-popover) {
+    max-width: 600px !important; // 固定最大宽度
+    width: 600px !important; // 固定宽度
+    max-height: 500px !important; // 固定最大高度
+    height: 500px !important; // 固定高度
+    overflow: hidden !important; // 防止弹出框本身滚动
+  }
+  
+  /* 添加JSON内容包装器样式 */
+  .json-content-wrapper {
+    height: 100%;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+  
+  // 详情对话框中的错误信息样式
+  .error-message {
+    color: #f56c6c;
+    padding: 8px;
+    background-color: #fef0f0;
+    border-radius: 4px;
+    border-left: 3px solid #f56c6c;
+  }
+  
+  // 确保详情对话框中的JSON内容区域也有固定高度和滚动效果
+  .el-descriptions :deep(.el-descriptions-item__content) {
+    .json-content-wrapper {
+      height: 300px;
+      padding: 0;
+      overflow: hidden;
+    }
+  }
+}
+
+/* 为按钮图标添加右侧间距 */
+.el-button .el-icon {
+  margin-right: 4px;
+}
+
+/* 圆形按钮不需要右侧间距 */
+.el-button.is-circle .el-icon {
+  margin-right: 0;
+}
+
+// 系统用户样式
+.system-user {
+  color: #909399;
+  font-style: italic;
+}
