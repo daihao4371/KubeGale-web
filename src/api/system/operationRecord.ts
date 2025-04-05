@@ -70,8 +70,9 @@ export function getSysOperationRecordList(params: OperationRecordParams) {
 // 删除系统操作记录
 export function deleteSysOperationRecord(id: number) {
   return service({
-    url: `${API_URLS.deleteSysOperationRecord}/${id}`,
-    method: 'delete'
+    url: API_URLS.deleteSysOperationRecord,
+    method: 'delete',
+    data: { id } // 通过请求体传递ID
   })
 }
 
@@ -80,7 +81,7 @@ export function batchDeleteSysOperationRecord(ids: number[]) {
   return service({
     url: API_URLS.batchDeleteSysOperationRecord,
     method: 'delete',
-    data: { ids }
+    data: { ids } // 通过请求体传递ID数组
   })
 }
 

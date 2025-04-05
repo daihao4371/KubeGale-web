@@ -118,11 +118,16 @@ export function useOperationRecord() {
     }).then(async () => {
       loading.value = true
       try {
+        // 调用修改后的API，传递ID
         const response = await deleteSysOperationRecord(row.id)
         
         if (response.data.code === 0) {
-          ElMessage.success('删除成功')
+          ElMessage.success(response.data.msg || '删除成功')
           fetchRecordList() // 刷新列表
+          // 如果当前有打开的详情对话框且是当前删除的记录，则关闭对话框
+          if (detailDialogVisible.value && currentRecord.value?.id === row.id) {
+            closeDetailDialog()
+          }
         } else {
           ElMessage.error(response.data.msg || '删除操作记录失败')
         }
@@ -143,7 +148,7 @@ export function useOperationRecord() {
       ElMessage.warning('请选择要删除的记录')
       return
     }
-
+  
     ElMessageBox.confirm(`确定要删除选中的 ${selectedRecords.value.length} 条操作记录吗？`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
@@ -155,8 +160,13 @@ export function useOperationRecord() {
         const response = await batchDeleteSysOperationRecord(ids)
         
         if (response.data.code === 0) {
-          ElMessage.success('批量删除成功')
+          ElMessage.success(response.data.msg || '批量删除成功')
           fetchRecordList() // 刷新列表
+          // 如果当前有打开的详情对话框且是当前删除的记录之一，则关闭对话框
+          if (detailDialogVisible.value && currentRecord.value && 
+              ids.includes(currentRecord.value.id)) {
+            closeDetailDialog()
+          }
         } else {
           ElMessage.error(response.data.msg || '批量删除操作记录失败')
         }
