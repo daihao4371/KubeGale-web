@@ -47,15 +47,18 @@ export function useMainLayout() {
       type: 'warning'
     }).then(async () => {
       try {
-        // 调用退出登录API
-        const res = await logout()
-        console.log('退出登录响应:', res)
+        // 调用退出登录函数（现在只在前端处理）
+        await logout()
         
         // 清除token
         removeToken()
         
         // 清除localStorage中的用户信息
         localStorage.removeItem('userInfo')
+        
+        // 清除其他可能存在的用户相关数据
+        localStorage.removeItem('rememberMe')
+        sessionStorage.clear()
         
         // 提示用户
         ElMessage.success('退出登录成功')

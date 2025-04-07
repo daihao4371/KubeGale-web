@@ -3,8 +3,9 @@ export const API_BASE_URL = ''  // 移除基础URL前缀，避免路径重复
 
 // API路径配置
 export const API_URLS = {
-  login: '/api/user/login',  // 移除末尾的斜杠，避免潜在问题
-  logout: '/api/user/logout', // 添加退出登录接口
+  // 修改登录接口路径
+  login: '/api/base/login',  // 更新为新的登录接口
+  // 不再需要logout接口
   changePassword: '/api/user/change_password', // 添加修改密码接口
   
   // 用户管理相关接口

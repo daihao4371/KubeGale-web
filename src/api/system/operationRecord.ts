@@ -81,7 +81,7 @@ export function batchDeleteSysOperationRecord(ids: number[]) {
   return service({
     url: API_URLS.batchDeleteSysOperationRecord,
     method: 'delete',
-    data: { ids } // 通过请求体传递ID数组
+    data: { ids }
   })
 }
 
