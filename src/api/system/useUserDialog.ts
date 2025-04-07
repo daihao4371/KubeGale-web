@@ -151,11 +151,15 @@ export function useUserDialog(props: UserDialogProps, emit: any) {
           const createData = {
             username: form.username,
             password: form.password || '',
-            confirmPassword: form.confirmPassword || '', // 添加confirmPassword字段
+            confirmPassword: form.confirmPassword || '',
             realName: form.realName,
             mobile: form.mobile,
+            email: form.mobile ? `${form.mobile}@qq.com` : '', // 添加默认邮箱
+            headerImg: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png', // 添加默认头像
             feiShuUserId: form.feiShuUserId,
-            description: form.description
+            description: form.description,
+            authorityId: 2, // 默认为普通用户
+            enable: 1 // 默认启用
           };
           
           // 创建用户
@@ -194,13 +198,14 @@ export function useUserDialog(props: UserDialogProps, emit: any) {
         const updateData = {
           user_id: props.userData.id,
           username: form.username,
-          real_name: form.realName || props.userData.realName || '', // 与后端字段匹配
+          real_name: form.realName || props.userData.realName || '',
           mobile: form.mobile || props.userData.mobile || '',
-          fei_shu_user_id: form.feiShuUserId || props.userData.feiShuUserId || '', // 与后端字段匹配
-          desc: form.description || props.userData.description || '', // 修改为desc以匹配后端
-          account_type: props.userData.accountType || 1, // 默认为普通用户
-          enable: props.userData.enable || 1 // 默认启用
-          // 不包含home_path字段
+          email: form.mobile ? `${form.mobile}@qq.com` : (props.userData.email || ''), // 添加邮箱
+          header_img: props.userData.headerImg || 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png', // 保留头像
+          fei_shu_user_id: form.feiShuUserId || props.userData.feiShuUserId || '',
+          desc: form.description || props.userData.description || '',
+          account_type: props.userData.accountType || props.userData.authorityId || 2,
+          enable: props.userData.enable || 1
         };
         
         // 使用updateUser函数

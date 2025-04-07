@@ -1,18 +1,46 @@
 <template>
   <div class="users-container">
     <div class="users-header">
-      <h2>用户管理</h2>
-      <div class="operation-bar">
-        <!-- 搜索区域 -->
+      <div class="header-actions">
+        <el-button type="primary" @click="handleAdd">
+          <el-icon><Plus /></el-icon>新增用户
+        </el-button>
+        
+        <!-- 添加统计卡片 -->
+        <div class="stats-cards">
+          <div class="stat-card">
+            <div class="stat-title">总用户数</div>
+            <div class="stat-value">{{ pagination.total }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">管理员</div>
+            <div class="stat-value">{{ getAdminCount }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">启用用户</div>
+            <div class="stat-value">{{ getEnabledCount }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">禁用用户</div>
+            <div class="stat-value">{{ getDisabledCount }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 搜索区域 -->
+      <div class="search-area">
         <el-form :inline="true" :model="searchForm" class="search-form">
           <el-form-item label="用户名">
             <el-input v-model="searchForm.username" placeholder="请输入用户名" clearable />
           </el-form-item>
-          <el-form-item label="真实姓名">
-            <el-input v-model="searchForm.realName" placeholder="请输入真实姓名" clearable />
+          <el-form-item label="昵称">
+            <el-input v-model="searchForm.nickName" placeholder="请输入昵称" clearable />
           </el-form-item>
-          <el-form-item label="手机号码">
-            <el-input v-model="searchForm.mobile" placeholder="请输入手机号码" clearable />
+          <el-form-item label="手机号">
+            <el-input v-model="searchForm.phone" placeholder="请输入手机号" clearable />
+          </el-form-item>
+          <el-form-item label="邮箱">
+            <el-input v-model="searchForm.email" placeholder="请输入邮箱" clearable />
           </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="handleSearch">
@@ -23,75 +51,7 @@
             </el-button>
           </el-form-item>
         </el-form>
-        
-        <!-- 操作按钮 -->
-        <div class="button-group">
-          <el-button type="primary" @click="handleAdd">
-            <el-icon><Plus /></el-icon>添加用户
-          </el-button>
-        </div>
       </div>
-    </div>
-    
-    <!-- 数据概览卡片 -->
-    <div class="data-overview">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <el-card shadow="hover" class="data-card">
-            <div class="data-card-content">
-              <div class="data-icon user-icon">
-                <el-icon><User /></el-icon>
-              </div>
-              <div class="data-info">
-                <div class="data-title">总用户数</div>
-                <div class="data-value">{{ pagination.total }}</div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card shadow="hover" class="data-card">
-            <div class="data-card-content">
-              <div class="data-icon admin-icon">
-                <el-icon><Avatar /></el-icon>
-              </div>
-              <div class="data-info">
-                <div class="data-title">管理员数</div>
-                <div class="data-value">
-                  <span v-if="loading">加载中...</span>
-                  <span v-else>{{ getAdminCount }}</span>
-                </div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card shadow="hover" class="data-card">
-            <div class="data-card-content">
-              <div class="data-icon active-icon">
-                <el-icon><CircleCheck /></el-icon>
-              </div>
-              <div class="data-info">
-                <div class="data-title">启用用户</div>
-                <div class="data-value">{{ getEnabledCount }}</div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card shadow="hover" class="data-card">
-            <div class="data-card-content">
-              <div class="data-icon disabled-icon">
-                <el-icon><CircleClose /></el-icon>
-              </div>
-              <div class="data-info">
-                <div class="data-title">禁用用户</div>
-                <div class="data-value">{{ getDisabledCount }}</div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-      </el-row>
     </div>
     
     <!-- 用户列表 -->
@@ -104,62 +64,67 @@
         :header-cell-style="{ background: '#f5f7fa', color: '#606266' }"
         :row-class-name="tableRowClassName"
       >
-        <el-table-column prop="id" label="用户ID" width="100" />
-        <el-table-column prop="username" label="用户名" width="240" />
-        <el-table-column prop="realName" label="真实姓名" width="300" />
-        <el-table-column prop="mobile" label="手机号码" width="240">
+        <el-table-column type="index" label="序号" width="60" align="center" />
+        <el-table-column prop="id" label="ID" width="60" align="center" />
+        <el-table-column label="用户信息" min-width="200">
           <template #default="scope">
-            {{ scope.row.mobile || '未设置' }}
+            <div style="display: flex; align-items: center;">
+              <el-avatar :size="36" :src="scope.row.headerImg" style="margin-right: 10px;">
+                {{ scope.row.userName ? scope.row.userName.substring(0, 1).toUpperCase() : 'U' }}
+              </el-avatar>
+              <div>
+                <div style="font-weight: 500;">{{ scope.row.userName }}</div>
+                <div style="font-size: 12px; color: #909399;">{{ scope.row.nickName || '-' }}</div>
+              </div>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column prop="feiShuUserId" label="飞书ID" width="300">
+        <el-table-column prop="phone" label="手机号" min-width="110">
           <template #default="scope">
-            {{ scope.row.feiShuUserId || '未设置' }}
+            {{ scope.row.phone || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="accountType" label="账户类型" width="200">
+        <el-table-column prop="email" label="邮箱" min-width="150">
           <template #default="scope">
-            <el-tag :type="scope.row.accountType === 1 ? 'success' : 'primary'">
-              {{ scope.row.accountType === 1 ? '普通用户' : '管理员' }}
+            {{ scope.row.email || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="用户角色" width="100">
+          <template #default="scope">
+            <el-tag v-if="scope.row.authorityId === 1" type="success" size="small" effect="plain">
+              管理用户
+            </el-tag>
+            <el-tag v-else type="info" size="small" effect="plain">
+              普通用户
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="enable" label="状态" width="200">
+        <el-table-column label="状态" width="80" align="center">
           <template #default="scope">
-            <el-tag :type="scope.row.enable === 1 ? 'success' : 'danger'">
-              {{ scope.row.enable === 1 ? '启用' : '禁用' }}
-            </el-tag>
+            <el-switch
+              v-model="scope.row.enable"
+              :active-value="1"
+              :inactive-value="0"
+              @change="(val) => handleToggleStatus(scope.row, val)"
+            />
           </template>
         </el-table-column>
-        <el-table-column prop="created_at" label="创建时间" width="280">
+        <el-table-column label="操作" fixed="right" width="240" align="center">
           <template #default="scope">
-            {{ formatDate(scope.row.created_at) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" fixed="right" width="400">
-          <template #default="scope">
-            <el-button type="primary" size="small" @click="handleEdit(scope.row)">
-              <el-icon><Edit /></el-icon>编辑
-            </el-button>
-            <el-button type="warning" size="small" @click="handleAssignRole(scope.row)">
-              <el-icon><Key /></el-icon>分配角色
-            </el-button>
-            <el-button 
-              :type="scope.row.enable === 1 ? 'danger' : 'success'" 
-              size="small" 
-              @click="handleToggleStatus(scope.row)"
-            >
-              <el-icon v-if="scope.row.enable === 1"><Lock /></el-icon>
-              <el-icon v-else><Unlock /></el-icon>
-              {{ scope.row.enable === 1 ? '禁用' : '启用' }}
-            </el-button>
-            <el-button 
-              type="danger" 
-              size="small" 
-              @click="handleDelete(scope.row)"
-            >
-              <el-icon><Delete /></el-icon>删除
-            </el-button>
+            <div class="operation-buttons">
+              <el-button type="primary" size="small" plain @click="handleEdit(scope.row)">
+                <el-icon><Edit /></el-icon>编辑
+              </el-button>
+              <el-button type="success" size="small" plain @click="handleAssignRole(scope.row)">
+                <el-icon><User /></el-icon>角色
+              </el-button>
+              <el-button type="warning" size="small" plain @click="handleResetPassword(scope.row)">
+                <el-icon><Key /></el-icon>密码
+              </el-button>
+              <el-button type="danger" size="small" plain @click="handleDelete(scope.row)">
+                <el-icon><Delete /></el-icon>删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -174,12 +139,14 @@
           :total="pagination.total"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
+          background
         />
       </div>
     </el-card>
     
     <!-- 添加用户对话框 -->
     <UserDialog
+      v-if="userDialogVisible"
       v-model:visible="userDialogVisible"
       :loading="userDialogLoading"
       :is-edit="isEdit"
@@ -190,7 +157,6 @@
 </template>
 
 <script lang="ts" setup name="SystemUsers">
-import UserDialog from './UserDialog.vue'
 import { 
   User, 
   Avatar, 
@@ -201,11 +167,11 @@ import {
   Plus, 
   Edit, 
   Key, 
-  Lock, 
-  Unlock, 
-  Delete 
+  Delete,
+  ArrowDown
 } from '@element-plus/icons-vue'
 import { useUsers } from './modules/users/useUsers'
+import UserDialog from './components/UserDialog.vue'
 
 // 使用解耦后的逻辑
 const {
@@ -226,9 +192,9 @@ const {
   handleCurrentChange,
   handleAdd,
   handleEdit,
-  handleAssignRole,
   handleToggleStatus,
   handleDelete,
+  handleResetPassword,
   handleUserDialogSuccess,
   formatDate,
   tableRowClassName
@@ -237,9 +203,4 @@ const {
 
 <style lang="scss" scoped>
 @import './modules/users/users.scss';
-
-/* 为按钮图标添加右侧间距 */
-.el-button .el-icon {
-  margin-right: 4px;
-}
 </style>

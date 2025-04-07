@@ -6,22 +6,26 @@ export interface UserListParams {
   page?: number;
   pageSize?: number;
   username?: string;
-  realName?: string;
-  mobile?: string;
+  nickName?: string;
+  phone?: string;
+  email?: string;
 }
 
-// 用户信息类型
+// 用户信息类型 - 更新为匹配后端结构
 export interface UserInfo {
   id: number;
-  username: string;
-  realName: string;
-  mobile: string;
-  feiShuUserId: string;
-  accountType: number;
-  enable: number;
-  created_at: string;
-  updated_at: string;
-  roles: any[];
+  uuid?: string;
+  userName: string;  // 与后端字段匹配
+  nickName: string;  // 与后端字段匹配
+  headerImg: string; // 头像
+  authorityId: number; // 角色ID
+  authorityIds?: number[]; // 角色ID列表
+  authorityNames?: string[]; // 角色名称列表
+  phone: string;    // 电话
+  email: string;    // 邮箱
+  enable: number;   // 是否启用
+  created_at?: string; // 创建时间
+  updated_at?: string; // 更新时间
 }
 
 // 分页响应类型
@@ -43,23 +47,29 @@ export interface ApiResponse<T> {
 export function getUserList(params: UserListParams) {
   return service({
     url: API_URLS.getUserList,
-    method: 'get',
-    params
+    method: 'post', // 根据后端API要求调整
+    data: params
   })
 }
 
-// 在现有代码基础上添加创建用户的接口
-
 // 创建用户参数类型
 export interface CreateUserParams {
+  // 添加后端实际需要的字段
   username: string;
   password: string;
   confirmPassword: string;
-  realName: string;
+  realName?: string;
   mobile?: string;
+  email?: string;
+  headerImg?: string;
   feiShuUserId?: string;
-  homePath?: string;
   description?: string;
+  authorityId?: number;
+  enable?: number;
+  // 保留原有字段以兼容现有代码
+  userName?: string;
+  passWord?: string;
+  nickName?: string;
 }
 
 // 创建用户
@@ -71,64 +81,66 @@ export function signup(data: CreateUserParams) {
   })
 }
 
-// 添加更新用户的接口
+// 更新用户参数类型
 export interface UpdateUserParams {
-  user_id: number;
-  username: string;
-  real_name: string;
+  // 添加后端实际需要的字段
+  user_id?: number;
+  username?: string;
+  real_name?: string;
   mobile?: string;
+  email?: string;
   fei_shu_user_id?: string;
   desc?: string;
   account_type?: number;
   enable?: number;
-  // 不包含home_path字段
+  header_img?: string;
+  // 保留原有字段以兼容现有代码
+  id?: number;
+  userName?: string;
+  nickName?: string;
+  headerImg?: string;
+  authorityId?: number;
+  phone?: string;
 }
 
-// 删除重复的函数定义，只保留一个updateUser函数
+// 更新用户
 export function updateUser(data: UpdateUserParams) {
   return service({
     url: API_URLS.updateUser,
-    method: 'post', // 修改为POST请求，符合后端接口要求
+    method: 'post',
     data
   })
 }
 
 // 删除用户
-// 将deleteUser函数改名为toggleUserStatus，更符合实际功能
-// 将toggleUserStatus函数拆分为两个独立函数
+export function deleteUser(userId: number) {
+  return service({
+    url: `${API_URLS.deleteUser}/${userId}`,
+    method: 'delete'
+  });
+}
+
+// 重设密码
+export function resetPassword(userId: number) {
+  return service({
+    url: `${API_URLS.resetPassword}/${userId}`,
+    method: 'post'
+  });
+}
+
 // 禁用用户
 export function disableUser(userId: number) {
-  console.log('调用禁用用户API, 用户ID:', userId);
   return service({
     url: `${API_URLS.disableUser}/${userId}`,
-    method: 'post',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    method: 'post'
   });
 }
 
 // 启用用户
 export function enableUser(userId: number) {
-  console.log('调用启用用户API, 用户ID:', userId);
   return service({
     url: `${API_URLS.enableUser}/${userId}`,
-    method: 'post',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-}
-
-// 真正删除用户
-export function deleteUser(userId: number) {
-  console.log('调用删除用户API, 用户ID:', userId);
-  return service({
-    url: `${API_URLS.deleteUser}/${userId}`,
-    method: 'delete',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    method: 'post'
   });
 }
 

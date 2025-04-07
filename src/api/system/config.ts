@@ -9,13 +9,14 @@ export const API_URLS = {
   changePassword: '/api/user/change_password', // 添加修改密码接口
   
   // 用户管理相关接口
-  getUserList: '/api/user/list', // 获取用户列表
+  getUserList: '/api/user/getUserList', // 更新为新的获取用户列表接口
   createUser: '/api/user/create', // 添加创建用户接口
   signup: '/api/user/signup', // 添加用户注册接口
   updateUser: '/api/user/profile/update', // 添加更新用户接口
   disableUser: '/api/user', // 禁用用户接口
   enableUser: '/api/user/enable', // 启用用户接口
   deleteUser: '/api/user', // 真正删除用户接口
+  resetPassword: '/api/user/resetPassword', // 重设密码接口
   
   // 角色管理相关接口
   getRoleList: '/api/roles/list', // 获取角色列表
