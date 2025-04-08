@@ -1,0 +1,35 @@
+.user-dialog {
+  .dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+    
+    .el-button {
+      margin-left: 10px;
+    }
+  }
+}
+
+.empty-data {
+  padding: 40px 0;
+  text-align: center;
+}
+
+.operation-buttons {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.users-header {
+  .header-actions {
+    position: relative;
+    
+    .user-info-btn {
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { logout } from '@/api/user'
@@ -10,8 +10,7 @@ export function useMainLayout() {
   const {
     passwordDialogVisible,
     passwordLoading,
-    openPasswordDialog,
-    submitChangePassword
+    openPasswordDialog
   } = usePasswordDialog()
 
   const isCollapse = ref(false)
@@ -31,11 +30,28 @@ export function useMainLayout() {
     if (command === 'logout') {
       handleLogout()
     } else if (command === 'profile') {
-      // 处理个人信息
-      ElMessage.info('个人信息功能开发中')
+      // 处理个人信息 - 修改为跳转到用户页面并打开个人信息对话框
+      if (route.path !== '/system/users') {
+        router.push('/system/users').then(() => {
+          // 等待路由跳转完成后，延迟执行以确保组件已挂载
+          setTimeout(() => {
+            // 使用全局事件总线或其他方式触发用户信息对话框
+            const usersComponent = document.querySelector('.users-container')
+            if (usersComponent) {
+              // 使用自定义事件触发
+              window.dispatchEvent(new CustomEvent('open-user-info-dialog'))
+            } else {
+              ElMessage.error('无法打开个人信息，请稍后再试')
+            }
+          }, 300)
+        })
+      } else {
+        // 如果已经在用户页面，直接触发事件
+        window.dispatchEvent(new CustomEvent('open-user-info-dialog'))
+      }
     } else if (command === 'password') {
-      // 修改为调用修改密码对话框
-      openPasswordDialog()
+      // 显示功能正在开发中的提示
+      ElMessage.info('修改密码功能正在开发中，敬请期待！')
     }
   }
 
@@ -81,7 +97,6 @@ export function useMainLayout() {
     passwordLoading,
     toggleSidebar,
     handleCommand,
-    handleLogout,
-    submitChangePassword
+    handleLogout
   }
 }

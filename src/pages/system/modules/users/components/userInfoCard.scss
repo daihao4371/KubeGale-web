@@ -1,0 +1,68 @@
+.user-info-card {
+  margin-bottom: 20px;
+  
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .user-info-content {
+    min-height: 200px;
+    
+    .user-profile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      
+      @media (min-width: 768px) {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+      
+      .user-avatar {
+        margin-bottom: 20px;
+        
+        @media (min-width: 768px) {
+          margin-right: 30px;
+          margin-bottom: 0;
+        }
+        
+        .el-avatar {
+          background-color: #409EFF;
+          color: #fff;
+          font-weight: bold;
+          font-size: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      }
+      
+      .user-details {
+        flex: 1;
+        
+        .detail-item {
+          margin-bottom: 12px;
+          display: flex;
+          
+          .label {
+            width: 70px;
+            color: #606266;
+            font-weight: 500;
+          }
+          
+          .value {
+            color: #303133;
+            flex: 1;
+            
+            &.roles {
+              display: flex;
+              flex-wrap: wrap;
+            }
+          }
+        }
+      }
+    }
+  }
+}

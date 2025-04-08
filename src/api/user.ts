@@ -62,21 +62,4 @@ export function logout() {
     }
   })
 }
-
-// 修改密码
-export function changePassword(data: { 
-  username: string; 
-  password: string; 
-  newPassword: string;
-  confirmPassword: string;
-}) {
-  console.log('调用修改密码API')
-  return service({
-    url: API_URLS.changePassword,
-    method: 'post',
-    data
-  })
-}
-
-// 导出service实例，供其他模块使用
 export default service

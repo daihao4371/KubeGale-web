@@ -137,7 +137,6 @@
     <PasswordDialog 
       v-model:visible="passwordDialogVisible"
       :loading="passwordLoading"
-      @submit="submitChangePassword"
     />
   </div>
 </template>
@@ -177,7 +176,6 @@ const {
   toggleSidebar,
   handleCommand,
   handleLogout,
-  submitChangePassword
 } = useMainLayout()
 </script>
 
