@@ -93,3 +93,19 @@ export function registerUser(data: RegisterUserParams) {
     data: postData
   })
 }
+
+// 设置用户角色参数类型
+export interface SetUserAuthoritiesParams {
+  ID: number;  // 修改为大写的 ID，匹配后端
+  authorityIds: number[];  // 修改为 authorityIds 数组
+}
+
+// 设置用户角色
+export function setUserAuthorities(data: SetUserAuthoritiesParams) {
+  console.log('调用设置用户角色API:', API_URLS.setUserAuthorities, data)
+  return service({
+    url: API_URLS.setUserAuthorities,
+    method: 'post',
+    data
+  })
+}

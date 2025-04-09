@@ -95,31 +95,77 @@
           <template #default="scope">
             <!-- 显示多角色 -->
             <div v-if="scope.row.authorities && scope.row.authorities.length">
-              <el-tag 
-                v-for="(authority, index) in scope.row.authorities" 
-                :key="authority.authorityId"
-                :type="authority.authorityId === 888 ? 'info' : 'success'" 
+              <el-select 
+                v-model="scope.row.authorityId" 
                 size="small" 
-                effect="plain"
-                style="margin-right: 4px; margin-bottom: 4px;"
+                placeholder="选择角色"
+                @change="(val: number) => handleRoleChange(scope.row, val)"
               >
-                {{ authority.authorityName }}
-              </el-tag>
+                <el-option
+                  v-for="authority in scope.row.authorities"
+                  :key="authority.authorityId"
+                  :label="authority.authorityName"
+                  :value="authority.authorityId"
+                />
+                <el-option
+                  v-if="!hasRole(scope.row.authorities, 888)"
+                  :key="888"
+                  label="普通用户"
+                  value="888"
+                />
+                <el-option
+                  v-if="!hasRole(scope.row.authorities, 9528)"
+                  :key="9528"
+                  label="测试角色"
+                  value="9528"
+                />
+              </el-select>
             </div>
             <!-- 兼容单角色显示 -->
             <div v-else-if="scope.row.authority">
-              <el-tag 
-                :type="scope.row.authorityId === 888 ? 'info' : 'success'" 
+              <el-select 
+                v-model="scope.row.authorityId" 
                 size="small" 
-                effect="plain"
+                placeholder="选择角色"
+                @change="(val: number) => handleRoleChange(scope.row, val)"
               >
-                {{ scope.row.authority.authorityName }}
-              </el-tag>
+                <el-option
+                  :key="scope.row.authority.authorityId"
+                  :label="scope.row.authority.authorityName"
+                  :value="scope.row.authority.authorityId"
+                />
+                <el-option
+                  v-if="scope.row.authority.authorityId !== 888"
+                  :key="888"
+                  label="普通用户"
+                  value="888"
+                />
+                <el-option
+                  v-if="scope.row.authority.authorityId !== 9528"
+                  :key="9528"
+                  label="测试角色"
+                  value="9528"
+                />
+              </el-select>
             </div>
             <div v-else>
-              <el-tag type="info" size="small" effect="plain">
-                普通用户
-              </el-tag>
+              <el-select 
+                v-model="scope.row.authorityId" 
+                size="small" 
+                placeholder="选择角色"
+                @change="(val: number) => handleRoleChange(scope.row, val)"
+              >
+                <el-option
+                  :key="888"
+                  label="普通用户"
+                  value="888"
+                />
+                <el-option
+                  :key="9528"
+                  label="测试角色"
+                  value="9528"
+                />
+              </el-select>
             </div>
           </template>
         </el-table-column>
@@ -203,14 +249,15 @@
   </div> <!-- 添加这个结束标签 -->
 </template>
 
-<!-- 修改引用路径 -->
 <script lang="ts" setup name="SystemUsers">
 import { Search, Refresh, Plus, Edit, Delete, Key, User } from '@element-plus/icons-vue'
 import { useUsers } from './modules/users/useUsers'
 import { useUserDialog } from './modules/users/components/useUserDialog'
 import UserInfoCard from './UserInfoCard.vue'
-import UserForm from './UserForm.vue'  // 修改这一行
+import UserForm from './UserForm.vue'
 import { onMounted, onUnmounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { setUserAuthorities } from '@/api/system/userManage' // 导入设置用户角色的函数
 
 // 使用解耦后的用户列表逻辑
 const {
@@ -248,6 +295,96 @@ const {
   handleDelete
 } = useUserDialog()
 
+// 检查用户是否已有某个角色
+const hasRole = (authorities: any[], roleId: number) => {
+  return authorities.some(auth => auth.authorityId === roleId)
+}
+
+// 处理角色变更
+const handleRoleChange = async (user: { 
+  id: number; 
+  authorityId: number; 
+  authority?: { 
+    authorityId: number; 
+    authorityName: string 
+  }; 
+  authorities?: Array<{ 
+    authorityId: number; 
+    authorityName: string 
+  }> 
+}, newRoleId: number) => {
+  // 保存原始角色ID，以便在失败时恢复
+  const originalAuthorityId = user.authorityId;
+  
+  try {
+    loading.value = true
+    
+    // 确保 newRoleId 是数字类型
+    const authorityId = Number(newRoleId);
+    
+    // 修改为符合后端要求的参数格式
+    const response = await setUserAuthorities({
+      ID: user.id,  // 使用大写的 ID
+      authorityIds: [authorityId]  // 使用 authorityIds 数组
+    })
+    
+    if (response.data && response.data.code === 0) {
+      ElMessage.success('用户角色更新成功')
+      
+      // 更新本地数据
+      user.authorityId = authorityId;
+      
+      // 更新 authority 对象
+      if (user.authority) {
+        user.authority.authorityId = authorityId;
+        user.authority.authorityName = getRoleName(authorityId);
+      } else {
+        user.authority = {
+          authorityId: authorityId,
+          authorityName: getRoleName(authorityId)
+        };
+      }
+      
+      // 如果有 authorities 数组，也更新它
+      if (user.authorities && user.authorities.length) {
+        // 检查是否已存在该角色
+        const existingAuthIndex = user.authorities.findIndex(
+          (auth: any) => auth.authorityId === authorityId
+        );
+        
+        if (existingAuthIndex === -1) {
+          // 如果不存在，添加新角色
+          user.authorities.push({
+            authorityId: authorityId,
+            authorityName: getRoleName(authorityId)
+          });
+        }
+      }
+    } else {
+      // 恢复原始值
+      user.authorityId = originalAuthorityId;
+      ElMessage.error(response.data?.msg || '角色更新失败');
+    }
+  } catch (error) {
+    console.error('更新用户角色失败:', error);
+    // 恢复原始值
+    user.authorityId = originalAuthorityId;
+    ElMessage.error('更新用户角色失败，请重试');
+  } finally {
+    loading.value = false;
+  }
+}
+
+// 根据角色ID获取角色名称
+const getRoleName = (roleId: number): string => {
+  // 这里应该从数据库获取角色名称，但为了简化，我们使用硬编码的映射
+  const roleMap: Record<number, string> = {
+    888: '普通用户',
+    9528: '测试角色'
+  };
+  return roleMap[roleId] || '未知角色';
+}
+
 // 监听刷新用户列表事件
 const handleRefreshUserList = () => {
   fetchUserList()
@@ -276,4 +413,18 @@ fetchUserList()
 @import './modules/users/users.scss';
 @import './modules/users/components/userDialog.scss';
 @import './modules/users/components/userForm.scss';
+
+/* 角色选择下拉框样式 */
+:deep(.el-select) {
+  width: 100%;
+}
+
+:deep(.el-select .el-input__wrapper) {
+  padding: 0 8px;
+}
+
+:deep(.el-select .el-input__inner) {
+  height: 24px;
+  line-height: 24px;
+}
 </style>
