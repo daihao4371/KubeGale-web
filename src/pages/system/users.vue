@@ -204,7 +204,6 @@
               <el-button type="danger" size="small" plain @click.stop="handleDelete(scope.row)">
                 <el-icon><Delete /></el-icon>删除
               </el-button>
-              <!-- 移除了详情按钮 -->
             </div>
           </template>
         </el-table-column>
