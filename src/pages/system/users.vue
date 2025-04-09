@@ -254,6 +254,26 @@
       </template>
     </el-dialog>
     
+    <!-- 用户编辑对话框 -->
+    <el-dialog
+      v-model="showUserEditDialog"
+      :title="editFormTitle"
+      width="500px"
+      :close-on-click-modal="false"
+      destroy-on-close
+      class="user-edit-dialog"
+    >
+      <div v-loading="editFormLoading" style="min-height: 200px;">
+        <UserEditForm ref="userEditFormRef" />
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="showUserEditDialog = false">取消</el-button>
+          <el-button type="primary" :loading="editFormLoading" @click="submitUserEditForm">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
+    
   </div> <!-- 添加这个结束标签 -->
 </template>
 
@@ -261,11 +281,14 @@
 import { Search, Refresh, Plus, Edit, Delete, Key, User } from '@element-plus/icons-vue'
 import { useUsers } from './modules/users/useUsers'
 import { useUserDialog } from './modules/users/components/useUserDialog'
+import UserInfoCard from './UserInfoCard.vue'
+import UserForm from './UserForm.vue'
+import UserEditForm from './UserEditForm.vue'  // 保留这一行，使用新路径
 import { useUserRole } from './modules/users/useUserRole'
 import { useUserStatus } from './modules/users/useUserStatus'
 import { useUserEvents } from './modules/users/useUserEvents'
-import UserInfoCard from './UserInfoCard.vue'
-import UserForm from './UserForm.vue'
+
+
 
 // 使用解耦合后的用户列表逻辑
 const {
@@ -297,6 +320,13 @@ const {
   formTitle,
   formLoading,
   submitUserForm,
+  
+  // 用户编辑对话框相关
+  showUserEditDialog,
+  userEditFormRef,
+  editFormTitle,
+  editFormLoading,
+  submitUserEditForm,
   
   // 操作方法
   handleAdd,

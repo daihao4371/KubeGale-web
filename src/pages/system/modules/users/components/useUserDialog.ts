@@ -6,6 +6,7 @@ import { registerUser } from '@/api/system/userManage' // 需要在userManage.ts
 import { UserFormData } from './useUserForm'
 import { useUserDelete } from '../useUserDelete' // 导入用户删除逻辑
 import { resetUserPassword } from '@/api/system/userManage' // 导入重置密码API
+import { setUserInfo } from '@/api/system/userManage' // 导入设置用户信息API
 
 export function useUserDialog() {
   // 控制用户信息对话框显示
@@ -126,9 +127,150 @@ export function useUserDialog() {
     }
   }
 
-  // 编辑用户（暂不实现具体逻辑）
-  const handleEdit = (row: any) => {
-    ElMessage.info(`编辑用户功能待实现，用户ID: ${row.id}`)
+  // 控制用户编辑对话框显示
+  const showUserEditDialog = ref(false)
+  const userEditFormRef = ref<{ setFormData: (data: any) => void, resetForm: () => void, validate: () => Promise<{ valid: boolean, data: any }> } | null>(null)
+  const editFormTitle = ref('编辑用户')
+  const editFormLoading = ref(false)
+  const currentEditUser = ref(null) // 添加当前编辑用户的引用
+
+  // 编辑用户
+  const handleEdit = async (row: any) => {
+    // 确保row中有id字段
+    if (!row.id && !row.ID) {
+      ElMessage.error('用户数据缺少ID字段')
+      return
+    }
+    
+    const userId = row.ID || row.id
+    editFormTitle.value = `编辑用户: ${row.userName || ''}`
+    showUserEditDialog.value = true
+    editFormLoading.value = true
+    
+    try {
+      // 先查询用户完整信息
+      const response = await getUserInfo(Number(userId))
+      
+      if (response.data && response.data.code === 0 && response.data.data) {
+        const userData = response.data.data
+        
+        // 确保ID字段存在
+        if (!userData.ID) {
+          userData.ID = Number(userId)
+        }
+        
+        console.log('获取到的用户详细信息:', userData)
+        
+        // 设置表单数据
+        if (userEditFormRef.value) {
+          setTimeout(() => {
+            if (userEditFormRef.value) {
+              userEditFormRef.value.setFormData(userData)
+            }
+            editFormLoading.value = false
+          }, 200)
+        } else {
+          editFormLoading.value = false
+        }
+      } else {
+        // 如果获取详细信息失败，则使用列表中的简略信息
+        console.warn('获取用户详细信息失败，使用列表数据')
+        if (userEditFormRef.value) {
+          // 深拷贝用户数据，避免引用问题
+          const userData = JSON.parse(JSON.stringify(row))
+          
+          // 确保ID字段存在
+          if (!userData.ID && userData.id) {
+            userData.ID = Number(userData.id)
+          }
+          
+          setTimeout(() => {
+            if (userEditFormRef.value) {
+              userEditFormRef.value.setFormData(userData)
+            }
+            editFormLoading.value = false
+          }, 200)
+        } else {
+          editFormLoading.value = false
+        }
+      }
+    } catch (error) {
+      console.error('获取用户详细信息失败:', error)
+      ElMessage.error('获取用户信息失败')
+      editFormLoading.value = false
+      
+      // 如果获取详细信息出错，则使用列表中的简略信息
+      if (userEditFormRef.value) {
+        const userData = JSON.parse(JSON.stringify(row))
+        if (!userData.ID && userData.id) {
+          userData.ID = Number(userData.id)
+        }
+        
+        setTimeout(() => {
+          if (userEditFormRef.value) {
+            userEditFormRef.value.setFormData(userData)
+          }
+        }, 200)
+      }
+    }
+  }
+
+  // 提交用户编辑表单
+  // 提交用户编辑表单
+  const submitUserEditForm = async () => {
+    if (!userEditFormRef.value) return
+    
+    try {
+      const { valid, data } = await userEditFormRef.value.validate()
+      
+      if (valid && data) {
+        // 检查ID是否存在
+        if (!data.ID) {
+          ElMessage.error('用户ID不能为空')
+          return
+        }
+        
+        editFormLoading.value = true
+        try {
+          // 确保数据格式正确
+          const userData = {
+            ...data,
+            ID: Number(data.ID)  // 确保ID是数字类型
+          }
+          
+          console.log('提交编辑表单数据:', userData) // 添加日志，便于调试
+          
+          // 调用更新用户信息API
+          const response = await setUserInfo(userData)
+          
+          if (response.data && response.data.code === 0) {
+            ElMessage({
+              message: '用户信息更新成功',
+              type: 'success'
+            })
+            showUserEditDialog.value = false
+            // 触发刷新用户列表事件
+            window.dispatchEvent(new CustomEvent('refresh-user-list'))
+          } else {
+            ElMessage({
+              message: response.data?.msg || '用户信息更新失败',
+              type: 'error'
+            })
+          }
+        } catch (error) {
+          console.error('更新用户信息失败:', error)
+          ElMessage({
+            message: '更新用户信息失败，请重试',
+            type: 'error'
+          })
+        } finally {
+          editFormLoading.value = false
+        }
+      }
+    } catch (error) {
+      console.error('表单验证出错:', error)
+      ElMessage.error('表单验证失败，请检查输入')
+    }
   }
 
   // 重置密码（暂不实现具体逻辑）
@@ -201,6 +343,14 @@ export function useUserDialog() {
     handleAdd,
     handleEdit,
     handleResetPassword,
-    handleDelete
+    handleDelete,  // 这里添加了逗号
+    
+    // 用户编辑对话框相关
+    showUserEditDialog,
+    userEditFormRef,
+    editFormTitle,
+    editFormLoading,
+    submitUserEditForm,
+    currentEditUser, // 导出当前编辑用户数据
   }
 }
