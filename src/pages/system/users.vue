@@ -174,7 +174,7 @@
     <el-dialog
       v-model="showUserInfoDialog"
       :title="currentUserName ? `${currentUserName} 的个人信息` : '个人信息'"
-      width="400px"
+      width="600px"
       :close-on-click-modal="false"
       destroy-on-close
       class="user-dialog"
