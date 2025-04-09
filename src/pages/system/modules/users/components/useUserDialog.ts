@@ -5,6 +5,7 @@ import { registerUser } from '@/api/system/userManage' // 需要在userManage.ts
 // 将导入移到顶部
 import { UserFormData } from './useUserForm'
 import { useUserDelete } from '../useUserDelete' // 导入用户删除逻辑
+import { resetUserPassword } from '@/api/system/userManage' // 导入重置密码API
 
 export function useUserDialog() {
   // 控制用户信息对话框显示
@@ -131,8 +132,44 @@ export function useUserDialog() {
   }
 
   // 重置密码（暂不实现具体逻辑）
+  // 重置密码
   const handleResetPassword = (row: any) => {
-    ElMessage.info(`重置密码功能待实现，用户ID: ${row.id}`)
+    ElMessageBox.confirm(
+      `是否将此用户密码重置为123456?`,
+      '警告',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+        draggable: true,
+      }
+    )
+      .then(async () => {
+        try {
+          const response = await resetUserPassword({ ID: row.id })
+          
+          if (response.data && response.data.code === 0) {
+            ElMessage({
+              message: '密码重置成功',
+              type: 'success'
+            })
+          } else {
+            ElMessage({
+              message: response.data?.msg || '密码重置失败',
+              type: 'error'
+            })
+          }
+        } catch (error) {
+          console.error('密码重置失败:', error)
+          ElMessage({
+            message: '密码重置失败，请重试',
+            type: 'error'
+          })
+        }
+      })
+      .catch(() => {
+        // 用户取消操作，不做任何处理
+      })
   }
 
   // 删除用户（暂不实现具体逻辑）

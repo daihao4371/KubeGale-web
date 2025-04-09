@@ -165,3 +165,12 @@ export function setSelfInfo(data: SetSelfInfoParams) {
     data
   })
 }
+
+// 重置用户密码
+export const resetUserPassword = (data: { ID: number }) => {
+  return service({
+    url: API_URLS.resetPassword,
+    method: 'post',
+    data
+  })
+}

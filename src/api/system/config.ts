@@ -14,6 +14,7 @@ export const API_URLS = {
   setUserInfo: '/api/user/setUserInfo', // 添加设置用户信息的API
   setSelfInfo: '/api/user/setSelfInfo', // 添加设置个人信息的API
   deleteUser: '/api/user/deleteUser', // 添加删除用户的API
+  resetPassword: '/api/user/resetPassword', // 添加重置密码的API
   
   // 临时添加以解决编译错误，后续可移除
   getSysOperationRecordList: '/api/sysOperationRecord/getSysOperationRecordList',
