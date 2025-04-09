@@ -54,7 +54,7 @@
     
     <!-- 用户列表 -->
     <el-card shadow="hover" class="table-card">
-      <div v-if="userList.length === 0 && !loading" class="empty-data">
+      <div v-if="userList.length === 2 && !loading" class="empty-data">
         <el-empty description="暂无用户数据" />
       </div>
       

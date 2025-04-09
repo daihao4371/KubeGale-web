@@ -199,7 +199,7 @@ export function useUsers() {
   })
   
   const disabledUserCount = computed(() => {
-    return userList.value.filter(user => user.enable === 0).length
+    return userList.value.filter(user => user.enable === 2).length
   })
 
   return {

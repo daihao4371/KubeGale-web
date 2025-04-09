@@ -12,6 +12,7 @@ export const API_URLS = {
   adminRegister: '/api/user/admin_register',
   setUserAuthorities: '/api/user/setUserAuthorities', // 设置用户角色的API
   setUserInfo: '/api/user/setUserInfo', // 添加设置用户信息的API
+  setSelfInfo: '/api/user/setSelfInfo', // 添加设置个人信息的API
   deleteUser: '/api/user/deleteUser', // 添加删除用户的API
   
   // 临时添加以解决编译错误，后续可移除

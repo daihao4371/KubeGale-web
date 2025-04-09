@@ -142,3 +142,26 @@ export function deleteUser(id: number) {
     data: { id }
   })
 }
+
+// 更新个人信息参数类型
+export interface SetSelfInfoParams {
+  ID: number;
+  userName?: string;
+  nickName?: string;
+  phone?: string;
+  authorityIds?: number[];
+  email?: string;
+  headerImg?: string;
+  sideMode?: string;
+  enable?: number;
+}
+
+// 更新个人信息
+export function setSelfInfo(data: SetSelfInfoParams) {
+  console.log('调用更新个人信息API:', API_URLS.setSelfInfo, data)
+  return service({
+    url: API_URLS.setSelfInfo,
+    method: 'put',
+    data
+  })
+}
