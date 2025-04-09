@@ -256,22 +256,6 @@ const handleUpdate = async () => {
 </script>
 
 <style lang="scss" scoped>
-.password-eye {
-  cursor: pointer;
-  color: #909399;
-  
-  &:hover {
-    color: #409EFF;
-  }
-}
-
-.el-form-item {
-  margin-bottom: 18px;
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
+/* 替换原有的导入 */
+@import './modules/users/styles/userStyles.scss';
 </style>

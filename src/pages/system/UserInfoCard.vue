@@ -152,5 +152,6 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-@import './modules/users/components/userInfoCard.scss';
+/* 替换原有导入 */
+@import './modules/users/styles/userStyles.scss';
 </style>
