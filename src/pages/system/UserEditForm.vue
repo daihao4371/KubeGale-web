@@ -43,13 +43,22 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, defineExpose } from 'vue'
+import { ref, reactive, defineExpose, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import { ElMessage } from 'element-plus'  // 添加这一行，导入 ElMessage
+import { ElMessage } from 'element-plus'
+import service from '@/api/system/service'
+
+// 定义props接收用户数据
+const props = defineProps({
+  userData: {  // 确保这个名称与 users.vue 中的 :user-data 属性一致
+    type: Object,
+    default: () => ({})
+  }
+})
 
 // 表单数据
 const form = reactive({
-  ID: 0,  // 确保字段名为 ID 而不是 id
+  ID: 0,
   nickName: '',
   phone: '',
   email: '',
@@ -72,9 +81,30 @@ const rules = reactive<FormRules>({
 
 const formRef = ref<FormInstance>()
 
+// 定义用户数据接口
+interface UserData {
+  ID?: number;
+  id?: number;
+  nickName?: string;
+  nick_name?: string;
+  phone?: string;
+  email?: string;
+  enable?: number;
+  authorityIds?: Array<string | number>;
+  authorities?: Array<{authorityId: string | number}>;
+  authority?: {authorityId: string | number};
+  authorityId?: string | number;
+  [key: string]: any; // 允许其他属性
+}
+
 // 设置表单数据
-const setFormData = (userData: any) => {
-  console.log('设置表单数据开始:', userData) // 添加日志，便于调试
+const setFormData = (userData: UserData) => {
+  console.log('设置表单数据开始:', userData)
+  
+  if (!userData || Object.keys(userData).length === 0) {
+    console.warn('警告: 传入的用户数据为空')
+    return
+  }
   
   // 确保ID字段正确设置
   if (userData.ID !== undefined) {
@@ -92,31 +122,77 @@ const setFormData = (userData: any) => {
   form.email = userData.email ?? ''
   form.enable = userData.enable !== undefined ? userData.enable : 1
   
-  // 处理用户角色 - 根据后端 ChangeUserInfo 结构体调整
+  // 处理用户角色
   form.authorityIds = [] // 先清空
   
   // 直接使用 authorityIds 字段（如果存在）
   if (userData.authorityIds && Array.isArray(userData.authorityIds)) {
-    form.authorityIds = userData.authorityIds.map((id: any) => id.toString())
+    form.authorityIds = userData.authorityIds.map((id: string | number) => String(id))
   } 
-  // 如果没有 authorityIds，尝试从 authorities 中提取
-  else if (userData.authorities && Array.isArray(userData.authorities) && userData.authorities.length > 0) {
-    form.authorityIds = userData.authorities.map((auth: any) => {
-      // 尝试获取 authorityId
-      const authId = auth.authorityId || auth.ID || auth.id
-      return authId ? authId.toString() : null
-    }).filter(Boolean) // 过滤掉空值
-  } 
-  // 如果有单个 authority 对象
+  // 如果有 authorities 数组
+  else if (userData.authorities && Array.isArray(userData.authorities)) {
+    form.authorityIds = userData.authorities.map((auth: any) => String(auth.authorityId))
+  }
+  // 如果只有单个 authority 对象
   else if (userData.authority && userData.authority.authorityId) {
-    form.authorityIds = [userData.authority.authorityId.toString()]
-  } 
-  // 如果有单个 authorityId
+    form.authorityIds = [String(userData.authority.authorityId)]
+  }
+  // 如果只有 authorityId 字段
   else if (userData.authorityId) {
-    form.authorityIds = [userData.authorityId.toString()]
+    form.authorityIds = [String(userData.authorityId)]
   }
   
-  console.log('表单数据设置完成:', { ...form }) // 添加日志，便于调试
+  console.log('表单数据设置完成:', form)
+}
+
+// 监听props变化，自动设置表单数据
+watch(() => props.userData, (newVal) => {
+  console.log('userData 变化:', newVal)
+  if (newVal && Object.keys(newVal).length > 0) {
+    setFormData(newVal)
+  }
+}, { immediate: true, deep: true })
+
+// 提交表单
+const submitForm = async () => {
+  if (!formRef.value) return Promise.reject(new Error('表单实例不存在'))
+  
+  return new Promise((resolve, reject) => {
+    formRef.value!.validate(async (valid) => {
+      if (!valid) {
+        reject(new Error('表单验证失败'))
+        return
+      }
+      
+      try {
+        // 发送更新用户请求
+        const response = await service({
+          url: '/user/setUserInfo',
+          method: 'put',
+          data: {
+            ID: form.ID,
+            nickName: form.nickName,
+            phone: form.phone,
+            email: form.email,
+            authorityIds: form.authorityIds,
+            enable: form.enable
+          }
+        })
+        
+        if (response.data && response.data.code === 0) {
+          ElMessage.success('更新用户成功')
+          resolve(true)
+        } else {
+          ElMessage.error(response.data?.msg || '更新用户失败')
+          reject(new Error(response.data?.msg || '更新用户失败'))
+        }
+      } catch (error) {
+        console.error('更新用户失败:', error)
+        ElMessage.error('更新用户失败')
+        reject(error)
+      }
+    })
+  })
 }
 
 // 重置表单
@@ -124,6 +200,8 @@ const resetForm = () => {
   if (formRef.value) {
     formRef.value.resetFields()
   }
+  
+  // 重置表单数据
   form.ID = 0
   form.nickName = ''
   form.phone = ''
@@ -132,40 +210,17 @@ const resetForm = () => {
   form.enable = 1
 }
 
-// 验证表单
-const validate = async () => {
-  if (!formRef.value) return { valid: false, data: null }
-  
-  // 先检查ID是否存在
-  if (!form.ID) {
-    console.error('表单验证失败: ID不能为空')
-    ElMessage.error('用户ID不能为空')  // 现在可以正常使用 ElMessage
-    return { valid: false, data: null }
-  }
-  
-  return formRef.value.validate()
-    .then(() => {
-      // 转换 authorityIds 为数字数组
-      const formData = {
-        ...form,
-        ID: Number(form.ID), // 确保ID是数字类型
-        authorityIds: form.authorityIds.map(id => Number(id))
-      }
-      
-      console.log('提交的表单数据:', formData) // 添加日志，便于调试
-      return { valid: true, data: formData }
-    })
-    .catch((err) => {
-      console.error('表单验证错误:', err)
-      return { valid: false, data: null }
-    })
-}
-
-// 暴露方法给父组件
+// 暴露方法给父组件调用
 defineExpose({
   setFormData,
+  submitForm,
   resetForm,
-  validate,
   form
 })
 </script>
+
+<style lang="scss" scoped>
+.el-form {
+  padding: 10px;
+}
+</style>

@@ -91,8 +91,6 @@ export function useUserDialog() {
   }
 
   // 提交用户表单
-  // 删除这里的导入语句
-  // 提交用户表单
   const submitUserForm = async () => {
     if (!userFormRef.value) return
     
@@ -136,86 +134,45 @@ export function useUserDialog() {
 
   // 编辑用户
   const handleEdit = async (row: any) => {
-    // 确保row中有id字段
-    if (!row.id && !row.ID) {
-      ElMessage.error('用户数据缺少ID字段')
-      return
-    }
+    // 设置当前编辑用户数据
+    const userId = row.id || row.ID
     
-    const userId = row.ID || row.id
-    editFormTitle.value = `编辑用户: ${row.userName || ''}`
-    showUserEditDialog.value = true
+    // 设置标题和显示对话框
+    editFormTitle.value = `编辑用户: ${row.userName || row.username || ''}`
     editFormLoading.value = true
+    showUserEditDialog.value = true
     
     try {
-      // 先查询用户完整信息
+      // 获取用户详细信息
       const response = await getUserInfo(Number(userId))
       
       if (response.data && response.data.code === 0 && response.data.data) {
+        // 获取成功，使用API返回的详细数据
         const userData = response.data.data
         
         // 确保ID字段存在
-        if (!userData.ID) {
+        if (!userData.ID && userId) {
           userData.ID = Number(userId)
         }
         
         console.log('获取到的用户详细信息:', userData)
         
-        // 设置表单数据
-        if (userEditFormRef.value) {
-          setTimeout(() => {
-            if (userEditFormRef.value) {
-              userEditFormRef.value.setFormData(userData)
-            }
-            editFormLoading.value = false
-          }, 200)
-        } else {
-          editFormLoading.value = false
-        }
+        // 返回获取到的用户数据，供外部使用
+        return userData
       } else {
-        // 如果获取详细信息失败，则使用列表中的简略信息
+        // 如果API调用失败，使用传入的行数据
         console.warn('获取用户详细信息失败，使用列表数据')
-        if (userEditFormRef.value) {
-          // 深拷贝用户数据，避免引用问题
-          const userData = JSON.parse(JSON.stringify(row))
-          
-          // 确保ID字段存在
-          if (!userData.ID && userData.id) {
-            userData.ID = Number(userData.id)
-          }
-          
-          setTimeout(() => {
-            if (userEditFormRef.value) {
-              userEditFormRef.value.setFormData(userData)
-            }
-            editFormLoading.value = false
-          }, 200)
-        } else {
-          editFormLoading.value = false
-        }
+        return { ...row, ID: Number(userId) }
       }
     } catch (error) {
       console.error('获取用户详细信息失败:', error)
-      ElMessage.error('获取用户信息失败')
+      // 出错时也使用传入的行数据
+      return { ...row, ID: Number(userId) }
+    } finally {
       editFormLoading.value = false
-      
-      // 如果获取详细信息出错，则使用列表中的简略信息
-      if (userEditFormRef.value) {
-        const userData = JSON.parse(JSON.stringify(row))
-        if (!userData.ID && userData.id) {
-          userData.ID = Number(userData.id)
-        }
-        
-        setTimeout(() => {
-          if (userEditFormRef.value) {
-            userEditFormRef.value.setFormData(userData)
-          }
-        }, 200)
-      }
     }
   }
 
-  // 提交用户编辑表单
   // 提交用户编辑表单
   const submitUserEditForm = async () => {
     if (!userEditFormRef.value) return
@@ -273,7 +230,6 @@ export function useUserDialog() {
     }
   }
 
-  // 重置密码（暂不实现具体逻辑）
   // 重置密码
   const handleResetPassword = (row: any) => {
     ElMessageBox.confirm(
@@ -314,7 +270,6 @@ export function useUserDialog() {
       })
   }
 
-  // 删除用户（暂不实现具体逻辑）
   // 获取用户删除逻辑
   const { handleDeleteUser } = useUserDelete()
   
@@ -343,7 +298,7 @@ export function useUserDialog() {
     handleAdd,
     handleEdit,
     handleResetPassword,
-    handleDelete,  // 这里添加了逗号
+    handleDelete,
     
     // 用户编辑对话框相关
     showUserEditDialog,

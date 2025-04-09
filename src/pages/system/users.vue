@@ -264,7 +264,8 @@
       class="user-edit-dialog"
     >
       <div v-loading="editFormLoading" style="min-height: 200px;">
-        <UserEditForm ref="userEditFormRef" />
+        <!-- 这里不需要修改，因为我们已经修改了 currentUser 的类型 -->
+        <UserEditForm ref="userEditFormRef" :user-data="currentUser" />
       </div>
       <template #footer>
         <div class="dialog-footer">
@@ -287,8 +288,10 @@ import UserEditForm from './UserEditForm.vue'  // 保留这一行，使用新路
 import { useUserRole } from './modules/users/useUserRole'
 import { useUserStatus } from './modules/users/useUserStatus'
 import { useUserEvents } from './modules/users/useUserEvents'
+import { ref } from 'vue'
 
-
+// 修改当前编辑用户的引用，使用空对象而不是 null
+const currentUser = ref<Record<string, any>>({})
 
 // 使用解耦合后的用户列表逻辑
 const {
@@ -330,10 +333,31 @@ const {
   
   // 操作方法
   handleAdd,
-  handleEdit,
+  handleEdit: originalHandleEdit,  // 重命名原始的handleEdit
   handleResetPassword,
   handleDelete
 } = useUserDialog()
+
+// 重新定义handleEdit函数，添加设置currentUser的逻辑
+const handleEdit = async (row: any) => {
+  try {
+    // 先设置基本数据
+    currentUser.value = { ...row }
+    
+    // 调用原始的handleEdit函数
+    await originalHandleEdit(row)
+    
+    // 确保在对话框打开后，表单组件已经挂载
+    setTimeout(() => {
+      if (userEditFormRef.value) {
+        // 确保表单组件使用最新的数据
+        userEditFormRef.value.setFormData(currentUser.value)
+      }
+    }, 100)
+  } catch (error) {
+    console.error('编辑用户时出错:', error)
+  }
+}
 
 // 使用解耦后的用户角色管理逻辑
 const { hasRole, getRoleName, handleRoleChange } = useUserRole()
