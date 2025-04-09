@@ -86,9 +86,9 @@ export function registerUser(data: RegisterUserParams) {
     authorityId: Number(data.authorityId)
   };
   
-  console.log('调用注册用户API:', '/api/user/admin_register', postData)
+  console.log('调用注册用户API:', API_URLS.adminRegister, postData)
   return service({
-    url: '/api/user/admin_register',
+    url: API_URLS.adminRegister,
     method: 'post',
     data: postData
   })
