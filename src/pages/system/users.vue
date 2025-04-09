@@ -12,6 +12,14 @@
             <div class="stat-title">总用户数</div>
             <div class="stat-value">{{ pagination.total }}</div>
           </div>
+          <div class="stat-card">
+            <div class="stat-title">启用用户</div>
+            <div class="stat-value">{{ enabledUserCount }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">禁用用户</div>
+            <div class="stat-value">{{ disabledUserCount }}</div>
+          </div>
         </div>
         
         <!-- 移除了右上角个人信息按钮 -->
@@ -171,13 +179,14 @@
         </el-table-column>
         
         <!-- 状态列 -->
-        <el-table-column label="状态" width="80" align="center">
+        <el-table-column label="启用" width="80" align="center">
           <template #default="scope">
             <el-switch
               v-model="scope.row.enable"
               :active-value="1"
               :inactive-value="0"
-              disabled
+              @change="(val: number) => handleStatusChange(scope.row, val)"
+              :loading="scope.row.statusLoading"
             />
           </template>
         </el-table-column>
@@ -253,13 +262,13 @@
 import { Search, Refresh, Plus, Edit, Delete, Key, User } from '@element-plus/icons-vue'
 import { useUsers } from './modules/users/useUsers'
 import { useUserDialog } from './modules/users/components/useUserDialog'
+import { useUserRole } from './modules/users/useUserRole'
+import { useUserStatus } from './modules/users/useUserStatus'
+import { useUserEvents } from './modules/users/useUserEvents'
 import UserInfoCard from './UserInfoCard.vue'
 import UserForm from './UserForm.vue'
-import { onMounted, onUnmounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { setUserAuthorities } from '@/api/system/userManage' // 导入设置用户角色的函数
 
-// 使用解耦后的用户列表逻辑
+// 使用解耦合后的用户列表逻辑
 const {
   searchForm,
   userList,
@@ -269,7 +278,9 @@ const {
   handleSearch,
   resetSearch,
   handleSizeChange,
-  handleCurrentChange
+  handleCurrentChange,
+  enabledUserCount,  // 添加启用用户数量
+  disabledUserCount  // 添加禁用用户数量
 } = useUsers()
 
 // 使用解耦合后的对话框逻辑
@@ -295,110 +306,14 @@ const {
   handleDelete
 } = useUserDialog()
 
-// 检查用户是否已有某个角色
-const hasRole = (authorities: any[], roleId: number) => {
-  return authorities.some(auth => auth.authorityId === roleId)
-}
+// 使用解耦后的用户角色管理逻辑
+const { hasRole, getRoleName, handleRoleChange } = useUserRole()
 
-// 处理角色变更
-const handleRoleChange = async (user: { 
-  id: number; 
-  authorityId: number; 
-  authority?: { 
-    authorityId: number; 
-    authorityName: string 
-  }; 
-  authorities?: Array<{ 
-    authorityId: number; 
-    authorityName: string 
-  }> 
-}, newRoleId: number) => {
-  // 保存原始角色ID，以便在失败时恢复
-  const originalAuthorityId = user.authorityId;
-  
-  try {
-    loading.value = true
-    
-    // 确保 newRoleId 是数字类型
-    const authorityId = Number(newRoleId);
-    
-    // 修改为符合后端要求的参数格式
-    const response = await setUserAuthorities({
-      ID: user.id,  // 使用大写的 ID
-      authorityIds: [authorityId]  // 使用 authorityIds 数组
-    })
-    
-    if (response.data && response.data.code === 0) {
-      ElMessage.success('用户角色更新成功')
-      
-      // 更新本地数据
-      user.authorityId = authorityId;
-      
-      // 更新 authority 对象
-      if (user.authority) {
-        user.authority.authorityId = authorityId;
-        user.authority.authorityName = getRoleName(authorityId);
-      } else {
-        user.authority = {
-          authorityId: authorityId,
-          authorityName: getRoleName(authorityId)
-        };
-      }
-      
-      // 如果有 authorities 数组，也更新它
-      if (user.authorities && user.authorities.length) {
-        // 检查是否已存在该角色
-        const existingAuthIndex = user.authorities.findIndex(
-          (auth: any) => auth.authorityId === authorityId
-        );
-        
-        if (existingAuthIndex === -1) {
-          // 如果不存在，添加新角色
-          user.authorities.push({
-            authorityId: authorityId,
-            authorityName: getRoleName(authorityId)
-          });
-        }
-      }
-    } else {
-      // 恢复原始值
-      user.authorityId = originalAuthorityId;
-      ElMessage.error(response.data?.msg || '角色更新失败');
-    }
-  } catch (error) {
-    console.error('更新用户角色失败:', error);
-    // 恢复原始值
-    user.authorityId = originalAuthorityId;
-    ElMessage.error('更新用户角色失败，请重试');
-  } finally {
-    loading.value = false;
-  }
-}
+// 使用解耦后的用户状态管理逻辑
+const { handleStatusChange } = useUserStatus()
 
-// 根据角色ID获取角色名称
-const getRoleName = (roleId: number): string => {
-  // 这里应该从数据库获取角色名称，但为了简化，我们使用硬编码的映射
-  const roleMap: Record<number, string> = {
-    888: '普通用户',
-    9528: '测试角色'
-  };
-  return roleMap[roleId] || '未知角色';
-}
-
-// 监听刷新用户列表事件
-const handleRefreshUserList = () => {
-  fetchUserList()
-}
-
-// 组件挂载时添加事件监听
-onMounted(() => {
-  window.addEventListener('refresh-user-list', handleRefreshUserList)
-})
-
-// 组件卸载时移除事件监听
-onUnmounted(() => {
-  window.removeEventListener('refresh-user-list', handleRefreshUserList)
-})
+// 使用解耦后的用户事件管理逻辑
+useUserEvents(fetchUserList)
 
 // 导出方法供外部调用 - 保留此方法以便布局组件可以调用
 defineExpose({
@@ -413,18 +328,4 @@ fetchUserList()
 @import './modules/users/users.scss';
 @import './modules/users/components/userDialog.scss';
 @import './modules/users/components/userForm.scss';
-
-/* 角色选择下拉框样式 */
-:deep(.el-select) {
-  width: 100%;
-}
-
-:deep(.el-select .el-input__wrapper) {
-  padding: 0 8px;
-}
-
-:deep(.el-select .el-input__inner) {
-  height: 24px;
-  line-height: 24px;
-}
 </style>

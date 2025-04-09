@@ -11,25 +11,25 @@ export interface UserListParams {
   email?: string;
 }
 
-// 用户信息类型 - 更新为匹配后端结构体
+// 用户信息类型
 export interface UserInfo {
   id: number;
-  uuid: string;
-  userName: string;  // 对应后端的 Username
-  nickName: string;  // 对应后端的 NickName
-  headerImg: string; // 对应后端的 HeaderImg
-  authorityId: number; // 对应后端的 AuthorityId
-  authority: {
+  userName: string;
+  nickName?: string;
+  headerImg?: string;
+  phone?: string;
+  email?: string;
+  enable: number;  // 确保包含 enable 属性
+  authorityId?: number;
+  authority?: {
     authorityId: number;
     authorityName: string;
   };
-  authorities: Array<{
+  authorities?: Array<{
     authorityId: number;
     authorityName: string;
   }>;
-  phone: string;    // 对应后端的 Phone
-  email: string;    // 对应后端的 Email
-  enable: number;   // 对应后端的 Enable
+  [key: string]: any;
 }
 
 // 分页响应类型
@@ -96,8 +96,9 @@ export function registerUser(data: RegisterUserParams) {
 
 // 设置用户角色参数类型
 export interface SetUserAuthoritiesParams {
-  ID: number;  // 修改为大写的 ID，匹配后端
-  authorityIds: number[];  // 修改为 authorityIds 数组
+  ID: number;  // 用户ID
+  authorityIds: number[];  // 角色ID数组
+  enable?: number;  // 可选的状态参数
 }
 
 // 设置用户角色
@@ -106,6 +107,28 @@ export function setUserAuthorities(data: SetUserAuthoritiesParams) {
   return service({
     url: API_URLS.setUserAuthorities,
     method: 'post',
+    data
+  })
+}
+
+// 更新用户信息参数类型
+export interface ChangeUserInfoParams {
+  ID: number;
+  nickName?: string;
+  phone?: string;
+  authorityIds?: number[];
+  email?: string;
+  headerImg?: string;
+  sideMode?: string;
+  enable?: number;
+}
+
+// 更新用户信息
+export function setUserInfo(data: ChangeUserInfoParams) {
+  console.log('调用更新用户信息API:', API_URLS.setUserInfo, data)
+  return service({
+    url: API_URLS.setUserInfo,
+    method: 'put',
     data
   })
 }

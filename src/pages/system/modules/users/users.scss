@@ -218,3 +218,17 @@
     }
   }
 }
+
+/* 角色选择下拉框样式 */
+:deep(.el-select) {
+  width: 100%;
+}
+
+:deep(.el-select .el-input__wrapper) {
+  padding: 0 8px;
+}
+
+:deep(.el-select .el-input__inner) {
+  height: 24px;
+  line-height: 24px;
+}

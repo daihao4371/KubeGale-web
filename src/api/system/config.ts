@@ -10,7 +10,8 @@ export const API_URLS = {
   getUserInfo: '/api/user/getUserInfo',
   changePassword: '/api/user/changePassword',
   adminRegister: '/api/user/admin_register',
-  setUserAuthorities: '/api/user/setUserAuthorities', // 添加设置用户角色的API
+  setUserAuthorities: '/api/user/setUserAuthorities', // 设置用户角色的API
+  setUserInfo: '/api/user/setUserInfo', // 添加设置用户信息的API
   
   // 临时添加以解决编译错误，后续可移除
   getSysOperationRecordList: '/api/sysOperationRecord/getSysOperationRecordList',

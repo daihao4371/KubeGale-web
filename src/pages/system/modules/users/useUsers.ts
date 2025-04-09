@@ -1,4 +1,4 @@
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { UserInfo, UserListParams } from '@/api/system/userManage'
 import { getUserList, getUserInfo } from '@/api/system/userManage'
@@ -145,7 +145,7 @@ export function useUsers() {
       authorities: user.authorities || [],
       phone: user.phone || user.mobile || '',
       email: user.email || '',
-      enable: user.enable !== undefined ? user.enable : (user.status === 'active' ? 1 : 0)
+      enable: user.enable !== undefined ? user.enable : (user.status === 'active' ? 1 : 2)
     }
   }
 
@@ -177,14 +177,12 @@ export function useUsers() {
     fetchUserList()
   }
 
-  // 选择用户
+  // 选择用户 - 只保留一个定义
   const selectUser = (user: UserInfo) => {
     currentUser.value = user
+    console.log('选择用户:', user)
   }
 
-  // 组件挂载时加载数据
-  // 在 fetchUserList 函数后添加以下代码
-  
   // 监听刷新用户列表事件
   onMounted(() => {
     window.addEventListener('refresh-user-list', fetchUserList)
@@ -195,6 +193,15 @@ export function useUsers() {
     window.removeEventListener('refresh-user-list', fetchUserList)
   })
   
+  // 添加计算属性，统计启用和禁用的用户数量
+  const enabledUserCount = computed(() => {
+    return userList.value.filter(user => user.enable === 1).length
+  })
+  
+  const disabledUserCount = computed(() => {
+    return userList.value.filter(user => user.enable === 0).length
+  })
+
   return {
     searchForm,
     userList,
@@ -208,6 +215,8 @@ export function useUsers() {
     resetSearch,
     handleSizeChange,
     handleCurrentChange,
-    selectUser
+    selectUser,
+    enabledUserCount,
+    disabledUserCount
   }
 }
