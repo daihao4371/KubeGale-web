@@ -174,21 +174,43 @@
     <el-dialog
       v-model="showUserInfoDialog"
       :title="currentUserName ? `${currentUserName} 的个人信息` : '个人信息'"
-      width="600px"
+      width="400px"
       :close-on-click-modal="false"
       destroy-on-close
       class="user-dialog"
     >
       <UserInfoCard :userId="currentUserId" ref="userInfoCardRef" />
     </el-dialog>
-  </div>
+    
+    <!-- 用户表单对话框 -->
+    <el-dialog
+      v-model="showUserFormDialog"
+      :title="formTitle"
+      width="500px"
+      :close-on-click-modal="false"
+      destroy-on-close
+      class="user-form-dialog"
+    >
+      <UserForm ref="userFormRef" />
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="showUserFormDialog = false">取消</el-button>
+          <el-button type="primary" :loading="formLoading" @click="submitUserForm">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
+    
+  </div> <!-- 添加这个结束标签 -->
 </template>
 
+<!-- 修改引用路径 -->
 <script lang="ts" setup name="SystemUsers">
 import { Search, Refresh, Plus, Edit, Delete, Key, User } from '@element-plus/icons-vue'
 import { useUsers } from './modules/users/useUsers'
 import { useUserDialog } from './modules/users/components/useUserDialog'
-import UserInfoCard from '../system/UserInfoCard.vue'
+import UserInfoCard from './UserInfoCard.vue'
+import UserForm from './UserForm.vue'  // 修改这一行
+import { onMounted, onUnmounted } from 'vue'
 
 // 使用解耦后的用户列表逻辑
 const {
@@ -203,7 +225,7 @@ const {
   handleCurrentChange
 } = useUsers()
 
-// 使用解耦后的对话框逻辑
+// 使用解耦合后的对话框逻辑
 const {
   showUserInfoDialog,
   userInfoCardRef,
@@ -211,11 +233,35 @@ const {
   currentUserName,
   handleViewUserInfo,
   toggleUserInfo,
+  
+  // 用户表单对话框相关
+  showUserFormDialog,
+  userFormRef,
+  formTitle,
+  formLoading,
+  submitUserForm,
+  
+  // 操作方法
   handleAdd,
   handleEdit,
   handleResetPassword,
   handleDelete
 } = useUserDialog()
+
+// 监听刷新用户列表事件
+const handleRefreshUserList = () => {
+  fetchUserList()
+}
+
+// 组件挂载时添加事件监听
+onMounted(() => {
+  window.addEventListener('refresh-user-list', handleRefreshUserList)
+})
+
+// 组件卸载时移除事件监听
+onUnmounted(() => {
+  window.removeEventListener('refresh-user-list', handleRefreshUserList)
+})
 
 // 导出方法供外部调用 - 保留此方法以便布局组件可以调用
 defineExpose({
@@ -229,4 +275,5 @@ fetchUserList()
 <style lang="scss" scoped>
 @import './modules/users/users.scss';
 @import './modules/users/components/userDialog.scss';
+@import './modules/users/components/userForm.scss';
 </style>

@@ -1,4 +1,4 @@
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { UserInfo, UserListParams } from '@/api/system/userManage'
 import { getUserList, getUserInfo } from '@/api/system/userManage'
@@ -183,10 +183,18 @@ export function useUsers() {
   }
 
   // 组件挂载时加载数据
+  // 在 fetchUserList 函数后添加以下代码
+  
+  // 监听刷新用户列表事件
   onMounted(() => {
-    fetchUserList()
+    window.addEventListener('refresh-user-list', fetchUserList)
   })
-
+  
+  // 组件卸载时移除事件监听
+  onUnmounted(() => {
+    window.removeEventListener('refresh-user-list', fetchUserList)
+  })
+  
   return {
     searchForm,
     userList,

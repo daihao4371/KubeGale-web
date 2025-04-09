@@ -66,3 +66,30 @@ export function getUserInfo(id?: number) {
     params: id ? { id } : {} // 如果提供了ID，则作为参数传递
   })
 }
+
+// 注册用户接口参数类型
+export interface RegisterUserParams {
+  userName: string;
+  password: string;
+  nickName?: string;
+  phone?: string;
+  email?: string;
+  authorityId: number;
+  enable: number;
+}
+
+// 注册用户
+export function registerUser(data: RegisterUserParams) {
+  // 确保 authorityId 是数字类型
+  const postData = {
+    ...data,
+    authorityId: Number(data.authorityId)
+  };
+  
+  console.log('调用注册用户API:', '/api/user/admin_register', postData)
+  return service({
+    url: '/api/user/admin_register',
+    method: 'post',
+    data: postData
+  })
+}
