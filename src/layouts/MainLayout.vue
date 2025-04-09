@@ -137,7 +137,9 @@
     <PasswordDialog 
       v-model:visible="passwordDialogVisible"
       :loading="passwordLoading"
+      @submit="handlePasswordSubmit"
     />
+    <!-- 删除重复的密码对话框组件 -->
   </div>
 </template>
 
@@ -176,6 +178,7 @@ const {
   toggleSidebar,
   handleCommand,
   handleLogout,
+  handlePasswordSubmit, // 添加这个方法
 } = useMainLayout()
 </script>
 

@@ -10,7 +10,8 @@ export function useMainLayout() {
   const {
     passwordDialogVisible,
     passwordLoading,
-    openPasswordDialog
+    openPasswordDialog,
+    submitChangePassword
   } = usePasswordDialog()
 
   const isCollapse = ref(false)
@@ -50,9 +51,14 @@ export function useMainLayout() {
         window.dispatchEvent(new CustomEvent('open-user-info-dialog'))
       }
     } else if (command === 'password') {
-      // 显示功能正在开发中的提示
-      ElMessage.info('修改密码功能正在开发中，敬请期待！')
+      // 修改为调用修改密码对话框
+      openPasswordDialog()
     }
+  }
+
+  // 处理密码提交
+  const handlePasswordSubmit = async () => {
+    await submitChangePassword()
   }
 
   // 处理退出登录
@@ -97,6 +103,7 @@ export function useMainLayout() {
     passwordLoading,
     toggleSidebar,
     handleCommand,
-    handleLogout
+    handleLogout,
+    handlePasswordSubmit // 添加这个方法到返回值中
   }
 }
