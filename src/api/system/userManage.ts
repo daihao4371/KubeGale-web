@@ -132,3 +132,13 @@ export function setUserInfo(data: ChangeUserInfoParams) {
     data
   })
 }
+
+// 删除用户
+export function deleteUser(id: number) {
+  console.log('调用删除用户API:', API_URLS.deleteUser, id)
+  return service({
+    url: API_URLS.deleteUser,
+    method: 'delete',
+    data: { id }
+  })
+}

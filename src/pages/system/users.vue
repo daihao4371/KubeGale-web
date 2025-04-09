@@ -184,7 +184,7 @@
             <el-switch
               v-model="scope.row.enable"
               :active-value="1"
-              :inactive-value="0"
+              :inactive-value="2"
               @change="(val: number) => handleStatusChange(scope.row, val)"
               :loading="scope.row.statusLoading"
             />
@@ -199,7 +199,7 @@
                 <el-icon><Edit /></el-icon>编辑
               </el-button>
               <el-button type="warning" size="small" plain @click.stop="handleResetPassword(scope.row)">
-                <el-icon><Key /></el-icon>密码
+                <el-icon><Key /></el-icon>重设密码
               </el-button>
               <el-button type="danger" size="small" plain @click.stop="handleDelete(scope.row)">
                 <el-icon><Delete /></el-icon>删除

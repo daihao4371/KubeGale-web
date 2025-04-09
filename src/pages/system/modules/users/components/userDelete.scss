@@ -1,0 +1,18 @@
+.delete-confirm-dialog {
+  .el-message-box__message {
+    color: #f56c6c;
+    font-weight: 500;
+  }
+  
+  .el-message-box__btns {
+    .el-button--primary {
+      background-color: #f56c6c;
+      border-color: #f56c6c;
+      
+      &:hover {
+        background-color: #f78989;
+        border-color: #f78989;
+      }
+    }
+  }
+}

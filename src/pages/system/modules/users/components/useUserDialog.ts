@@ -4,6 +4,7 @@ import { getUserInfo } from '@/api/system/userManage'
 import { registerUser } from '@/api/system/userManage' // 需要在userManage.ts中添加此API
 // 将导入移到顶部
 import { UserFormData } from './useUserForm'
+import { useUserDelete } from '../useUserDelete' // 导入用户删除逻辑
 
 export function useUserDialog() {
   // 控制用户信息对话框显示
@@ -135,8 +136,12 @@ export function useUserDialog() {
   }
 
   // 删除用户（暂不实现具体逻辑）
+  // 获取用户删除逻辑
+  const { handleDeleteUser } = useUserDelete()
+  
+  // 修改删除用户方法
   const handleDelete = (row: any) => {
-    ElMessage.info(`删除用户功能待实现，用户ID: ${row.id}`)
+    handleDeleteUser(row)
   }
 
   return {
