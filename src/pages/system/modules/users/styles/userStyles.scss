@@ -23,25 +23,33 @@
 /* userDialog.scss 样式 */
 .user-dialog {
   .el-dialog__body {
-    padding: 20px;
+    padding: 0;
+  }
+  
+  .user-info-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
   }
   
   .user-info-card {
+    width: 100%;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
     
     .header {
       background-color: #f5f7fa;
       padding: 20px;
       display: flex;
+      flex-direction: column;
       align-items: center;
+      text-align: center;
       
       .avatar {
-        width: 80px;
-        height: 80px;
+        width: 100px;
+        height: 100px;
         border-radius: 50%;
-        margin-right: 20px;
+        margin-bottom: 15px;
         background-color: #409eff;
         color: #fff;
         display: flex;
@@ -51,8 +59,12 @@
         font-weight: bold;
       }
       
+      .avatar-upload {
+        margin-top: 10px;
+      }
+      
       .info {
-        flex: 1;
+        width: 100%;
         
         .name {
           font-size: 20px;
@@ -73,16 +85,42 @@
       .info-item {
         margin-bottom: 15px;
         display: flex;
+        border-bottom: 1px solid #ebeef5;
+        padding-bottom: 10px;
         
         .label {
-          width: 100px;
+          width: 80px;
           color: #606266;
           font-weight: 500;
+          text-align: right;
+          padding-right: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          
+          /* 添加图标样式 */
+          .item-icon {
+            margin-right: 5px;
+            font-size: 16px;
+            color: #409EFF;
+          }
         }
         
         .value {
           flex: 1;
           color: #303133;
+          display: flex;
+          align-items: center;
+        }
+        
+        .edit-icon {
+          color: #409eff;
+          cursor: pointer;
+          margin-left: 10px;
+          
+          &:hover {
+            color: #66b1ff;
+          }
         }
       }
     }
@@ -196,5 +234,83 @@
     display: flex;
     justify-content: flex-end;
     padding: 10px 0;
+  }
+}
+
+/* 深度选择器样式 */
+:deep(.user-dialog) {
+  .el-dialog__body {
+    padding: 0;
+  }
+  
+  .el-dialog__header {
+    padding: 15px 20px;
+    margin-right: 0;
+    border-bottom: 1px solid #ebeef5;
+  }
+}
+
+:deep(.user-dialog .el-form-item) {
+  margin-bottom: 18px;
+  width: 100%;
+}
+
+/* UserInfoCard 新增样式 */
+.user-info-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  
+  .avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+    
+    .el-avatar {
+      margin-bottom: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .avatar-uploader {
+      margin-top: 10px;
+    }
+  }
+  
+  .info-section {
+    .el-form {
+      .el-form-item {
+        margin-bottom: 15px;
+        
+        .editable-item {
+          display: flex;
+          align-items: center;
+          width: 100%;
+          min-height: 40px;
+          
+          .info-icon {
+            margin-right: 10px;
+            font-size: 18px;
+            color: #409EFF;
+          }
+          
+          span {
+            flex: 1;
+            padding: 5px 0;
+          }
+          
+          .el-input {
+            flex: 1;
+          }
+          
+          .edit-actions {
+            margin-left: 10px;
+            display: flex;
+            gap: 5px;
+          }
+        }
+      }
+    }
   }
 }
