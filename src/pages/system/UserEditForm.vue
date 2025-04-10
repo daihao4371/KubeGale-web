@@ -12,23 +12,26 @@
       <el-input v-model="form.email" placeholder="请输入邮箱" />
     </el-form-item>
     
+    <!-- 用户角色 -->
     <el-form-item label="用户角色" prop="authorityIds">
       <el-select 
         v-model="form.authorityIds" 
-        multiple 
-        placeholder="请选择用户角色"
+        placeholder="请选择用户角色" 
+        multiple
+        collapse-tags
         style="width: 100%"
       >
         <el-option
-          key="888"
+          :key="888"
           label="普通用户"
-          value="888"
+          :value="888"
         />
         <el-option
-          key="9528"
+          :key="9528"
           label="测试角色"
-          value="9528"
+          :value="9528"
         />
+        <!-- 可以根据需要添加更多角色选项 -->
       </el-select>
     </el-form-item>
     
@@ -62,7 +65,7 @@ const form = reactive({
   nickName: '',
   phone: '',
   email: '',
-  authorityIds: [] as string[],
+  authorityIds: [] as number[], // 修改为数字数组
   enable: 1
 })
 
@@ -127,19 +130,19 @@ const setFormData = (userData: UserData) => {
   
   // 直接使用 authorityIds 字段（如果存在）
   if (userData.authorityIds && Array.isArray(userData.authorityIds)) {
-    form.authorityIds = userData.authorityIds.map((id: string | number) => String(id))
+    form.authorityIds = userData.authorityIds.map((id: string | number) => Number(id))
   } 
   // 如果有 authorities 数组
   else if (userData.authorities && Array.isArray(userData.authorities)) {
-    form.authorityIds = userData.authorities.map((auth: any) => String(auth.authorityId))
+    form.authorityIds = userData.authorities.map((auth: any) => Number(auth.authorityId))
   }
   // 如果只有单个 authority 对象
   else if (userData.authority && userData.authority.authorityId) {
-    form.authorityIds = [String(userData.authority.authorityId)]
+    form.authorityIds = [Number(userData.authority.authorityId)]
   }
   // 如果只有 authorityId 字段
   else if (userData.authorityId) {
-    form.authorityIds = [String(userData.authorityId)]
+    form.authorityIds = [Number(userData.authorityId)]
   }
   
   console.log('表单数据设置完成:', form)
@@ -223,7 +226,7 @@ const validate = async () => {
         nickName: form.nickName,
         phone: form.phone,
         email: form.email,
-        authorityIds: form.authorityIds,
+        authorityIds: form.authorityIds.map(id => Number(id)), // 确保是数字数组
         enable: form.enable
       }
     }

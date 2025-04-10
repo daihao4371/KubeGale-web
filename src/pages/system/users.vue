@@ -102,77 +102,26 @@
         <el-table-column label="用户角色" width="180">
           <template #default="scope">
             <!-- 显示多角色 -->
-            <div v-if="scope.row.authorities && scope.row.authorities.length">
+            <div>
               <el-select 
-                v-model="scope.row.authorityId" 
+                v-model="scope.row.selectedRoles" 
                 size="small" 
                 placeholder="选择角色"
-                @change="(val: number) => handleRoleChange(scope.row, val)"
-              >
-                <el-option
-                  v-for="authority in scope.row.authorities"
-                  :key="authority.authorityId"
-                  :label="authority.authorityName"
-                  :value="authority.authorityId"
-                />
-                <el-option
-                  v-if="!hasRole(scope.row.authorities, 888)"
-                  :key="888"
-                  label="普通用户"
-                  value="888"
-                />
-                <el-option
-                  v-if="!hasRole(scope.row.authorities, 9528)"
-                  :key="9528"
-                  label="测试角色"
-                  value="9528"
-                />
-              </el-select>
-            </div>
-            <!-- 兼容单角色显示 -->
-            <div v-else-if="scope.row.authority">
-              <el-select 
-                v-model="scope.row.authorityId" 
-                size="small" 
-                placeholder="选择角色"
-                @change="(val: number) => handleRoleChange(scope.row, val)"
-              >
-                <el-option
-                  :key="scope.row.authority.authorityId"
-                  :label="scope.row.authority.authorityName"
-                  :value="scope.row.authority.authorityId"
-                />
-                <el-option
-                  v-if="scope.row.authority.authorityId !== 888"
-                  :key="888"
-                  label="普通用户"
-                  value="888"
-                />
-                <el-option
-                  v-if="scope.row.authority.authorityId !== 9528"
-                  :key="9528"
-                  label="测试角色"
-                  value="9528"
-                />
-              </el-select>
-            </div>
-            <div v-else>
-              <el-select 
-                v-model="scope.row.authorityId" 
-                size="small" 
-                placeholder="选择角色"
-                @change="(val: number) => handleRoleChange(scope.row, val)"
+                multiple
+                collapse-tags
+                @change="(val: number[]) => handleMultiRoleChange(scope.row, val)"
               >
                 <el-option
                   :key="888"
                   label="普通用户"
-                  value="888"
+                  :value="888"
                 />
                 <el-option
                   :key="9528"
                   label="测试角色"
-                  value="9528"
+                  :value="9528"
                 />
+                <!-- 可以根据需要添加更多角色选项 -->
               </el-select>
             </div>
           </template>
@@ -288,7 +237,9 @@ import UserEditForm from './UserEditForm.vue'  // 保留这一行，使用新路
 import { useUserRole } from './modules/users/useUserRole'
 import { useUserStatus } from './modules/users/useUserStatus'
 import { useUserEvents } from './modules/users/useUserEvents'
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { ElMessage } from 'element-plus'
+import { setUserAuthorities } from '@/api/system/userManage' // 添加导入
 
 // 修改当前编辑用户的引用，使用空对象而不是 null
 const currentUser = ref<Record<string, any>>({})
@@ -338,6 +289,15 @@ const {
   handleDelete
 } = useUserDialog()
 
+// 使用解耦后的用户角色管理逻辑
+const { getRoleName } = useUserRole()
+
+// 使用解耦后的用户状态管理逻辑
+const { handleStatusChange } = useUserStatus()
+
+// 使用解耦后的用户事件管理逻辑
+useUserEvents(fetchUserList)
+
 // 重新定义handleEdit函数，添加设置currentUser的逻辑
 const handleEdit = async (row: any) => {
   try {
@@ -359,14 +319,86 @@ const handleEdit = async (row: any) => {
   }
 }
 
-// 使用解耦后的用户角色管理逻辑
-const { hasRole, getRoleName, handleRoleChange } = useUserRole()
+// 处理多角色选择变更
+const handleMultiRoleChange = async (user: any, selectedRoles: number[]) => {
+  try {
+    // 防止触发 watch
+    user._updatingRoles = true
+    
+    // 调用API更新用户角色
+    const response = await setUserAuthorities({
+      ID: user.id,
+      authorityIds: selectedRoles.map(role => Number(role)) // 确保是数字数组
+    })
+    
+    if (response.data && response.data.code === 0) {
+      ElMessage.success('用户角色更新成功')
+      
+      // 更新本地数据
+      // 1. 更新 authorities 数组
+      user.authorities = selectedRoles.map(roleId => ({
+        authorityId: Number(roleId),
+        authorityName: getRoleName(roleId)
+      }))
+      
+      // 2. 如果有单个 authority 字段，使用第一个选中的角色更新
+      if (selectedRoles.length > 0) {
+        const primaryRole = selectedRoles[0]
+        user.authorityId = Number(primaryRole)
+        user.authority = {
+          authorityId: Number(primaryRole),
+          authorityName: getRoleName(primaryRole)
+        }
+      }
+    } else {
+      ElMessage.error(response.data?.msg || '用户角色更新失败')
+      // 恢复原始选择
+      initUserRoles(user)
+    }
+  } catch (error) {
+    console.error('更新用户角色失败:', error)
+    ElMessage.error('更新用户角色失败，请重试')
+    // 恢复原始选择
+    initUserRoles(user)
+  } finally {
+    // 重置标记
+    user._updatingRoles = false
+  }
+}
 
-// 使用解耦后的用户状态管理逻辑
-const { handleStatusChange } = useUserStatus()
+// 初始化用户角色选择
+const initUserRoles = (user: any) => {
+  if (!user.selectedRoles) {
+    user.selectedRoles = []
+  }
+  
+  // 从 authorities 数组获取角色
+  if (user.authorities && Array.isArray(user.authorities)) {
+    user.selectedRoles = user.authorities.map((auth: any) => Number(auth.authorityId))
+  } 
+  // 如果只有单个 authority 对象
+  else if (user.authority && user.authority.authorityId) {
+    user.selectedRoles = [Number(user.authority.authorityId)]
+  }
+  // 如果只有 authorityId 字段
+  else if (user.authorityId) {
+    user.selectedRoles = [Number(user.authorityId)]
+  }
+}
 
-// 使用解耦后的用户事件管理逻辑
-useUserEvents(fetchUserList)
+// 监听用户列表变化，初始化角色选择
+watch(() => userList.value, (newList) => {
+  if (newList && newList.length) {
+    // 使用一个标记来防止递归更新
+    newList.forEach(user => {
+      if (!user._rolesInitialized) {
+        initUserRoles(user)
+        // 添加一个标记，表示已经初始化过角色
+        user._rolesInitialized = true
+      }
+    })
+  }
+}, { immediate: true, deep: true })
 
 // 导出方法供外部调用 - 保留此方法以便布局组件可以调用
 defineExpose({

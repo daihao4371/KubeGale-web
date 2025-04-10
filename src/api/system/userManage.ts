@@ -97,17 +97,25 @@ export function registerUser(data: RegisterUserParams) {
 // 设置用户角色参数类型
 export interface SetUserAuthoritiesParams {
   ID: number;  // 用户ID
-  authorityIds: number[];  // 角色ID数组
+  authorityIds: number[];  // 角色ID数组 - 支持多个角色
   enable?: number;  // 可选的状态参数
 }
 
 // 设置用户角色
 export function setUserAuthorities(data: SetUserAuthoritiesParams) {
-  console.log('调用设置用户角色API:', API_URLS.setUserAuthorities, data)
+  // 确保 authorityIds 是数字数组
+  const postData = {
+    ...data,
+    authorityIds: Array.isArray(data.authorityIds) 
+      ? data.authorityIds.map(id => Number(id)) 
+      : [Number(data.authorityIds)]
+  };
+  
+  console.log('调用设置用户角色API:', API_URLS.setUserAuthorities, postData)
   return service({
     url: API_URLS.setUserAuthorities,
     method: 'post',
-    data
+    data: postData
   })
 }
 
