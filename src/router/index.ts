@@ -26,6 +26,13 @@ const routes: Array<RouteRecordRaw> = [
             name: 'Users',
             component: () => import('../pages/system/users.vue'),
             meta: { title: '用户管理' }
+          },
+          // 修正角色管理页面路由的组件路径
+          {
+            path: 'roles',
+            name: 'Roles',
+            component: () => import('../pages/system/roles/RoleManagement.vue'),
+            meta: { title: '角色管理' }
           }
           // 移除其他不存在的页面路由
         ]

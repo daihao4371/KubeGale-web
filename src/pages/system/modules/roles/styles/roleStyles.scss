@@ -1,0 +1,120 @@
+/* 角色管理相关样式 */
+
+/* 角色列表样式 */
+.role-management-container {
+  padding: 20px;
+  
+  .role-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      
+      .header-title {
+        font-size: 18px;
+        font-weight: 500;
+        color: #303133;
+      }
+    }
+    
+    .role-table {
+      margin-top: 10px;
+      width: 100%;
+      
+      .el-table__row {
+        cursor: pointer;
+        transition: background-color 0.3s;
+        
+        &:hover {
+          background-color: #f5f7fa;
+        }
+      }
+      
+      .operation-buttons {
+        display: flex;
+        gap: 8px;
+        
+        .el-button {
+          padding: 4px 8px;
+          
+          .el-icon {
+            margin-right: 4px;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* 角色详情对话框样式 */
+.role-detail-dialog {
+  .el-dialog__body {
+    padding: 20px;
+  }
+  
+  .role-info {
+    .info-item {
+      margin-bottom: 15px;
+      display: flex;
+      border-bottom: 1px solid #ebeef5;
+      padding-bottom: 10px;
+      
+      .label {
+        width: 100px;
+        color: #606266;
+        font-weight: 500;
+      }
+      
+      .value {
+        flex: 1;
+        color: #303133;
+      }
+    }
+  }
+}
+
+/* 角色编辑对话框样式 */
+.role-edit-dialog {
+  .el-dialog__body {
+    padding: 20px 20px 0;
+  }
+  
+  .el-form-item {
+    margin-bottom: 18px;
+  }
+  
+  .dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px 0;
+    
+    .el-button {
+      margin-left: 10px;
+    }
+  }
+}
+
+/* 角色删除确认对话框样式 */
+.role-delete-confirm {
+  .el-message-box__message {
+    color: #f56c6c;
+    font-weight: 500;
+  }
+  
+  .el-message-box__btns {
+    .el-button--primary {
+      background-color: #f56c6c;
+      border-color: #f56c6c;
+      
+      &:hover {
+        background-color: #f78989;
+        border-color: #f78989;
+      }
+    }
+  }
+}

@@ -16,6 +16,9 @@ export const API_URLS = {
   deleteUser: '/api/user/deleteUser', // 添加删除用户的API
   resetPassword: '/api/user/resetPassword', // 添加重置密码的API
   
+  // 角色相关
+  getAuthorityList: '/api/authority/getAuthorityList', // 获取角色列表
+  
   // 临时添加以解决编译错误，后续可移除
   getSysOperationRecordList: '/api/sysOperationRecord/getSysOperationRecordList',
   deleteSysOperationRecord: '/api/sysOperationRecord/deleteSysOperationRecord',
