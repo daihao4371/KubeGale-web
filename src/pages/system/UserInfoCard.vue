@@ -24,6 +24,7 @@
         <!-- 用户名 -->
         <el-form-item label="用户名">
           <div class="editable-item">
+            <el-icon class="info-icon"><User /></el-icon>
             <span v-if="!editingField.userName">{{ userInfo.userName || '-' }}</span>
             <el-input v-else v-model="editForm.userName" placeholder="请输入用户名" />
             
@@ -46,6 +47,7 @@
         <!-- 昵称 -->
         <el-form-item label="昵称">
           <div class="editable-item">
+            <el-icon class="info-icon"><Avatar /></el-icon>
             <span v-if="!editingField.nickName">{{ userInfo.nickName || '-' }}</span>
             <el-input v-else v-model="editForm.nickName" placeholder="请输入昵称" />
             
@@ -68,6 +70,7 @@
         <!-- 手机号 -->
         <el-form-item label="手机号">
           <div class="editable-item">
+            <el-icon class="info-icon"><Iphone /></el-icon>
             <span v-if="!editingField.phone">{{ userInfo.phone || '-' }}</span>
             <el-input v-else v-model="editForm.phone" placeholder="请输入手机号" />
             
@@ -90,6 +93,7 @@
         <!-- 邮箱 -->
         <el-form-item label="邮箱">
           <div class="editable-item">
+            <el-icon class="info-icon"><Message /></el-icon>
             <span v-if="!editingField.email">{{ userInfo.email || '-' }}</span>
             <el-input v-else v-model="editForm.email" placeholder="请输入邮箱" />
             
@@ -117,7 +121,7 @@
 
 <script lang="ts" setup>
 import { onMounted } from 'vue'
-import { Edit, Check, Close, Upload } from '@element-plus/icons-vue'
+import { Edit, Check, Close, Upload, User, Avatar, Iphone, Message } from '@element-plus/icons-vue'
 import { useUserInfoCard } from './modules/users/components/useUserInfoCard'
 
 const props = defineProps({
@@ -150,7 +154,6 @@ defineExpose({
   refreshUserInfo
 })
 </script>
-
 <style lang="scss" scoped>
 /* 替换原有导入 */
 @import './modules/users/styles/userStyles.scss';

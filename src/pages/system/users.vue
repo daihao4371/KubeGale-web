@@ -174,15 +174,32 @@
     </el-card>
     
     <!-- 用户信息对话框 -->
+    <!-- 用户信息对话框 -->
     <el-dialog
       v-model="showUserInfoDialog"
       :title="currentUserName ? `${currentUserName} 的个人信息` : '个人信息'"
-      width="600px"
+      width="400px"
       :close-on-click-modal="false"
       destroy-on-close
       class="user-dialog"
     >
-      <UserInfoCard :userId="currentUserId" ref="userInfoCardRef" />
+      <div class="user-info-container">
+        <UserInfoCard :userId="currentUserId" ref="userInfoCardRef">
+          <!-- 添加图标插槽 -->
+          <template #userNameIcon>
+            <el-icon class="item-icon"><User /></el-icon>
+          </template>
+          <template #nickNameIcon>
+            <el-icon class="item-icon"><Avatar /></el-icon>
+          </template>
+          <template #phoneIcon>
+            <el-icon class="item-icon"><Phone /></el-icon>
+          </template>
+          <template #emailIcon>
+            <el-icon class="item-icon"><Message /></el-icon>
+          </template>
+        </UserInfoCard>
+      </div>
     </el-dialog>
     
     <!-- 用户表单对话框 -->
@@ -228,7 +245,7 @@
 </template>
 
 <script lang="ts" setup name="SystemUsers">
-import { Search, Refresh, Plus, Edit, Delete, Key, User } from '@element-plus/icons-vue'
+import { Search, Refresh, Plus, Edit, Delete, Key, User, Avatar, Phone, Message } from '@element-plus/icons-vue'
 import { useUsers } from './modules/users/useUsers'
 import { useUserDialog } from './modules/users/components/useUserDialog'
 import UserInfoCard from './UserInfoCard.vue'
@@ -295,7 +312,7 @@ const { getRoleName } = useUserRole()
 // 使用解耦后的用户状态管理逻辑
 const { handleStatusChange } = useUserStatus()
 
-// 使用解耦后的用户事件管理逻辑
+// 使用解耦合后的用户事件管理逻辑
 useUserEvents(fetchUserList)
 
 // 重新定义handleEdit函数，添加设置currentUser的逻辑
