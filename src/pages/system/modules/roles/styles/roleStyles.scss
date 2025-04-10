@@ -37,7 +37,8 @@
       
       .operation-buttons {
         display: flex;
-        gap: 8px;
+        flex-wrap: wrap;
+        gap: 5px;
         
         .el-button {
           padding: 4px 8px;
