@@ -6,22 +6,30 @@ export interface UserListParams {
   page?: number;
   pageSize?: number;
   username?: string;
-  realName?: string;
-  mobile?: string;
+  nickName?: string;
+  phone?: string;
+  email?: string;
 }
 
 // 用户信息类型
 export interface UserInfo {
   id: number;
-  username: string;
-  realName: string;
-  mobile: string;
-  feiShuUserId: string;
-  accountType: number;
-  enable: number;
-  created_at: string;
-  updated_at: string;
-  roles: any[];
+  userName: string;
+  nickName?: string;
+  headerImg?: string;
+  phone?: string;
+  email?: string;
+  enable: number;  // 确保包含 enable 属性
+  authorityId?: number;
+  authority?: {
+    authorityId: number;
+    authorityName: string;
+  };
+  authorities?: Array<{
+    authorityId: number;
+    authorityName: string;
+  }>;
+  [key: string]: any;
 }
 
 // 分页响应类型
@@ -41,94 +49,136 @@ export interface ApiResponse<T> {
 
 // 获取用户列表
 export function getUserList(params: UserListParams) {
+  console.log('调用获取用户列表API:', API_URLS.getUserList, params)
   return service({
     url: API_URLS.getUserList,
+    method: 'post',  // 修改为 POST 方法
+    data: params     // 使用 data 而不是 params，因为是 POST 请求
+  })
+}
+
+// 获取用户信息
+export function getUserInfo(id?: number) {
+  console.log('调用获取用户信息API:', API_URLS.getUserInfo, id ? { id } : {})
+  return service({
+    url: API_URLS.getUserInfo,
     method: 'get',
-    params
+    params: id ? { id } : {} // 如果提供了ID，则作为参数传递
   })
 }
 
-// 在现有代码基础上添加创建用户的接口
-
-// 创建用户参数类型
-export interface CreateUserParams {
-  username: string;
+// 注册用户接口参数类型
+export interface RegisterUserParams {
+  userName: string;
   password: string;
-  confirmPassword: string;
-  realName: string;
-  mobile?: string;
-  feiShuUserId?: string;
-  homePath?: string;
-  description?: string;
+  nickName?: string;
+  phone?: string;
+  email?: string;
+  authorityId: number;
+  enable: number;
 }
 
-// 创建用户
-export function signup(data: CreateUserParams) {
+// 注册用户
+export function registerUser(data: RegisterUserParams) {
+  // 确保 authorityId 是数字类型
+  const postData = {
+    ...data,
+    authorityId: Number(data.authorityId)
+  };
+  
+  console.log('调用注册用户API:', API_URLS.adminRegister, postData)
   return service({
-    url: API_URLS.signup,
+    url: API_URLS.adminRegister,
     method: 'post',
-    data
+    data: postData
   })
 }
 
-// 添加更新用户的接口
-export interface UpdateUserParams {
-  user_id: number;
-  username: string;
-  real_name: string;
-  mobile?: string;
-  fei_shu_user_id?: string;
-  desc?: string;
-  account_type?: number;
-  enable?: number;
-  // 不包含home_path字段
+// 设置用户角色参数类型
+export interface SetUserAuthoritiesParams {
+  ID: number;  // 用户ID
+  authorityIds: number[];  // 角色ID数组 - 支持多个角色
+  enable?: number;  // 可选的状态参数
 }
 
-// 删除重复的函数定义，只保留一个updateUser函数
-export function updateUser(data: UpdateUserParams) {
+// 设置用户角色
+export function setUserAuthorities(data: SetUserAuthoritiesParams) {
+  // 确保 authorityIds 是数字数组
+  const postData = {
+    ...data,
+    authorityIds: Array.isArray(data.authorityIds) 
+      ? data.authorityIds.map(id => Number(id)) 
+      : [Number(data.authorityIds)]
+  };
+  
+  console.log('调用设置用户角色API:', API_URLS.setUserAuthorities, postData)
   return service({
-    url: API_URLS.updateUser,
-    method: 'post', // 修改为POST请求，符合后端接口要求
+    url: API_URLS.setUserAuthorities,
+    method: 'post',
+    data: postData
+  })
+}
+
+// 更新用户信息参数类型
+export interface ChangeUserInfoParams {
+  ID: number;
+  nickName?: string;
+  phone?: string;
+  authorityIds?: number[];
+  email?: string;
+  headerImg?: string;
+  sideMode?: string;
+  enable?: number;
+}
+
+// 更新用户信息
+export function setUserInfo(data: ChangeUserInfoParams) {
+  console.log('调用更新用户信息API:', API_URLS.setUserInfo, data)
+  return service({
+    url: API_URLS.setUserInfo,
+    method: 'put',
     data
   })
 }
 
 // 删除用户
-// 将deleteUser函数改名为toggleUserStatus，更符合实际功能
-// 将toggleUserStatus函数拆分为两个独立函数
-// 禁用用户
-export function disableUser(userId: number) {
-  console.log('调用禁用用户API, 用户ID:', userId);
+export function deleteUser(id: number) {
+  console.log('调用删除用户API:', API_URLS.deleteUser, id)
   return service({
-    url: `${API_URLS.disableUser}/${userId}`,
-    method: 'post',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-}
-
-// 启用用户
-export function enableUser(userId: number) {
-  console.log('调用启用用户API, 用户ID:', userId);
-  return service({
-    url: `${API_URLS.enableUser}/${userId}`,
-    method: 'post',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-}
-
-// 真正删除用户
-export function deleteUser(userId: number) {
-  console.log('调用删除用户API, 用户ID:', userId);
-  return service({
-    url: `${API_URLS.deleteUser}/${userId}`,
+    url: API_URLS.deleteUser,
     method: 'delete',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
+    data: { id }
+  })
 }
 
+// 更新个人信息参数类型
+export interface SetSelfInfoParams {
+  ID: number;
+  userName?: string;
+  nickName?: string;
+  phone?: string;
+  authorityIds?: number[];
+  email?: string;
+  headerImg?: string;
+  sideMode?: string;
+  enable?: number;
+}
+
+// 更新个人信息
+export function setSelfInfo(data: SetSelfInfoParams) {
+  console.log('调用更新个人信息API:', API_URLS.setSelfInfo, data)
+  return service({
+    url: API_URLS.setSelfInfo,
+    method: 'put',
+    data
+  })
+}
+
+// 重置用户密码
+export const resetUserPassword = (data: { ID: number }) => {
+  return service({
+    url: API_URLS.resetPassword,
+    method: 'post',
+    data
+  })
+}

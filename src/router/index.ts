@@ -14,12 +14,7 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../pages/dashboard/index.vue'),
         meta: { title: '仪表盘' }
       },
-      {
-        path: 'cmdb',
-        name: 'CMDB',
-        component: () => import('../pages/cmdb/index.vue'),
-        meta: { title: 'CMDB配置管理' }
-      },
+      // 保留系统管理模块，但只保留用户管理页面
       {
         path: 'system',
         name: 'System',
@@ -31,39 +26,11 @@ const routes: Array<RouteRecordRaw> = [
             name: 'Users',
             component: () => import('../pages/system/users.vue'),
             meta: { title: '用户管理' }
-          },
-          {
-            path: 'roles',
-            name: 'Roles',
-            component: () => import('../pages/system/roles.vue'),
-            meta: { title: '角色管理' }
-          },
-          {
-            path: 'permissions',
-            name: 'Permissions',
-            component: () => import('../pages/system/permissions.vue'),
-            meta: { title: '权限管理' }
           }
+          // 移除其他不存在的页面路由
         ]
-      },
-      {
-        path: 'kubernetes',
-        name: 'Kubernetes',
-        component: () => import('../pages/kubernetes/index.vue'),
-        meta: { title: 'Kubernetes管理' }
-      },
-      {
-        path: 'prometheus',
-        name: 'Prometheus',
-        component: () => import('../pages/prometheus/index.vue'),
-        meta: { title: 'Prometheus监控' }
-      },
-      {
-        path: 'cicd',
-        name: 'CICD',
-        component: () => import('../pages/cicd/index.vue'),
-        meta: { title: 'CICD管理' }
       }
+      // 移除其他不存在的模块路由
     ]
   },
   {

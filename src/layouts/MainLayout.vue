@@ -41,6 +41,11 @@
               <el-icon><el-icon-user /></el-icon>
               <span>用户管理</span>
             </el-menu-item>
+            <!-- 调整菜单管理位置到角色管理前面 -->
+            <el-menu-item index="/system/menus">
+              <el-icon><el-icon-menu /></el-icon>
+              <span>菜单管理</span>
+            </el-menu-item>
             <el-menu-item index="/system/roles">
               <el-icon><el-icon-key /></el-icon>
               <span>角色管理</span>
@@ -48,6 +53,11 @@
             <el-menu-item index="/system/permissions">
               <el-icon><el-icon-lock /></el-icon>
               <span>权限管理</span>
+            </el-menu-item>
+            <!-- 添加操作记录菜单项 -->
+            <el-menu-item index="/system/operation-logs">
+              <el-icon><el-icon-document /></el-icon>
+              <span>操作记录</span>
             </el-menu-item>
           </el-sub-menu>
           
@@ -127,22 +137,15 @@
     <PasswordDialog 
       v-model:visible="passwordDialogVisible"
       :loading="passwordLoading"
-      @submit="submitChangePassword"
+      @submit="handlePasswordSubmit"
     />
+    <!-- 删除重复的密码对话框组件 -->
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ElMessageBox, ElMessage } from 'element-plus'
-import { logout } from '@/api/user'
-import { removeToken } from '@/utils/auth'
-// 导入修改密码相关功能
-import { usePasswordDialog } from '@/api/system/usePasswordDialog'
 // 导入组件
 import Breadcrumb from '@/components/layout/Breadcrumb.vue'
-// 修改导入路径
 import PasswordDialog from '@/pages/system/PasswordDialog.vue'
 // 导入需要的图标组件
 import {
@@ -158,73 +161,25 @@ import {
   User as ElIconUser,
   Key as ElIconKey,
   Lock as ElIconLock,
-  SwitchButton as ElIconSwitchButton
+  Menu as ElIconMenu,
+  SwitchButton as ElIconSwitchButton,
+  Document as ElIconDocument  // 添加文档图标用于操作记录
 } from '@element-plus/icons-vue'
 
-// 初始化修改密码相关功能
+// 导入拆分出去的逻辑
+import { useMainLayout } from './useMainLayout'
+
+// 使用拆分出去的逻辑
 const {
+  isCollapse,
+  activeMenu,
   passwordDialogVisible,
   passwordLoading,
-  openPasswordDialog,
-  submitChangePassword
-} = usePasswordDialog()
-
-const isCollapse = ref(false)
-const route = useRoute()
-const router = useRouter()
-
-const activeMenu = computed(() => {
-  return route.path
-})
-
-const toggleSidebar = () => {
-  isCollapse.value = !isCollapse.value
-}
-
-// 处理下拉菜单命令
-const handleCommand = (command: string) => {
-  if (command === 'logout') {
-    handleLogout()
-  } else if (command === 'profile') {
-    // 处理个人信息
-    ElMessage.info('个人信息功能开发中')
-  } else if (command === 'password') {
-    // 修改为调用修改密码对话框
-    openPasswordDialog()
-  }
-}
-
-// 处理退出登录
-const handleLogout = () => {
-  ElMessageBox.confirm('确定要退出登录吗?', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(async () => {
-    try {
-      // 调用退出登录API
-      const res = await logout()
-      console.log('退出登录响应:', res)
-      
-      // 清除token
-      removeToken()
-      
-      // 清除localStorage中的用户信息
-      localStorage.removeItem('userInfo')
-      
-      // 提示用户
-      ElMessage.success('退出登录成功')
-      
-      // 跳转到登录页
-      router.push('/login')
-    } catch (error) {
-      console.error('退出登录失败:', error)
-      ElMessage.error('退出登录失败，请重试')
-    }
-  }).catch(() => {
-    // 用户取消操作
-  })
-}
+  toggleSidebar,
+  handleCommand,
+  handleLogout,
+  handlePasswordSubmit, // 添加这个方法
+} = useMainLayout()
 </script>
 
 <style lang="scss" scoped>

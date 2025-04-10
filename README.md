@@ -99,7 +99,6 @@ kubegale-front/
 
 ## 项目截图
 
-**挑战一行前端代码不写全部交给AI**
 - 登录页面
 ![img.png](image/登录.png)
 - 首页

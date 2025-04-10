@@ -1,0 +1,47 @@
+/* 覆盖Element Plus弹出框样式 */
+.el-popper.json-popover {
+  max-height: 80vh !important;
+  max-width: 80vw !important;
+  
+  .el-popover__content {
+    max-height: calc(80vh - 24px) !important;
+    overflow: hidden !important; /* 防止弹出框内容区域滚动 */
+  }
+}
+
+/* 确保JSON内容可滚动 */
+.json-content {
+  max-height: 60vh !important;
+  overflow-y: auto !important;
+  overflow-x: auto !important;
+  
+  pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: monospace;
+    font-size: 12px;
+  }
+}
+
+/* 修复弹出框样式 */
+.el-popover {
+  &.json-popover {
+    padding: 12px;
+    overflow: hidden !important;
+  }
+}
+
+/* 确保弹出框不会超出视口 */
+.el-popper {
+  &[data-popper-placement^='right'] {
+    margin-left: 8px !important;
+  }
+}
+
+/* 添加内容包装器样式 */
+.json-content-wrapper {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}

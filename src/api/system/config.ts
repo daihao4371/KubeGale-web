@@ -3,17 +3,22 @@ export const API_BASE_URL = ''  // 移除基础URL前缀，避免路径重复
 
 // API路径配置
 export const API_URLS = {
-  login: '/api/user/login',  // 移除末尾的斜杠，避免潜在问题
-  logout: '/api/user/logout', // 添加退出登录接口
-  changePassword: '/api/user/change_password', // 添加修改密码接口
+  // 用户相关
+  login: '/api/base/login',
   
-  // 用户管理相关接口
-  getUserList: '/api/user/list', // 获取用户列表
-  createUser: '/api/user/create', // 添加创建用户接口
-  signup: '/api/user/signup', // 添加用户注册接口
-  updateUser: '/api/user/profile/update', // 添加更新用户接口
-  disableUser: '/api/user', // 禁用用户接口
-  enableUser: '/api/user/enable', // 启用用户接口
-  deleteUser: '/api/user', // 真正删除用户接口
-  // 可以添加更多API路径...
+  getUserList: '/api/user/getUserList',
+  getUserInfo: '/api/user/getUserInfo',
+  changePassword: '/api/user/changePassword',
+  adminRegister: '/api/user/admin_register',
+  setUserAuthorities: '/api/user/setUserAuthorities', // 设置用户角色的API
+  setUserInfo: '/api/user/setUserInfo', // 添加设置用户信息的API
+  setSelfInfo: '/api/user/setSelfInfo', // 添加设置个人信息的API
+  deleteUser: '/api/user/deleteUser', // 添加删除用户的API
+  resetPassword: '/api/user/resetPassword', // 添加重置密码的API
+  
+  // 临时添加以解决编译错误，后续可移除
+  getSysOperationRecordList: '/api/sysOperationRecord/getSysOperationRecordList',
+  deleteSysOperationRecord: '/api/sysOperationRecord/deleteSysOperationRecord',
+  batchDeleteSysOperationRecord: '/api/sysOperationRecord/batchDeleteSysOperationRecord',
+  findSysOperationRecord: '/api/sysOperationRecord/findSysOperationRecord',
 }

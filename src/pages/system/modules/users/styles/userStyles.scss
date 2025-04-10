@@ -1,0 +1,200 @@
+/* 用户管理相关样式 - 合并文件 */
+
+/* userDelete.scss 样式 */
+.delete-confirm-dialog {
+  .el-message-box__message {
+    color: #f56c6c;
+    font-weight: 500;
+  }
+  
+  .el-message-box__btns {
+    .el-button--primary {
+      background-color: #f56c6c;
+      border-color: #f56c6c;
+      
+      &:hover {
+        background-color: #f78989;
+        border-color: #f78989;
+      }
+    }
+  }
+}
+
+/* userDialog.scss 样式 */
+.user-dialog {
+  .el-dialog__body {
+    padding: 20px;
+  }
+  
+  .user-info-card {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    
+    .header {
+      background-color: #f5f7fa;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      
+      .avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin-right: 20px;
+        background-color: #409eff;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        font-weight: bold;
+      }
+      
+      .info {
+        flex: 1;
+        
+        .name {
+          font-size: 20px;
+          font-weight: bold;
+          margin-bottom: 5px;
+        }
+        
+        .role {
+          color: #909399;
+          font-size: 14px;
+        }
+      }
+    }
+    
+    .content {
+      padding: 20px;
+      
+      .info-item {
+        margin-bottom: 15px;
+        display: flex;
+        
+        .label {
+          width: 100px;
+          color: #606266;
+          font-weight: 500;
+        }
+        
+        .value {
+          flex: 1;
+          color: #303133;
+        }
+      }
+    }
+  }
+}
+
+/* userForm.scss 样式 */
+.user-form {
+  padding: 10px;
+  
+  .el-form-item {
+    margin-bottom: 20px;
+  }
+}
+
+.user-form-dialog {
+  .el-dialog__body {
+    padding: 20px;
+  }
+  
+  .dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 10px;
+    
+    .el-button {
+      margin-left: 10px;
+    }
+  }
+}
+
+/* users.scss 样式 */
+.users-container {
+  padding: 20px;
+  
+  .users-header {
+    margin-bottom: 20px;
+    
+    .header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      
+      .stats-cards {
+        display: flex;
+        gap: 15px;
+        
+        .stat-card {
+          background-color: #fff;
+          border-radius: 4px;
+          padding: 15px;
+          min-width: 120px;
+          box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+          
+          .stat-title {
+            font-size: 14px;
+            color: #909399;
+            margin-bottom: 5px;
+          }
+          
+          .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #303133;
+          }
+        }
+      }
+    }
+    
+    .search-area {
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 4px;
+      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+      
+      .search-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+    }
+  }
+  
+  .table-card {
+    .empty-data {
+      padding: 40px 0;
+    }
+    
+    .operation-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+  }
+  
+  .pagination-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+/* 用户编辑对话框样式 */
+.user-edit-dialog {
+  .el-dialog__body {
+    padding: 20px 20px 0;
+  }
+  
+  .dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px 0;
+  }
+}
