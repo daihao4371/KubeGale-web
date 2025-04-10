@@ -210,12 +210,37 @@ const resetForm = () => {
   form.enable = 1
 }
 
+// 添加validate方法
+const validate = async () => {
+  if (!formRef.value) return { valid: false, data: null }
+  
+  try {
+    await formRef.value.validate()
+    return {
+      valid: true,
+      data: {
+        ID: form.ID,
+        nickName: form.nickName,
+        phone: form.phone,
+        email: form.email,
+        authorityIds: form.authorityIds,
+        enable: form.enable
+      }
+    }
+  } catch (error) {
+    return {
+      valid: false,
+      data: null
+    }
+  }
+}
+
 // 暴露方法给父组件调用
 defineExpose({
   setFormData,
   submitForm,
   resetForm,
-  form
+  validate  // 添加validate方法
 })
 </script>
 

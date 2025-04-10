@@ -127,7 +127,12 @@ export function useUserDialog() {
 
   // 控制用户编辑对话框显示
   const showUserEditDialog = ref(false)
-  const userEditFormRef = ref<{ setFormData: (data: any) => void, resetForm: () => void, validate: () => Promise<{ valid: boolean, data: any }> } | null>(null)
+  const userEditFormRef = ref<{ 
+    setFormData: (data: any) => void, 
+    resetForm: () => void, 
+    validate: () => Promise<{ valid: boolean, data: any }>,
+    submitForm: () => Promise<any>
+  } | null>(null)
   const editFormTitle = ref('编辑用户')
   const editFormLoading = ref(false)
   const currentEditUser = ref(null) // 添加当前编辑用户的引用
@@ -178,6 +183,7 @@ export function useUserDialog() {
     if (!userEditFormRef.value) return
     
     try {
+      // 使用validate方法获取表单数据
       const { valid, data } = await userEditFormRef.value.validate()
       
       if (valid && data) {
@@ -192,7 +198,11 @@ export function useUserDialog() {
           // 确保数据格式正确
           const userData = {
             ...data,
-            ID: Number(data.ID)  // 确保ID是数字类型
+            ID: Number(data.ID),  // 确保ID是数字类型
+            // 确保 authorityIds 是数字数组而不是字符串数组
+            authorityIds: Array.isArray(data.authorityIds) 
+              ? data.authorityIds.map((id: string | number) => Number(id)) 
+              : data.authorityIds ? [Number(data.authorityIds)] : []
           }
           
           console.log('提交编辑表单数据:', userData) // 添加日志，便于调试
