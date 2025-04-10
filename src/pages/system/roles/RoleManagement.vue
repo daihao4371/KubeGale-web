@@ -30,15 +30,7 @@
           min-width="150"
         />
         
-        <!-- 父级角色列 -->
-        <el-table-column
-          label="父级角色"
-          min-width="150"
-        >
-          <template #default="scope">
-            {{ getParentRoleName(scope.row.parentId) || '-' }}
-          </template>
-        </el-table-column>
+
         
         <!-- 创建时间列 -->
         <el-table-column
@@ -107,12 +99,7 @@ const {
   deleteRole
 } = useRoleManagement()
 
-// 获取父级角色名称
-const getParentRoleName = (parentId: number) => {
-  if (parentId === 0) return '无'
-  const parent = roleList.value.find(role => role.authorityId === parentId)
-  return parent ? parent.authorityName : '未知'
-}
+
 
 // 格式化日期
 const formatDate = (dateString: string) => {
