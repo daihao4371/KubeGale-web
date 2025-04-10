@@ -41,7 +41,6 @@
               <el-icon><el-icon-user /></el-icon>
               <span>用户管理</span>
             </el-menu-item>
-            <!-- 调整菜单管理位置到角色管理前面 -->
             <el-menu-item index="/system/menus">
               <el-icon><el-icon-menu /></el-icon>
               <span>菜单管理</span>
