@@ -114,15 +114,23 @@
         label-width="100px"
       >
         <el-form-item label="父级角色" prop="parentId">
-          <el-select v-model="addRoleForm.parentId" placeholder="请选择父级角色" class="w-full">
-            <el-option :value="0" label="无（顶级角色）" />
-            <el-option
-              v-for="role in roleList"
-              :key="role.authorityId"
-              :label="role.authorityName"
-              :value="role.authorityId"
-            />
-          </el-select>
+          <el-cascader
+            v-model="addRoleForm.parentId"
+            :options="cascaderRoleOptions"
+            :props="{
+              checkStrictly: true,
+              value: 'authorityId',
+              label: 'authorityName',
+              emitPath: false
+            }"
+            placeholder="请选择父级角色"
+            clearable
+            class="w-full"
+          >
+            <template #default="{ node, data }">
+              <span>{{ data.authorityName }}</span>
+            </template>
+          </el-cascader>
         </el-form-item>
         
         <el-form-item label="角色ID" prop="authorityId">
@@ -197,6 +205,68 @@
         </div>
       </template>
     </el-dialog>
+    
+    <!-- 编辑角色对话框 -->
+    <el-dialog
+      v-model="editRoleDialogVisible"
+      title="编辑角色"
+      width="500px"
+      class="role-edit-dialog"
+    >
+      <el-form
+        ref="editRoleFormRef"
+        :model="editRoleForm"
+        :rules="editRoleRules"
+        label-width="100px"
+      >
+        <el-form-item label="父级角色" prop="parentId">
+          <el-cascader
+            v-model="editRoleForm.parentId"
+            :options="cascaderRoleOptions"
+            :props="{
+              checkStrictly: true,
+              value: 'authorityId',
+              label: 'authorityName',
+              emitPath: false,
+              disabled: (data: any) => data.authorityId === editRoleForm.authorityId
+            }"
+            placeholder="请选择父级角色"
+            :clearable="true"
+            class="w-full"
+          >
+            <template #default="{ node, data }">
+              <span>{{ data.authorityName }}</span>
+            </template>
+          </el-cascader>
+        </el-form-item>
+        
+        <el-form-item label="角色ID">
+          <el-input-number
+            v-model="editRoleForm.authorityId"
+            :min="1"
+            :max="9999"
+            class="w-full"
+            disabled
+          />
+        </el-form-item>
+        
+        <el-form-item label="角色名称" prop="authorityName">
+          <el-input
+            v-model="editRoleForm.authorityName"
+            placeholder="请输入角色名称"
+            maxlength="20"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="closeEditRoleDialog">取消</el-button>
+          <el-button type="primary" @click="submitEditRole(editRoleFormRef)">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -210,6 +280,7 @@ import { ElMessage } from 'element-plus'
 // 表单引用
 const addRoleFormRef = ref()
 const addChildRoleFormRef = ref()
+const editRoleFormRef = ref()
 
 // 使用角色管理逻辑
 const {
@@ -219,6 +290,7 @@ const {
   fetchRoleList,
   editRole,
   deleteRole,
+  cascaderRoleOptions, // 添加级联选择器选项
   // 新增角色相关
   addRoleDialogVisible,
   addRoleForm,
@@ -232,8 +304,35 @@ const {
   addChildRoleRules,
   openAddChildRoleDialog,
   closeAddChildRoleDialog,
-  submitAddChildRole
+  submitAddChildRole,
+  // 编辑角色相关
+  editRoleDialogVisible,
+  editRoleForm,
+  editRoleRules,
+  openEditRoleDialog,
+  closeEditRoleDialog,
+  submitEditRole
 } = useRoleManagement()
+
+// 判断是否为子角色（防止选择自己的子角色作为父级）
+const isChildRole = (role: AuthorityData, parentId: number): boolean => {
+  if (role.parentId === parentId) {
+    return true
+  }
+  
+  // 递归检查子角色
+  if (role.children && role.children.length > 0) {
+    return role.children.some(child => isChildRole(child, parentId))
+  }
+  
+  return false
+}
+
+// 判断是否为当前角色本身
+const isChildRoleOrSelf = (role: AuthorityData, currentRoleId: number): boolean => {
+  // 只禁用当前角色本身
+  return role.authorityId === currentRoleId;
+}
 
 // 显示功能开发中的消息
 const showDevelopingMessage = (feature: string) => {
@@ -262,18 +361,6 @@ onMounted(() => {
 })
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import '../modules/roles/styles/roleStyles.scss';
-
-/* 全宽样式 */
-.w-full {
-  width: 100%;
-}
-
-/* 调整操作按钮样式 */
-.operation-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
 </style>
