@@ -2,6 +2,7 @@ import { ref, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import service from '@/api/system/service'
 import { API_URLS } from '@/api/system/config'
+import { createAuthority, updateAuthority, deleteAuthority } from '@/api/system/roles/authority'
 
 // 角色数据接口定义
 export interface AuthorityData {
@@ -36,8 +37,75 @@ export const useRoleManagement = () => {
     stripe: true,
     border: true,
     'highlight-current-row': true,
-    'row-key': 'authorityId'
+    'row-key': 'authorityId',
+    'default-expand-all': false // 默认不展开所有行
   })
+  
+  // 新增角色对话框可见性
+  const addRoleDialogVisible = ref(false)
+  
+  // 新增角色表单数据
+  const addRoleForm = reactive({
+    authorityId: 0,
+    authorityName: '',
+    parentId: 0
+  })
+  
+  // 新增角色表单规则
+  const addRoleRules = {
+    authorityId: [
+      { required: true, message: '请输入角色ID', trigger: 'blur' },
+      { type: 'number', message: '角色ID必须为数字', trigger: 'blur' }
+    ],
+    authorityName: [
+      { required: true, message: '请输入角色名称', trigger: 'blur' },
+      { min: 2, max: 20, message: '角色名称长度应为2-20个字符', trigger: 'blur' }
+    ]
+  }
+  
+  // 打开新增角色对话框
+  const openAddRoleDialog = () => {
+    // 重置表单
+    addRoleForm.authorityId = 0
+    addRoleForm.authorityName = ''
+    addRoleForm.parentId = 0
+    
+    // 显示对话框
+    addRoleDialogVisible.value = true
+  }
+  
+  // 关闭新增角色对话框
+  const closeAddRoleDialog = () => {
+    addRoleDialogVisible.value = false
+  }
+  
+  // 提交新增角色
+  const submitAddRole = async (formEl: any) => {
+    if (!formEl) return
+    
+    await formEl.validate(async (valid: boolean) => {
+      if (valid) {
+        try {
+          const response = await createAuthority({
+            authorityId: addRoleForm.authorityId,
+            authorityName: addRoleForm.authorityName,
+            parentId: addRoleForm.parentId
+          })
+          
+          if (response.code === 0) {
+            ElMessage.success('创建角色成功')
+            closeAddRoleDialog()
+            fetchRoleList() // 刷新角色列表
+          } else {
+            ElMessage.error(response.msg || '创建角色失败')
+          }
+        } catch (error) {
+          console.error('创建角色出错:', error)
+          ElMessage.error('创建角色失败，请检查网络连接')
+        }
+      }
+    })
+  }
   
   // 获取角色列表
   const fetchRoleList = async () => {
@@ -48,7 +116,15 @@ export const useRoleManagement = () => {
       )
       const res = response.data
       if (res.code === 0) {
-        roleList.value = res.data
+        // 直接使用原始的层级结构数据
+        roleList.value = res.data;
+        
+        // 添加一个顶级选项
+        cascaderRoleOptions.value = [
+          { authorityId: 0, authorityName: '无（顶级角色）', children: [] },
+          ...processRolesForCascader(res.data)
+        ];
+        
         ElMessage.success(res.msg || '获取角色列表成功')
       } else {
         ElMessage.error(res.msg || '获取角色列表失败')
@@ -61,35 +137,201 @@ export const useRoleManagement = () => {
     }
   }
   
+  // 处理角色数据为级联选择器格式
+  const processRolesForCascader = (roles: AuthorityData[]): any[] => {
+    return roles.map(role => {
+      const result: any = {
+        authorityId: role.authorityId,
+        authorityName: role.authorityName,
+      };
+      
+      if (role.children && role.children.length > 0) {
+        result.children = processRolesForCascader(role.children);
+      }
+      
+      return result;
+    });
+  };
+  
+  // 级联选择器选项
+  const cascaderRoleOptions = ref<any[]>([]);
+  
   // 查看角色详情
   const viewRoleDetail = (row: AuthorityData) => {
     console.log('查看角色详情:', row)
     // 这里可以实现查看详情的逻辑，如打开详情对话框等
   }
   
-  // 编辑角色
-  const editRole = (row: AuthorityData) => {
-    console.log('编辑角色:', row)
-    // 这里可以实现编辑角色的逻辑，如打开编辑对话框等
-  }
-  
   // 删除角色
   const deleteRole = (row: AuthorityData) => {
     ElMessageBox.confirm(
-      `确定要删除角色 "${row.authorityName}" 吗？`,
+      `确定要删除角色 "${row.authorityName}" 吗？${row.children && row.children.length > 0 ? '该操作将同时删除所有子角色！' : ''}`,
       '删除确认',
       {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: 'warning'
+        type: 'warning',
+        customClass: 'role-delete-confirm'
       }
-    ).then(() => {
-      console.log('删除角色:', row)
-      // 这里可以实现删除角色的API调用
-      ElMessage.success(`角色 "${row.authorityName}" 已删除`)
+    ).then(async () => {
+      try {
+        const response = await deleteAuthority(row.authorityId)
+        
+        if (response.code === 0) {
+          ElMessage.success(`角色 "${row.authorityName}" 已成功删除`)
+          fetchRoleList() // 刷新角色列表
+        } else {
+          ElMessage.error(response.msg || `删除角色 "${row.authorityName}" 失败`)
+        }
+      } catch (error) {
+        console.error('删除角色出错:', error)
+        ElMessage.error(`删除角色失败，请检查网络连接`)
+      }
     }).catch(() => {
-      // 取消删除
+      // 用户取消删除，不做任何操作
     })
+  }
+  
+  // 新增子角色对话框可见性
+  const addChildRoleDialogVisible = ref(false)
+  
+  // 新增子角色表单数据
+  const addChildRoleForm = reactive({
+    authorityId: 0,
+    authorityName: '',
+    parentId: 0,
+    parentName: '' // 用于显示父级角色名称
+  })
+  
+  // 新增子角色表单规则
+  const addChildRoleRules = {
+    authorityId: [
+      { required: true, message: '请输入角色ID', trigger: 'blur' },
+      { type: 'number', message: '角色ID必须为数字', trigger: 'blur' }
+    ],
+    authorityName: [
+      { required: true, message: '请输入角色名称', trigger: 'blur' },
+      { min: 2, max: 20, message: '角色名称长度应为2-20个字符', trigger: 'blur' }
+    ]
+  }
+  
+  // 打开新增子角色对话框
+  const openAddChildRoleDialog = (parentRole: AuthorityData) => {
+    // 重置表单
+    addChildRoleForm.authorityId = 0
+    addChildRoleForm.authorityName = ''
+    addChildRoleForm.parentId = parentRole.authorityId
+    addChildRoleForm.parentName = parentRole.authorityName
+    
+    // 显示对话框
+    addChildRoleDialogVisible.value = true
+  }
+  
+  // 关闭新增子角色对话框
+  const closeAddChildRoleDialog = () => {
+    addChildRoleDialogVisible.value = false
+  }
+  
+  // 提交新增子角色
+  const submitAddChildRole = async (formEl: any) => {
+    if (!formEl) return
+    
+    await formEl.validate(async (valid: boolean) => {
+      if (valid) {
+        try {
+          const response = await createAuthority({
+            authorityId: addChildRoleForm.authorityId,
+            authorityName: addChildRoleForm.authorityName,
+            parentId: addChildRoleForm.parentId
+          })
+          
+          if (response.code === 0) {
+            ElMessage.success('创建子角色成功')
+            closeAddChildRoleDialog()
+            fetchRoleList() // 刷新角色列表
+          } else {
+            ElMessage.error(response.msg || '创建子角色失败')
+          }
+        } catch (error) {
+          console.error('创建子角色出错:', error)
+          ElMessage.error('创建子角色失败，请检查网络连接')
+        }
+      }
+    })
+  }
+  
+  // 编辑角色对话框可见性
+  const editRoleDialogVisible = ref(false)
+  
+  // 编辑角色表单数据
+  const editRoleForm = reactive({
+    authorityId: 0,
+    authorityName: '',
+    parentId: 0,
+    originalParentId: 0, // 用于记录原始父级ID
+    originalAuthorityId: 0 // 用于记录原始角色ID
+  })
+  
+  // 编辑角色表单规则
+  const editRoleRules = {
+    authorityName: [
+      { required: true, message: '请输入角色名称', trigger: 'blur' },
+      { min: 2, max: 20, message: '角色名称长度应为2-20个字符', trigger: 'blur' }
+    ],
+    parentId: [
+      { required: true, message: '请选择父级角色', trigger: 'change' }
+    ]
+  }
+  
+  // 打开编辑角色对话框
+  const openEditRoleDialog = (row: AuthorityData) => {
+    // 设置表单数据
+    editRoleForm.authorityId = row.authorityId
+    editRoleForm.authorityName = row.authorityName
+    editRoleForm.parentId = row.parentId
+    editRoleForm.originalParentId = row.parentId
+    editRoleForm.originalAuthorityId = row.authorityId
+    
+    // 显示对话框
+    editRoleDialogVisible.value = true
+  }
+  
+  // 关闭编辑角色对话框
+  const closeEditRoleDialog = () => {
+    editRoleDialogVisible.value = false
+  }
+  
+  // 提交编辑角色
+  const submitEditRole = async (formEl: any) => {
+    if (!formEl) return
+    
+    await formEl.validate(async (valid: boolean) => {
+      if (valid) {
+        try {
+          const response = await updateAuthority({
+            authorityId: editRoleForm.authorityId,
+            authorityName: editRoleForm.authorityName,
+            parentId: editRoleForm.parentId
+          })
+          
+          if (response.code === 0) {
+            ElMessage.success('更新角色成功')
+            closeEditRoleDialog()
+            fetchRoleList() // 刷新角色列表
+          } else {
+            ElMessage.error(response.msg || '更新角色失败')
+          }
+        } catch (error) {
+          console.error('更新角色出错:', error)
+          ElMessage.error('更新角色失败，请检查网络连接')
+        }
+      }
+    })
+  }
+  
+  // 修改现有的编辑角色方法
+  const editRole = (row: AuthorityData) => {
+    openEditRoleDialog(row)
   }
   
   return {
@@ -99,6 +341,30 @@ export const useRoleManagement = () => {
     fetchRoleList,
     viewRoleDetail,
     editRole,
-    deleteRole
+    deleteRole,
+    cascaderRoleOptions, // 添加级联选择器选项
+    // 新增角色相关
+    addRoleDialogVisible,
+    addRoleForm,
+    addRoleRules,
+    openAddRoleDialog,
+    closeAddRoleDialog,
+    submitAddRole,
+    
+    // 新增子角色相关
+    addChildRoleDialogVisible,
+    addChildRoleForm,
+    addChildRoleRules,
+    openAddChildRoleDialog,
+    closeAddChildRoleDialog,
+    submitAddChildRole,
+    
+    // 编辑角色相关
+    editRoleDialogVisible,
+    editRoleForm,
+    editRoleRules,
+    openEditRoleDialog,
+    closeEditRoleDialog,
+    submitEditRole
   }
 }

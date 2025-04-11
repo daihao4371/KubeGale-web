@@ -22,9 +22,47 @@ export interface ResponseData<T> {
   msg: string
 }
 
+// 创建角色请求参数接口
+export interface CreateAuthorityParams {
+  authorityId: number;
+  authorityName: string;
+  parentId: number;
+}
+
+// 更新角色请求参数接口
+export interface UpdateAuthorityParams {
+  authorityId: number;
+  authorityName: string;
+  parentId: number;
+}
+
 // 获取角色列表
 export const getAuthorityList = () => {
   return service.post<ResponseData<AuthorityData[]>>(
     API_URLS.getAuthorityList
+  ).then(res => res.data)
+}
+
+// 创建角色
+export const createAuthority = (data: CreateAuthorityParams) => {
+  return service.post<ResponseData<AuthorityData>>(
+    API_URLS.createAuthority,
+    data
+  ).then(res => res.data)
+}
+
+// 更新角色
+export const updateAuthority = (data: UpdateAuthorityParams) => {
+  return service.put<ResponseData<AuthorityData>>(
+    API_URLS.updateAuthority,
+    data
+  ).then(res => res.data)
+}
+
+// 删除角色
+export const deleteAuthority = (authorityId: number) => {
+  return service.post<ResponseData<AuthorityData>>(
+    API_URLS.deleteAuthority,
+    { authorityId }
   ).then(res => res.data)
 }
