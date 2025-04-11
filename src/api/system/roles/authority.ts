@@ -66,3 +66,22 @@ export const deleteAuthority = (authorityId: number) => {
     { authorityId }
   ).then(res => res.data)
 }
+
+// 拷贝角色请求参数接口
+export interface CopyAuthorityParams {
+  authority: {
+    authorityId: number;
+    authorityName: string;
+    parentId: number;
+    defaultRouter: string;
+  };
+  oldAuthorityId: number; // 原角色ID
+}
+
+// 拷贝角色
+export const copyAuthority = (data: CopyAuthorityParams) => {
+  return service.post<ResponseData<AuthorityData>>(
+    API_URLS.copyAuthority,
+    data
+  ).then(res => res.data)
+}

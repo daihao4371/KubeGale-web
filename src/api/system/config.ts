@@ -21,6 +21,7 @@ export const API_URLS = {
   createAuthority: '/api/authority/createAuthority', // 创建角色
   updateAuthority: '/api/authority/updateAuthority', // 更新角色
   deleteAuthority: '/api/authority/deleteAuthority', // 删除角色
+  copyAuthority: '/api/authority/copyAuthority', // 拷贝角色
   
   // 临时添加以解决编译错误，后续可移除
   getSysOperationRecordList: '/api/sysOperationRecord/getSysOperationRecordList',

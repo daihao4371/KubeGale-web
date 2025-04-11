@@ -2,7 +2,7 @@ import { ref, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import service from '@/api/system/service'
 import { API_URLS } from '@/api/system/config'
-import { createAuthority, updateAuthority, deleteAuthority } from '@/api/system/roles/authority'
+import { createAuthority, updateAuthority, deleteAuthority, copyAuthority } from '@/api/system/roles/authority'
 
 // 角色数据接口定义
 export interface AuthorityData {
@@ -334,15 +334,113 @@ export const useRoleManagement = () => {
     openEditRoleDialog(row)
   }
   
+  // 拷贝角色对话框可见性
+  const copyRoleDialogVisible = ref(false)
+  
+  // 拷贝角色表单数据
+  const copyRoleForm = reactive({
+    authorityId: 0,
+    authorityName: '',
+    parentId: 0,
+    oldAuthorityId: 0, // 原角色ID
+    oldAuthorityName: '' // 用于显示原角色名称
+  })
+  
+  // 拷贝角色表单规则
+  const copyRoleRules = {
+    authorityId: [
+      { required: true, message: '请输入角色ID', trigger: 'blur' },
+      { type: 'number', message: '角色ID必须为数字', trigger: 'blur' }
+    ],
+    authorityName: [
+      { required: true, message: '请输入角色名称', trigger: 'blur' },
+      { min: 2, max: 20, message: '角色名称长度应为2-20个字符', trigger: 'blur' }
+    ],
+    parentId: [
+      { required: true, message: '请选择父级角色', trigger: 'change' }
+    ]
+  }
+  
+  // 打开拷贝角色对话框
+  const openCopyRoleDialog = (row: AuthorityData) => {
+    // 重置表单
+    copyRoleForm.authorityId = 0
+    copyRoleForm.authorityName = `${row.authorityName}_复制`
+    copyRoleForm.parentId = row.parentId
+    copyRoleForm.oldAuthorityId = row.authorityId
+    copyRoleForm.oldAuthorityName = row.authorityName
+    
+    // 显示对话框
+    copyRoleDialogVisible.value = true
+  }
+  
+  // 关闭拷贝角色对话框
+  const closeCopyRoleDialog = () => {
+    copyRoleDialogVisible.value = false
+  }
+  
+  // 提交拷贝角色
+  const submitCopyRole = async (formEl: any) => {
+    if (!formEl) return
+    
+    await formEl.validate(async (valid: boolean) => {
+      if (valid) {
+        try {
+          // 确保所有必要的字段都有值
+          if (!copyRoleForm.authorityId) {
+            ElMessage.error('角色ID不能为空')
+            return
+          }
+          
+          if (!copyRoleForm.authorityName) {
+            ElMessage.error('角色名称不能为空')
+            return
+          }
+          
+          if (copyRoleForm.parentId === undefined || copyRoleForm.parentId === null) {
+            ElMessage.error('父级角色不能为空')
+            return
+          }
+          
+          if (!copyRoleForm.oldAuthorityId) {
+            ElMessage.error('原角色ID不能为空')
+            return
+          }
+          
+          const response = await copyAuthority({
+            authority: {
+              authorityId: copyRoleForm.authorityId,
+              authorityName: copyRoleForm.authorityName,
+              parentId: copyRoleForm.parentId,
+              defaultRouter: "dashboard" // 默认使用dashboard作为默认路由
+            },
+            oldAuthorityId: copyRoleForm.oldAuthorityId
+          })
+          
+          if (response.code === 0) {
+            ElMessage.success('拷贝角色成功')
+            closeCopyRoleDialog()
+            fetchRoleList() // 刷新角色列表
+          } else {
+            ElMessage.error(response.msg || '拷贝角色失败')
+          }
+        } catch (error) {
+          console.error('拷贝角色出错:', error)
+          ElMessage.error('拷贝角色失败，请检查网络连接')
+        }
+      }
+    })
+  }
+  
   return {
     roleList,
     loading,
     tableConfig,
     fetchRoleList,
-    viewRoleDetail,
     editRole,
     deleteRole,
-    cascaderRoleOptions, // 添加级联选择器选项
+    cascaderRoleOptions,
+    
     // 新增角色相关
     addRoleDialogVisible,
     addRoleForm,
@@ -365,6 +463,14 @@ export const useRoleManagement = () => {
     editRoleRules,
     openEditRoleDialog,
     closeEditRoleDialog,
-    submitEditRole
+    submitEditRole,
+    
+    // 拷贝角色相关
+    copyRoleDialogVisible,
+    copyRoleForm,
+    copyRoleRules,
+    openCopyRoleDialog,
+    closeCopyRoleDialog,
+    submitCopyRole
   }
 }

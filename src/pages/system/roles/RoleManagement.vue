@@ -85,7 +85,7 @@
               <el-button
                 type="primary"
                 link
-                @click="showDevelopingMessage('拷贝角色')"
+                @click="openCopyRoleDialog(scope.row)"
               >
                 <el-icon><CopyDocument /></el-icon>拷贝
               </el-button>
@@ -270,6 +270,72 @@
         </div>
       </template>
     </el-dialog>
+    
+    <!-- 拷贝角色对话框 -->
+    <el-dialog
+      v-model="copyRoleDialogVisible"
+      title="拷贝角色"
+      width="500px"
+      class="role-edit-dialog"
+    >
+      <el-form
+        ref="copyRoleFormRef"
+        :model="copyRoleForm"
+        :rules="copyRoleRules"
+        label-width="100px"
+      >
+        <el-form-item label="原角色">
+          <el-input v-model="copyRoleForm.oldAuthorityName" disabled />
+        </el-form-item>
+        
+        <el-form-item label="父级角色" prop="parentId">
+          <el-cascader
+            v-model="copyRoleForm.parentId"
+            :options="cascaderRoleOptions"
+            :props="{
+              checkStrictly: true,
+              value: 'authorityId',
+              label: 'authorityName',
+              emitPath: false,
+              disabled: (data: any) => data.authorityId === copyRoleForm.oldAuthorityId
+            }"
+            placeholder="请选择父级角色"
+            clearable
+            class="w-full"
+          >
+            <template #default="{ node, data }">
+              <span>{{ data.authorityName }}</span>
+            </template>
+          </el-cascader>
+        </el-form-item>
+        
+        <el-form-item label="角色ID" prop="authorityId">
+          <el-input-number
+            v-model="copyRoleForm.authorityId"
+            :min="1"
+            :max="9999"
+            class="w-full"
+            placeholder="请输入角色ID"
+          />
+        </el-form-item>
+        
+        <el-form-item label="角色名称" prop="authorityName">
+          <el-input
+            v-model="copyRoleForm.authorityName"
+            placeholder="请输入角色名称"
+            maxlength="20"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="closeCopyRoleDialog">取消</el-button>
+          <el-button type="primary" @click="submitCopyRole(copyRoleFormRef)">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -284,6 +350,7 @@ import { ElMessage } from 'element-plus'
 const addRoleFormRef = ref()
 const addChildRoleFormRef = ref()
 const editRoleFormRef = ref()
+const copyRoleFormRef = ref() // 添加拷贝角色表单引用
 
 // 使用角色管理逻辑
 const {
@@ -293,7 +360,7 @@ const {
   fetchRoleList,
   editRole,
   deleteRole,
-  cascaderRoleOptions, // 添加级联选择器选项
+  cascaderRoleOptions,
   // 新增角色相关
   addRoleDialogVisible,
   addRoleForm,
@@ -314,7 +381,14 @@ const {
   editRoleRules,
   openEditRoleDialog,
   closeEditRoleDialog,
-  submitEditRole
+  submitEditRole,
+  // 拷贝角色相关
+  copyRoleDialogVisible,
+  copyRoleForm,
+  copyRoleRules,
+  openCopyRoleDialog,
+  closeCopyRoleDialog,
+  submitCopyRole
 } = useRoleManagement()
 
 // 判断是否为子角色（防止选择自己的子角色作为父级）
