@@ -37,7 +37,8 @@ export const useRoleManagement = () => {
     stripe: true,
     border: true,
     'highlight-current-row': true,
-    'row-key': 'authorityId'
+    'row-key': 'authorityId',
+    'default-expand-all': false // 默认不展开所有行
   })
   
   // 新增角色对话框可见性
@@ -115,30 +116,13 @@ export const useRoleManagement = () => {
       )
       const res = response.data
       if (res.code === 0) {
-        // 将所有角色（包括子角色）平铺到一个数组中，并添加层级信息
-        const flattenRoles = (roles: AuthorityData[], level = 0): (AuthorityData & { level: number })[] => {
-          let result: (AuthorityData & { level: number })[] = [];
-          roles.forEach(role => {
-            // 添加层级信息
-            const roleWithLevel = { ...role, level };
-            result.push(roleWithLevel);
-            if (role.children && role.children.length > 0) {
-              // 子角色层级+1
-              result = result.concat(flattenRoles(role.children, level + 1));
-            }
-          });
-          return result;
-        };
-        
-        // 保存原始的层级结构数据
-        const hierarchicalRoles = res.data;
-        // 创建平铺的角色列表（包含所有父级和子级角色以及层级信息）
-        roleList.value = flattenRoles(hierarchicalRoles);
+        // 直接使用原始的层级结构数据
+        roleList.value = res.data;
         
         // 添加一个顶级选项
         cascaderRoleOptions.value = [
           { authorityId: 0, authorityName: '无（顶级角色）', children: [] },
-          ...processRolesForCascader(hierarchicalRoles)
+          ...processRolesForCascader(res.data)
         ];
         
         ElMessage.success(res.msg || '获取角色列表成功')

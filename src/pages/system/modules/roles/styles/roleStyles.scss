@@ -35,6 +35,24 @@
         }
       }
       
+      /* 树形表格展开图标样式 */
+      .el-table__expand-icon {
+        color: #409eff;
+        
+        &.el-table__expand-icon--expanded {
+          transform: rotate(90deg);
+        }
+        
+        .el-icon {
+          font-weight: bold;
+        }
+      }
+      
+      /* 子角色缩进样式 */
+      .el-table .child-row {
+        background-color: #f8f8f8;
+      }
+      
       .operation-buttons {
         display: flex;
         flex-wrap: wrap;

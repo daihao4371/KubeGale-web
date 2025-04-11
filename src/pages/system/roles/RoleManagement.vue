@@ -15,6 +15,9 @@
         v-loading="loading"
         :data="roleList"
         v-bind="tableConfig"
+        row-key="authorityId"
+        default-expand-all
+        :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
         class="role-table"
       >
         <!-- 角色ID列 -->
