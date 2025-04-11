@@ -33,6 +33,13 @@ const routes: Array<RouteRecordRaw> = [
             name: 'Roles',
             component: () => import('../pages/system/roles/RoleManagement.vue'),
             meta: { title: '角色管理' }
+          },
+          // 添加菜单管理页面路由
+          {
+            path: 'menus',
+            name: 'Menus',
+            component: () => import('../pages/system/menus/MenuManagement.vue'),
+            meta: { title: '菜单管理' }
           }
           // 移除其他不存在的页面路由
         ]

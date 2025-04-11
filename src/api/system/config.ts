@@ -23,10 +23,16 @@ export const API_URLS = {
   deleteAuthority: '/api/authority/deleteAuthority', // 删除角色
   copyAuthority: '/api/authority/copyAuthority', // 拷贝角色
   setDataAuthority: '/api/authority/setDataAuthority', // 设置数据权限
+
+  // 暂时没有使用
   getMenuAuthority: '/api/menu/getMenuAuthority', // 获取菜单权限
   getApiAuthority: '/api/api/getApiAuthority', // 获取API权限
   addMenuAuthority: '/api/menu/addMenuAuthority', // 添加菜单权限
   addApiAuthority: '/api/api/addApiAuthority', // 添加API权限
+  
+  // 菜单相关
+  getMenuList: '/api/menu/getMenuList', // 获取菜单列表
+  // 移除了创建菜单、更新菜单和删除菜单的API路径
   
   // 临时添加以解决编译错误，后续可移除
   getSysOperationRecordList: '/api/sysOperationRecord/getSysOperationRecordList',
