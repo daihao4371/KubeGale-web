@@ -2,7 +2,7 @@ import { ref, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import service from '@/api/system/service'
 import { API_URLS } from '@/api/system/config'
-import { createAuthority, updateAuthority } from '@/api/system/roles/authority'
+import { createAuthority, updateAuthority, deleteAuthority } from '@/api/system/roles/authority'
 
 // 角色数据接口定义
 export interface AuthorityData {
@@ -178,29 +178,33 @@ export const useRoleManagement = () => {
     // 这里可以实现查看详情的逻辑，如打开详情对话框等
   }
   
-  // 删除这个重复的editRole函数声明
-  // 编辑角色
-  // const editRole = (row: AuthorityData) => {
-  //   console.log('编辑角色:', row)
-  //   // 这里可以实现编辑角色的逻辑，如打开编辑对话框等
-  // }
-  
   // 删除角色
   const deleteRole = (row: AuthorityData) => {
     ElMessageBox.confirm(
-      `确定要删除角色 "${row.authorityName}" 吗？`,
+      `确定要删除角色 "${row.authorityName}" 吗？${row.children && row.children.length > 0 ? '该操作将同时删除所有子角色！' : ''}`,
       '删除确认',
       {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: 'warning'
+        type: 'warning',
+        customClass: 'role-delete-confirm'
       }
-    ).then(() => {
-      console.log('删除角色:', row)
-      // 这里可以实现删除角色的API调用
-      ElMessage.success(`角色 "${row.authorityName}" 已删除`)
+    ).then(async () => {
+      try {
+        const response = await deleteAuthority(row.authorityId)
+        
+        if (response.code === 0) {
+          ElMessage.success(`角色 "${row.authorityName}" 已成功删除`)
+          fetchRoleList() // 刷新角色列表
+        } else {
+          ElMessage.error(response.msg || `删除角色 "${row.authorityName}" 失败`)
+        }
+      } catch (error) {
+        console.error('删除角色出错:', error)
+        ElMessage.error(`删除角色失败，请检查网络连接`)
+      }
     }).catch(() => {
-      // 取消删除
+      // 用户取消删除，不做任何操作
     })
   }
   

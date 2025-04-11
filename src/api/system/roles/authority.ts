@@ -58,3 +58,11 @@ export const updateAuthority = (data: UpdateAuthorityParams) => {
     data
   ).then(res => res.data)
 }
+
+// 删除角色
+export const deleteAuthority = (authorityId: number) => {
+  return service.post<ResponseData<AuthorityData>>(
+    API_URLS.deleteAuthority,
+    { authorityId }
+  ).then(res => res.data)
+}

@@ -193,14 +193,25 @@
     font-weight: 500;
   }
   
+  .el-message-box__content {
+    padding: 20px;
+  }
+  
   .el-message-box__btns {
+    padding: 12px 20px;
+    
     .el-button--primary {
       background-color: #f56c6c;
       border-color: #f56c6c;
       
-      &:hover {
+      &:hover, &:focus {
         background-color: #f78989;
         border-color: #f78989;
+      }
+      
+      &:active {
+        background-color: #dd6161;
+        border-color: #dd6161;
       }
     }
   }
