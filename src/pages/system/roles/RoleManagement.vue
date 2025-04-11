@@ -69,11 +69,11 @@
                 <el-icon><Setting /></el-icon>设置权限
               </el-button>
               
-              <!-- 新增的新增子角色按钮 -->
+              <!-- 修改新增子角色按钮的点击事件 -->
               <el-button
                 type="primary"
                 link
-                @click="showDevelopingMessage('新增子角色')"
+                @click="openAddChildRoleDialog(scope.row)"
               >
                 <el-icon><Plus /></el-icon>新增子角色
               </el-button>
@@ -152,11 +152,56 @@
         </div>
       </template>
     </el-dialog>
+    
+    <!-- 新增子角色对话框 -->
+    <el-dialog
+      v-model="addChildRoleDialogVisible"
+      title="新增子角色"
+      width="500px"
+      class="role-edit-dialog"
+    >
+      <el-form
+        ref="addChildRoleFormRef"
+        :model="addChildRoleForm"
+        :rules="addChildRoleRules"
+        label-width="100px"
+      >
+        <el-form-item label="父级角色">
+          <el-input v-model="addChildRoleForm.parentName" disabled />
+        </el-form-item>
+        
+        <el-form-item label="角色ID" prop="authorityId">
+          <el-input-number
+            v-model="addChildRoleForm.authorityId"
+            :min="1"
+            :max="9999"
+            class="w-full"
+            placeholder="请输入角色ID"
+          />
+        </el-form-item>
+        
+        <el-form-item label="角色名称" prop="authorityName">
+          <el-input
+            v-model="addChildRoleForm.authorityName"
+            placeholder="请输入角色名称"
+            maxlength="20"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="closeAddChildRoleDialog">取消</el-button>
+          <el-button type="primary" @click="submitAddChildRole(addChildRoleFormRef)">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, computed, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { Plus, Edit, Delete, Setting, CopyDocument } from '@element-plus/icons-vue'
 import { useRoleManagement } from '../modules/roles/useRoleManagement'
 import { AuthorityData } from '@/api/system/roles/authority'
@@ -164,6 +209,7 @@ import { ElMessage } from 'element-plus'
 
 // 表单引用
 const addRoleFormRef = ref()
+const addChildRoleFormRef = ref()
 
 // 使用角色管理逻辑
 const {
@@ -179,7 +225,14 @@ const {
   addRoleRules,
   openAddRoleDialog,
   closeAddRoleDialog,
-  submitAddRole
+  submitAddRole,
+  // 新增子角色相关
+  addChildRoleDialogVisible,
+  addChildRoleForm,
+  addChildRoleRules,
+  openAddChildRoleDialog,
+  closeAddChildRoleDialog,
+  submitAddChildRole
 } = useRoleManagement()
 
 // 显示功能开发中的消息

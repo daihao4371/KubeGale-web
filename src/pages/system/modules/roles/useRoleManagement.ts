@@ -159,6 +159,74 @@ export const useRoleManagement = () => {
     })
   }
   
+  // 新增子角色对话框可见性
+  const addChildRoleDialogVisible = ref(false)
+  
+  // 新增子角色表单数据
+  const addChildRoleForm = reactive({
+    authorityId: 0,
+    authorityName: '',
+    parentId: 0,
+    parentName: '' // 用于显示父级角色名称
+  })
+  
+  // 新增子角色表单规则
+  const addChildRoleRules = {
+    authorityId: [
+      { required: true, message: '请输入角色ID', trigger: 'blur' },
+      { type: 'number', message: '角色ID必须为数字', trigger: 'blur' }
+    ],
+    authorityName: [
+      { required: true, message: '请输入角色名称', trigger: 'blur' },
+      { min: 2, max: 20, message: '角色名称长度应为2-20个字符', trigger: 'blur' }
+    ]
+  }
+  
+  // 打开新增子角色对话框
+  const openAddChildRoleDialog = (parentRole: AuthorityData) => {
+    // 重置表单
+    addChildRoleForm.authorityId = 0
+    addChildRoleForm.authorityName = ''
+    addChildRoleForm.parentId = parentRole.authorityId
+    addChildRoleForm.parentName = parentRole.authorityName
+    
+    // 显示对话框
+    addChildRoleDialogVisible.value = true
+  }
+  
+  // 关闭新增子角色对话框
+  const closeAddChildRoleDialog = () => {
+    addChildRoleDialogVisible.value = false
+  }
+  
+  // 提交新增子角色
+  const submitAddChildRole = async (formEl: any) => {
+    if (!formEl) return
+    
+    await formEl.validate(async (valid: boolean) => {
+      if (valid) {
+        try {
+          const response = await createAuthority({
+            authorityId: addChildRoleForm.authorityId,
+            authorityName: addChildRoleForm.authorityName,
+            parentId: addChildRoleForm.parentId
+          })
+          
+          if (response.code === 0) {
+            ElMessage.success('创建子角色成功')
+            closeAddChildRoleDialog()
+            fetchRoleList() // 刷新角色列表
+          } else {
+            ElMessage.error(response.msg || '创建子角色失败')
+          }
+        } catch (error) {
+          console.error('创建子角色出错:', error)
+          ElMessage.error('创建子角色失败，请检查网络连接')
+        }
+      }
+    })
+  }
+  
   return {
     roleList,
     loading,
@@ -173,6 +241,14 @@ export const useRoleManagement = () => {
     addRoleRules,
     openAddRoleDialog,
     closeAddRoleDialog,
-    submitAddRole
+    submitAddRole,
+    
+    // 新增子角色相关
+    addChildRoleDialogVisible,
+    addChildRoleForm,
+    addChildRoleRules,
+    openAddChildRoleDialog,
+    closeAddChildRoleDialog,
+    submitAddChildRole
   }
 }
