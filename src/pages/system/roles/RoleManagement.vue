@@ -63,11 +63,11 @@
                 <el-icon><Edit /></el-icon>编辑
               </el-button>
               
-              <!-- 新增的设置权限按钮 -->
+              <!-- 修改设置权限按钮的点击事件 -->
               <el-button
                 type="primary"
                 link
-                @click="showDevelopingMessage('设置权限')"
+                @click="openSetPermissionDialog(scope.row)"
               >
                 <el-icon><Setting /></el-icon>设置权限
               </el-button>
@@ -336,6 +336,142 @@
         </div>
       </template>
     </el-dialog>
+    
+    <!-- 添加设置权限对话框 -->
+    <el-dialog
+      v-model="setPermissionDialogVisible"
+      title="角色配置"
+      width="800px"
+      class="role-permission-dialog"
+      destroy-on-close
+    >
+      <el-tabs v-model="activePermissionTab" class="permission-tabs">
+        <el-tab-pane label="角色菜单" name="角色菜单">
+          <div class="menu-search">
+            <el-input 
+              v-model="menuSearchKeyword" 
+              placeholder="筛选" 
+              clearable 
+              class="search-input" 
+            />
+            <el-button 
+              type="primary" 
+              class="confirm-btn"
+              @click="submitPermissionSettings"
+            >
+              确定
+            </el-button>
+          </div>
+          
+          <!-- 角色菜单树 -->
+          <!-- 修复角色菜单树的 @check 事件 -->
+          <el-tree
+            :data="filteredMenuPermissions"
+            show-checkbox
+            node-key="id"
+            :default-checked-keys="selectedMenus"
+            :props="{ children: 'children', label: 'label' }"
+            class="permission-tree"
+            @check="(_: any, data: any) => selectedMenus = data.checkedKeys"
+          />
+          
+          <!-- 修复角色API树的 @check 事件 -->
+          <el-tree
+            :data="filteredApiPermissions"
+            show-checkbox
+            node-key="id"
+            :default-checked-keys="selectedApis"
+            :props="{ children: 'children', label: 'label' }"
+            class="permission-tree"
+            @check="(_: any, data: any) => selectedApis = data.checkedKeys"
+          >
+            <template #default="{ node, data }">
+              <span v-if="!data.path">{{ data.label }}</span>
+              <div v-else class="api-node">
+                <span>{{ data.label }}</span>
+                <span class="api-path">{{ data.path }}</span>
+              </div>
+            </template>
+          </el-tree>
+        </el-tab-pane>
+        
+        <el-tab-pane label="角色api" name="角色api">
+          <div class="api-search">
+            <el-input 
+              v-model="apiNameSearchKeyword" 
+              placeholder="筛选名字" 
+              clearable 
+              class="search-input" 
+            />
+            <el-input 
+              v-model="apiPathSearchKeyword" 
+              placeholder="筛选路径" 
+              clearable 
+              class="search-input" 
+            />
+            <el-button 
+              type="primary" 
+              class="confirm-btn"
+              @click="submitPermissionSettings"
+            >
+              确定
+            </el-button>
+          </div>
+          
+          <el-tree
+            :data="filteredApiPermissions"
+            show-checkbox
+            node-key="id"
+            :default-checked-keys="selectedApis"
+            :props="{ children: 'children', label: 'label' }"
+            class="permission-tree"
+            @check="(_: any, data: any) => selectedApis = data.checkedKeys"
+          >
+            <template #default="{ node, data }">
+              <span v-if="!data.path">{{ data.label }}</span>
+              <div v-else class="api-node">
+                <span>{{ data.label }}</span>
+                <span class="api-path">{{ data.path }}</span>
+              </div>
+            </template>
+          </el-tree>
+        </el-tab-pane>
+        
+        <el-tab-pane label="资源权限" name="资源权限">
+          <div class="resource-notice">
+            <el-alert
+              title="此功能仅用于创建角色和角色的many2many关系表，具体使用还需自己结合业务，。此功能不建议使用，建议使用插件市场【组织管理功能（点击前往）】来管理资源权限。"
+              type="warning"
+              :closable="false"
+              show-icon
+            />
+          </div>
+          
+          <div class="resource-buttons">
+            <el-button type="primary" @click="selectAllResources">全选</el-button>
+            <el-button type="primary" @click="selectCurrentRoleResources">本角色</el-button>
+            <el-button type="primary" @click="selectCurrentAndChildrenResources">本角色及子角色</el-button>
+            <el-button 
+              type="primary" 
+              class="confirm-btn" 
+              @click="submitPermissionSettings"
+            >
+              确定
+            </el-button>
+          </div>
+          
+          <div class="resource-list">
+            <el-checkbox
+              v-for="item in resourcePermissions"
+              :key="item.authorityId"
+              v-model="item.checked"
+              :label="item.authorityName"
+              @change="(val: boolean) => handleResourceCheckChange(item, val)"
+            />
+          </div>
+        </el-tab-pane>
+      </el-tabs>
+    </el-dialog>
   </div>
 </template>
 
@@ -388,8 +524,40 @@ const {
   copyRoleRules,
   openCopyRoleDialog,
   closeCopyRoleDialog,
-  submitCopyRole
+  submitCopyRole,
+  // 设置权限相关
+  setPermissionDialogVisible,
+  currentRole,
+  activePermissionTab,
+  menuPermissions,
+  apiPermissions,
+  resourcePermissions,
+  selectedMenus,
+  selectedApis,
+  selectedResources,
+  menuSearchKeyword,
+  apiNameSearchKeyword,
+  apiPathSearchKeyword,
+  filteredMenuPermissions,
+  filteredApiPermissions,
+  openSetPermissionDialog,
+  closeSetPermissionDialog,
+  submitPermissionSettings,
+  selectAllResources,
+  selectCurrentRoleResources,
+  selectCurrentAndChildrenResources
 } = useRoleManagement()
+
+// 处理资源权限选中状态变化
+const handleResourceCheckChange = (item: AuthorityData, checked: boolean) => {
+  if (checked) {
+    if (!selectedResources.value.includes(item.authorityId)) {
+      selectedResources.value.push(item.authorityId)
+    }
+  } else {
+    selectedResources.value = selectedResources.value.filter(id => id !== item.authorityId)
+  }
+}
 
 // 判断是否为子角色（防止选择自己的子角色作为父级）
 const isChildRole = (role: AuthorityData, parentId: number): boolean => {

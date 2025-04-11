@@ -246,3 +246,85 @@
   flex-wrap: wrap;
   gap: 5px;
 }
+
+/* 角色权限设置对话框样式 */
+.role-permission-dialog {
+  .el-dialog__body {
+    padding: 0;
+  }
+  
+  .permission-tabs {
+    .el-tabs__header {
+      margin-bottom: 0;
+    }
+    
+    .el-tabs__content {
+      padding: 20px;
+    }
+  }
+  
+  .menu-search,
+  .api-search {
+    display: flex;
+    margin-bottom: 15px;
+    gap: 10px;
+    
+    .search-input {
+      flex: 1;
+    }
+    
+    .confirm-btn {
+      width: 80px;
+    }
+  }
+  
+  .permission-tree {
+    height: 400px;
+    overflow-y: auto;
+    border: 1px solid #e4e7ed;
+    border-radius: 4px;
+    padding: 10px;
+  }
+  
+  .api-node {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    
+    .api-path {
+      color: #909399;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+  }
+  
+  .resource-notice {
+    margin-bottom: 15px;
+  }
+  
+  .resource-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    
+    .confirm-btn {
+      margin-left: auto;
+    }
+  }
+  
+  .resource-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 300px;
+    overflow-y: auto;
+    border: 1px solid #e4e7ed;
+    border-radius: 4px;
+    padding: 15px;
+    
+    .el-checkbox {
+      margin-right: 0;
+      margin-bottom: 10px;
+    }
+  }
+}

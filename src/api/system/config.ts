@@ -22,6 +22,11 @@ export const API_URLS = {
   updateAuthority: '/api/authority/updateAuthority', // 更新角色
   deleteAuthority: '/api/authority/deleteAuthority', // 删除角色
   copyAuthority: '/api/authority/copyAuthority', // 拷贝角色
+  setDataAuthority: '/api/authority/setDataAuthority', // 设置数据权限
+  getMenuAuthority: '/api/menu/getMenuAuthority', // 获取菜单权限
+  getApiAuthority: '/api/api/getApiAuthority', // 获取API权限
+  addMenuAuthority: '/api/menu/addMenuAuthority', // 添加菜单权限
+  addApiAuthority: '/api/api/addApiAuthority', // 添加API权限
   
   // 临时添加以解决编译错误，后续可移除
   getSysOperationRecordList: '/api/sysOperationRecord/getSysOperationRecordList',
