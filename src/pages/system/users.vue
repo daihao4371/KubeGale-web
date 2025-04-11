@@ -139,13 +139,25 @@
         <el-table-column label="操作" fixed="right" width="280" align="center">
           <template #default="scope">
             <div class="operation-buttons">
-              <el-button type="primary" size="small" plain @click.stop="handleEdit(scope.row)">
+              <el-button
+                type="primary"
+                link
+                @click.stop="handleEdit(scope.row)"
+              >
                 <el-icon><Edit /></el-icon>编辑
               </el-button>
-              <el-button type="warning" size="small" plain @click.stop="handleResetPassword(scope.row)">
+              <el-button
+                type="warning"
+                link
+                @click.stop="handleResetPassword(scope.row)"
+              >
                 <el-icon><Key /></el-icon>重设密码
               </el-button>
-              <el-button type="danger" size="small" plain @click.stop="handleDelete(scope.row)">
+              <el-button
+                type="danger"
+                link
+                @click.stop="handleDelete(scope.row)"
+              >
                 <el-icon><Delete /></el-icon>删除
               </el-button>
             </div>
