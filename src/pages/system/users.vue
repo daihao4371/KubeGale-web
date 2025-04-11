@@ -99,31 +99,26 @@
         </el-table-column>
         
         <!-- 用户角色列 -->
-        <el-table-column label="用户角色" width="180">
+        <el-table-column label="用户角色" width="220">
           <template #default="scope">
-            <!-- 显示多角色 -->
-            <div>
-              <el-select 
-                v-model="scope.row.selectedRoles" 
-                size="small" 
-                placeholder="选择角色"
-                multiple
-                collapse-tags
-                @change="(val: number[]) => handleMultiRoleChange(scope.row, val)"
-              >
-                <el-option
-                  :key="888"
-                  label="普通用户"
-                  :value="888"
-                />
-                <el-option
-                  :key="9528"
-                  label="测试角色"
-                  :value="9528"
-                />
-                <!-- 可以根据需要添加更多角色选项 -->
-              </el-select>
-            </div>
+            <!-- 使用级联选择器替换多选框 -->
+            <el-cascader
+              v-model="scope.row.selectedRoles"
+              :options="cascaderRoleOptions"
+              :props="{
+                multiple: true,
+                checkStrictly: true,
+                emitPath: false
+              }"
+              :show-all-levels="false"
+              collapse-tags
+              collapse-tags-tooltip
+              clearable
+              placeholder="选择角色"
+              @change="(val: number[]) => handleMultiRoleChange(scope.row, val)"
+              size="small"
+              style="width: 100%;"
+            />
           </template>
         </el-table-column>
         
@@ -250,13 +245,13 @@ import { useUsers } from './modules/users/useUsers'
 import { useUserDialog } from './modules/users/components/useUserDialog'
 import UserInfoCard from './UserInfoCard.vue'
 import UserForm from './UserForm.vue'
-import UserEditForm from './UserEditForm.vue'  // 保留这一行，使用新路径
+import UserEditForm from './UserEditForm.vue'
 import { useUserRole } from './modules/users/useUserRole'
 import { useUserStatus } from './modules/users/useUserStatus'
 import { useUserEvents } from './modules/users/useUserEvents'
 import { ref, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { setUserAuthorities } from '@/api/system/userManage' // 添加导入
+import { setUserAuthorities } from '@/api/system/userManage'
 
 // 修改当前编辑用户的引用，使用空对象而不是 null
 const currentUser = ref<Record<string, any>>({})
@@ -272,8 +267,8 @@ const {
   resetSearch,
   handleSizeChange,
   handleCurrentChange,
-  enabledUserCount,  // 添加启用用户数量
-  disabledUserCount  // 添加禁用用户数量
+  enabledUserCount,
+  disabledUserCount
 } = useUsers()
 
 // 使用解耦合后的对话框逻辑
@@ -301,13 +296,20 @@ const {
   
   // 操作方法
   handleAdd,
-  handleEdit: originalHandleEdit,  // 重命名原始的handleEdit
+  handleEdit: originalHandleEdit,
   handleResetPassword,
   handleDelete
 } = useUserDialog()
 
 // 使用解耦后的用户角色管理逻辑
-const { getRoleName } = useUserRole()
+const { 
+  roleList, 
+  cascaderRoleOptions, 
+  roleLoading, 
+  fetchRoleList, 
+  getRoleName, 
+  handleRoleChange 
+} = useUserRole()
 
 // 使用解耦后的用户状态管理逻辑
 const { handleStatusChange } = useUserStatus()
@@ -423,7 +425,10 @@ defineExpose({
 })
 
 // 确保组件挂载时加载数据
-fetchUserList()
+onMounted(() => {
+  fetchUserList()
+  fetchRoleList() // 获取角色列表
+})
 </script>
 
 <style lang="scss" scoped>
