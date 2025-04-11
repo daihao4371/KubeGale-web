@@ -4,12 +4,13 @@
       <template #header>
         <div class="card-header">
           <span class="header-title">角色管理</span>
-          <el-button type="primary" @click="handleAddRole">
+          <el-button type="primary" @click="openAddRoleDialog">
             <el-icon><Plus /></el-icon>新增角色
           </el-button>
         </div>
       </template>
       
+      <!-- 角色列表表格 -->
       <el-table
         v-loading="loading"
         :data="roleList"
@@ -98,15 +99,71 @@
         </el-table-column>
       </el-table>
     </el-card>
+    
+    <!-- 新增角色对话框 -->
+    <el-dialog
+      v-model="addRoleDialogVisible"
+      title="新增角色"
+      width="500px"
+      class="role-edit-dialog"
+    >
+      <el-form
+        ref="addRoleFormRef"
+        :model="addRoleForm"
+        :rules="addRoleRules"
+        label-width="100px"
+      >
+        <el-form-item label="父级角色" prop="parentId">
+          <el-select v-model="addRoleForm.parentId" placeholder="请选择父级角色" class="w-full">
+            <el-option :value="0" label="无（顶级角色）" />
+            <el-option
+              v-for="role in roleList"
+              :key="role.authorityId"
+              :label="role.authorityName"
+              :value="role.authorityId"
+            />
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item label="角色ID" prop="authorityId">
+          <el-input-number
+            v-model="addRoleForm.authorityId"
+            :min="1"
+            :max="9999"
+            class="w-full"
+            placeholder="请输入角色ID"
+          />
+        </el-form-item>
+        
+        <el-form-item label="角色名称" prop="authorityName">
+          <el-input
+            v-model="addRoleForm.authorityName"
+            placeholder="请输入角色名称"
+            maxlength="20"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="closeAddRoleDialog">取消</el-button>
+          <el-button type="primary" @click="submitAddRole(addRoleFormRef)">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { Plus, Edit, Delete, Setting, CopyDocument } from '@element-plus/icons-vue'
 import { useRoleManagement } from '../modules/roles/useRoleManagement'
 import { AuthorityData } from '@/api/system/roles/authority'
 import { ElMessage } from 'element-plus'
+
+// 表单引用
+const addRoleFormRef = ref()
 
 // 使用角色管理逻辑
 const {
@@ -115,7 +172,14 @@ const {
   tableConfig,
   fetchRoleList,
   editRole,
-  deleteRole
+  deleteRole,
+  // 新增角色相关
+  addRoleDialogVisible,
+  addRoleForm,
+  addRoleRules,
+  openAddRoleDialog,
+  closeAddRoleDialog,
+  submitAddRole
 } = useRoleManagement()
 
 // 显示功能开发中的消息
@@ -139,12 +203,6 @@ const formatDate = (dateString: string) => {
   })
 }
 
-// 添加角色处理函数
-const handleAddRole = () => {
-  console.log('添加新角色')
-  // 这里可以实现添加角色的逻辑，如打开添加对话框等
-}
-
 // 组件挂载时获取角色列表
 onMounted(() => {
   fetchRoleList()
@@ -153,6 +211,11 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 @import '../modules/roles/styles/roleStyles.scss';
+
+/* 全宽样式 */
+.w-full {
+  width: 100%;
+}
 
 /* 调整操作按钮样式 */
 .operation-buttons {

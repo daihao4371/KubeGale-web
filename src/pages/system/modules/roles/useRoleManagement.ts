@@ -2,6 +2,7 @@ import { ref, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import service from '@/api/system/service'
 import { API_URLS } from '@/api/system/config'
+import { createAuthority } from '@/api/system/roles/authority'
 
 // 角色数据接口定义
 export interface AuthorityData {
@@ -38,6 +39,72 @@ export const useRoleManagement = () => {
     'highlight-current-row': true,
     'row-key': 'authorityId'
   })
+  
+  // 新增角色对话框可见性
+  const addRoleDialogVisible = ref(false)
+  
+  // 新增角色表单数据
+  const addRoleForm = reactive({
+    authorityId: 0,
+    authorityName: '',
+    parentId: 0
+  })
+  
+  // 新增角色表单规则
+  const addRoleRules = {
+    authorityId: [
+      { required: true, message: '请输入角色ID', trigger: 'blur' },
+      { type: 'number', message: '角色ID必须为数字', trigger: 'blur' }
+    ],
+    authorityName: [
+      { required: true, message: '请输入角色名称', trigger: 'blur' },
+      { min: 2, max: 20, message: '角色名称长度应为2-20个字符', trigger: 'blur' }
+    ]
+  }
+  
+  // 打开新增角色对话框
+  const openAddRoleDialog = () => {
+    // 重置表单
+    addRoleForm.authorityId = 0
+    addRoleForm.authorityName = ''
+    addRoleForm.parentId = 0
+    
+    // 显示对话框
+    addRoleDialogVisible.value = true
+  }
+  
+  // 关闭新增角色对话框
+  const closeAddRoleDialog = () => {
+    addRoleDialogVisible.value = false
+  }
+  
+  // 提交新增角色
+  const submitAddRole = async (formEl: any) => {
+    if (!formEl) return
+    
+    await formEl.validate(async (valid: boolean) => {
+      if (valid) {
+        try {
+          const response = await createAuthority({
+            authorityId: addRoleForm.authorityId,
+            authorityName: addRoleForm.authorityName,
+            parentId: addRoleForm.parentId
+          })
+          
+          if (response.code === 0) {
+            ElMessage.success('创建角色成功')
+            closeAddRoleDialog()
+            fetchRoleList() // 刷新角色列表
+          } else {
+            ElMessage.error(response.msg || '创建角色失败')
+          }
+        } catch (error) {
+          console.error('创建角色出错:', error)
+          ElMessage.error('创建角色失败，请检查网络连接')
+        }
+      }
+    })
+  }
   
   // 获取角色列表
   const fetchRoleList = async () => {
@@ -99,6 +166,13 @@ export const useRoleManagement = () => {
     fetchRoleList,
     viewRoleDetail,
     editRole,
-    deleteRole
+    deleteRole,
+    // 新增角色相关
+    addRoleDialogVisible,
+    addRoleForm,
+    addRoleRules,
+    openAddRoleDialog,
+    closeAddRoleDialog,
+    submitAddRole
   }
 }

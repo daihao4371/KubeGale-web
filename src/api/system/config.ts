@@ -18,6 +18,7 @@ export const API_URLS = {
   
   // 角色相关
   getAuthorityList: '/api/authority/getAuthorityList', // 获取角色列表
+  createAuthority: '/api/authority/createAuthority', // 创建角色
   
   // 临时添加以解决编译错误，后续可移除
   getSysOperationRecordList: '/api/sysOperationRecord/getSysOperationRecordList',
