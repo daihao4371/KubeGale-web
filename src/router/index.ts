@@ -40,6 +40,20 @@ const routes: Array<RouteRecordRaw> = [
             name: 'Menus',
             component: () => import('../pages/system/menus/MenuManagement.vue'),
             meta: { title: '菜单管理' }
+          },
+          // // 添加 API 管理页面路由
+          // {
+          //   path: 'apis',
+          //   name: 'Apis',
+          //   component: () => import('../pages/system/apis/ApiManagement.vue'),
+          //   meta: { title: 'API管理' }
+          // },
+          // // 添加操作记录页面路由
+          {
+            path: 'operation-logs',
+            name: 'OperationLogs',
+            component: () => import('../pages/system/operationRecord/operationRecord.vue'),
+            meta: { title: '操作记录' }
           }
           // 移除其他不存在的页面路由
         ]

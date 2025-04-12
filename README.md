@@ -109,6 +109,8 @@ kubegale-front/
 ![img.png](image/菜单管理.png)
 - 角色管理
 ![img.png](image/角色管理.png)
+- 操作记录
+![img.png](image/操作记录.png)
 
 
 

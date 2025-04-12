@@ -1,5 +1,6 @@
-import service from './service'
-import { API_URLS } from './config'
+// 修改导入路径，使用正确的service路径
+import service from '../../system/service'
+import { API_URLS } from '../config'
 
 // 用户信息类型
 export interface User {
@@ -11,14 +12,14 @@ export interface User {
 
 // 系统操作记录类型 - 更新以匹配后端结构
 export interface SysOperationRecord {
-  id: number;
+  id: number;  // 前端使用小写，但会映射到后端的ID
   created_at: string;
   updated_at: string;
   ip: string;
   method: string;
   path: string;
   status: number;
-  latency: string; // 后端是time.Duration，前端接收为字符串
+  latency: string | number; // 后端是time.Duration，前端接收为字符串或数字
   agent: string;
   error_message: string;
   body: string;
@@ -28,6 +29,10 @@ export interface SysOperationRecord {
   // 添加新字段
   operator_name?: string;    // 操作人用户名
   operator_real_name?: string; // 操作人真实姓名
+  // 添加后端返回的大写字段，用于映射
+  ID?: number;
+  CreatedAt?: string;
+  UpdatedAt?: string;
 }
 
 // API响应类型
@@ -67,28 +72,33 @@ export function getSysOperationRecordList(params: OperationRecordParams) {
   })
 }
 
-// 删除系统操作记录
-export function deleteSysOperationRecord(id: number) {
-  return service({
-    url: API_URLS.deleteSysOperationRecord,
-    method: 'delete',
-    data: { id } // 通过请求体传递ID
-  })
-}
-
-// 批量删除系统操作记录
-export function batchDeleteSysOperationRecord(ids: number[]) {
-  return service({
-    url: API_URLS.batchDeleteSysOperationRecord,
-    method: 'delete',
-    data: { ids }
-  })
-}
-
-// 根据ID获取系统操作记录
+// 查询单条操作记录详情
 export function findSysOperationRecord(id: number) {
   return service({
     url: `${API_URLS.findSysOperationRecord}/${id}`,
     method: 'get'
   })
 }
+
+// 删除单条操作记录 - 简化为显示开发中提示
+export function deleteSysOperationRecord(data: { ID: number }) {
+  return Promise.resolve({
+    data: {
+      code: 0,
+      msg: '功能开发中',
+      data: {}
+    }
+  })
+}
+
+// 批量删除操作记录 - 简化为显示开发中提示
+export function batchDeleteSysOperationRecord(data: { IDs: number[] }) {
+  return Promise.resolve({
+    data: {
+      code: 0,
+      msg: '功能开发中',
+      data: {}
+    }
+  })
+}
+

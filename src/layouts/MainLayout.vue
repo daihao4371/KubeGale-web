@@ -51,7 +51,7 @@
             </el-menu-item>
             <el-menu-item index="/system/permissions">
               <el-icon><el-icon-lock /></el-icon>
-              <span>权限管理</span>
+              <span>API管理</span>
             </el-menu-item>
             <!-- 添加操作记录菜单项 -->
             <el-menu-item index="/system/operation-logs">

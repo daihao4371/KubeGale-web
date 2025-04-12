@@ -78,23 +78,26 @@
         </template>
       </el-table-column>
       <el-table-column prop="path" label="请求路径" min-width="180" show-overflow-tooltip />
-      <!-- 移除请求和响应的数据展示列 -->
+      
+      <!-- 修改操作列样式，使用link类型按钮 -->
       <el-table-column label="操作" fixed="right" width="180">
         <template #default="scope">
-          <el-button 
-            type="primary" 
-            size="small" 
-            @click="handleViewDetail(scope.row.id)"
-          >
-            <el-icon><View /></el-icon>详情
-          </el-button>
-          <el-button 
-            type="danger" 
-            size="small" 
-            @click="handleDelete(scope.row)"
-          >
-            <el-icon><Delete /></el-icon>删除
-          </el-button>
+          <div class="operation-buttons">
+            <el-button 
+              type="primary" 
+              link
+              @click="handleViewDetail(Number(scope.row.id))"
+            >
+              <el-icon><View /></el-icon>详情
+            </el-button>
+            <el-button 
+              type="danger" 
+              link
+              @click="handleDelete"
+            >
+              <el-icon><Delete /></el-icon>删除
+            </el-button>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -176,9 +179,9 @@
   </div>
 </template>
 
-<script lang="ts" setup name="SystemOperationRecord">
-import { Search, Refresh, Delete, InfoFilled, View } from '@element-plus/icons-vue'
-import { useOperationRecord } from './modules/operationRecord/useOperationRecord'
+<script setup lang="ts" name="SystemOperationRecord">
+import { Search, Refresh, Delete, View } from '@element-plus/icons-vue'
+import { useOperationRecord } from '../modules/operationRecord/useOperationRecord'
 
 // 使用解耦后的逻辑
 const {
@@ -209,5 +212,5 @@ const {
 </script>
 
 <style lang="scss" scoped>
-@import './modules/operationRecord/operationRecord.scss';
+@import '../modules/operationRecord/operationRecord.scss';
 </style>

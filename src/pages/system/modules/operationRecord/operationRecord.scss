@@ -130,3 +130,18 @@
   color: #909399;
   font-style: italic;
 }
+
+// 添加操作按钮样式
+.operation-buttons {
+  display: flex;
+  align-items: center;
+  
+  .el-button {
+    padding: 4px 8px;
+    margin-right: 8px;
+    
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+}

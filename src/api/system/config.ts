@@ -24,6 +24,12 @@ export const API_URLS = {
   copyAuthority: '/api/authority/copyAuthority', // 拷贝角色
   setDataAuthority: '/api/authority/setDataAuthority', // 设置数据权限
 
+  // API管理相关
+  getApiList: '/api/api/getApiList', // 获取API列表
+  createApi: '/api/api/createApi', // 创建API
+  updateApi: '/api/api/updateApi', // 更新API
+  deleteApi: '/api/api/deleteApi', // 删除API
+  
   // 暂时没有使用
   getMenuAuthority: '/api/menu/getMenuAuthority', // 获取菜单权限
   getApiAuthority: '/api/api/getApiAuthority', // 获取API权限
@@ -36,9 +42,9 @@ export const API_URLS = {
   updateBaseMenu: '/api/menu/updateBaseMenu', // 更新菜单
   deleteBaseMenu: '/api/menu/deleteBaseMenu', // 删除菜单
   
-  // 临时添加以解决编译错误，后续可移除
-  getSysOperationRecordList: '/api/sysOperationRecord/getSysOperationRecordList',
-  deleteSysOperationRecord: '/api/sysOperationRecord/deleteSysOperationRecord',
-  batchDeleteSysOperationRecord: '/api/sysOperationRecord/batchDeleteSysOperationRecord',
-  findSysOperationRecord: '/api/sysOperationRecord/findSysOperationRecord',
+  // 操作记录相关
+  getSysOperationRecordList: '/api/sysOperationRecord/getSysOperationRecordList', // 获取操作记录列表
+  deleteSysOperationRecord: '/api/sysOperationRecord/deleteSysOperationRecord', // 删除一条操作记录
+  deleteSysOperationRecordByIds: '/api/sysOperationRecord/deleteSysOperationRecordByIds', // 删除多条操作记录
+  findSysOperationRecord: '/api/sysOperationRecord/findSysOperationRecord', // 通过ID查询操作记录
 }
