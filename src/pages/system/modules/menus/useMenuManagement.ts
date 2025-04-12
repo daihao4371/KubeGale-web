@@ -1,6 +1,6 @@
 import { ref, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getMenuList, MenuData, deleteMenu, createMenu } from '@/api/system/menus/menu'
+import { getMenuList, MenuData, deleteMenu, createMenu, updateMenu } from '@/api/system/menus/menu'
 import { API_URLS } from '@/api/system/config' // 导入 API_URLS
 import allIcons, { IconItem, iconsByCategory } from './icons/iconList' // 导入图标列表
 
@@ -215,6 +215,9 @@ export const useMenuManagement = () => {
   // 添加菜单对话框可见性
   const addMenuDialogVisible = ref(false)
   
+  // 添加编辑菜单对话框可见性
+  const editMenuDialogVisible = ref(false)
+  
   // 菜单表单 - 更新默认值
   const menuForm = ref<MenuData>({
     ID: 0,
@@ -282,6 +285,13 @@ export const useMenuManagement = () => {
     addMenuDialogVisible.value = true
   }
   
+  // 打开编辑菜单对话框
+  const openEditMenuDialog = (menu: MenuData) => {
+    // 深拷贝菜单数据，避免直接修改原始数据
+    menuForm.value = JSON.parse(JSON.stringify(menu))
+    editMenuDialogVisible.value = true
+  }
+  
   // 提交菜单表单
   const submitMenuForm = async (formEl: any) => {
     if (!formEl) return
@@ -313,6 +323,47 @@ export const useMenuManagement = () => {
             console.error('错误信息:', error.message)
           }
           ElMessage.error('创建菜单失败，请检查网络连接')
+        } finally {
+          loading.value = false
+        }
+      } else {
+        ElMessage.warning('请完善表单信息')
+        return false
+      }
+    })
+  }
+  
+  // 提交编辑菜单表单
+  const submitEditMenuForm = async (formEl: any) => {
+    if (!formEl) return
+    
+    await formEl.validate(async (valid: boolean) => {
+      if (valid) {
+        loading.value = true
+        try {
+          console.log('正在更新菜单，数据:', menuForm.value)
+          const response = await updateMenu(menuForm.value)
+          console.log('更新菜单响应:', response)
+          
+          if (response.data && response.data.code === 0) {
+            ElMessage.success('更新菜单成功')
+            editMenuDialogVisible.value = false
+            // 重新获取菜单列表
+            await fetchMenuList()
+          } else {
+            ElMessage.error(response.data?.msg || '更新菜单失败')
+          }
+        } catch (error: any) {
+          console.error('更新菜单出错:', error)
+          if (error.response) {
+            console.error('错误状态码:', error.response.status)
+            console.error('错误数据:', error.response.data)
+          } else if (error.request) {
+            console.error('未收到响应，请求信息:', error.request)
+          } else {
+            console.error('错误信息:', error.message)
+          }
+          ElMessage.error('更新菜单失败，请检查网络连接')
         } finally {
           loading.value = false
         }
@@ -367,10 +418,13 @@ export const useMenuManagement = () => {
     defaultForm,
     handleDeleteMenu,
     addMenuDialogVisible,
+    editMenuDialogVisible, // 新增
     menuForm,
     menuFormRules,
     openAddMenuDialog,
+    openEditMenuDialog, // 新增
     submitMenuForm,
+    submitEditMenuForm, // 新增
     commonIcons,
     iconSelectorVisible,
     selectedIcon,
