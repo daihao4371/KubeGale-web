@@ -105,8 +105,13 @@ kubegale-front/
 ![img.png](image/首页.png)
 - 用户管理
 - ![img.png](image/用户管理.png)
+- 菜单管理
+![img.png](image/菜单管理.png)
 - 角色管理
 ![img.png](image/角色管理.png)
+
+
+
 
 
 ## 贡献指南
