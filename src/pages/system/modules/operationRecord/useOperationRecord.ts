@@ -9,6 +9,9 @@ import {
   type PageResponse,
   type User
 } from '@/api/system/operationRecord/operationRecord'
+// 导入用户API
+import service from '@/api/system/service'
+import { API_URLS } from '@/api/system/config'
 
 export function useOperationRecord() {
   // 搜索表单
@@ -82,13 +85,12 @@ export function useOperationRecord() {
             }
           }
           
-          // 处理用户信息
+          // 处理用户信息，不再使用realName
           if (item.user) {
             record.user = {
               id: Number(item.user.ID || item.user.id || 0),
               username: String(item.user.userName || item.user.username || ''),
-              nickname: String(item.user.nickName || item.user.nickname || ''),
-              realName: String(item.user.realName || '')
+              nickname: String(item.user.nickName || item.user.nickname || '')
             }
           }
           
@@ -147,69 +149,102 @@ export function useOperationRecord() {
     selectedRecords.value = selection
   }
 
-  // 查看详情
-  const handleViewDetail = async (id: number) => {
-    // 添加ID有效性检查
-    if (!id || isNaN(Number(id))) {
-      ElMessage.error('无效的记录ID')
-      return
-    }
-    
-    detailDialogVisible.value = true
-    detailLoading.value = true
+  // 修改为使用getUserInfo API获取用户信息
+  const getSystemUsers = async (userId: number) => {
+    if (!userId) return []
     
     try {
-      const response = await findSysOperationRecord(id)
+      // 尝试使用getUserInfo API获取用户信息，不需要传入用户ID
+      const response = await service({
+        url: API_URLS.getUserInfo,
+        method: 'get'
+      })
       
-      if (response.data.code === 0) {
-        // 处理后端返回的数据结构
-        const recordData = response.data.data.reSysOperationRecord
-        if (recordData) {
-          // 转换字段名称为前端使用的格式
-          currentRecord.value = {
-            id: recordData.ID || 0,
-            created_at: recordData.CreatedAt || '',
-            updated_at: recordData.UpdatedAt || '',
-            ip: recordData.ip || '',
-            method: recordData.method || '',
-            path: recordData.path || '',
-            status: recordData.status || 0,
-            latency: recordData.latency || '',
-            agent: recordData.agent || '',
-            error_message: recordData.error_message || '',
-            body: recordData.body || '',
-            resp: recordData.resp || '',
-            user_id: recordData.user_id || 0,
-            user: {
-              id: 0,
-              username: ''
-            }
-          }
-          
-          // 处理用户信息
-          if (recordData.user) {
-            currentRecord.value.user = {
-              id: Number(recordData.user.ID || 0),
-              username: String(recordData.user.userName || ''),
-              nickname: String(recordData.user.nickName || ''),
-              realName: String(recordData.user.realName || '')
-            }
-          }
+      if (response.data.code === 0 && response.data.data) {
+        // 从userInfo中获取用户数据
+        const userData = response.data.data.userInfo || response.data.data;
+        
+        // 检查获取到的用户ID是否与需要的用户ID匹配
+        if (userData.ID === userId || userData.id === userId) {
+          return [{
+            id: Number(userData.ID || userData.id || 0),
+            username: String(userData.userName || userData.username || ''),
+            nickname: String(userData.nickName || userData.nickname || '')
+          }];
         } else {
-          ElMessage.error('获取操作记录详情失败：数据结构异常')
-          closeDetailDialog()
+          // 如果当前登录用户不是我们需要的用户，尝试使用getUserList
+          const listResponse = await service({
+            url: API_URLS.getUserList,
+            method: 'get',
+            params: {
+              page: 1,
+              pageSize: 100 // 增加数量以提高找到目标用户的概率
+            }
+          })
+          
+          if (listResponse.data.code === 0) {
+            const users = listResponse.data.data.list || []
+            // 过滤出指定ID的用户
+            return users
+              .filter((user: any) => user.ID === userId || user.id === userId)
+              .map((user: any) => ({
+                id: Number(user.ID || user.id || 0),
+                username: String(user.userName || user.username || ''),
+                nickname: String(user.nickName || user.nickname || '')
+              }))
+          }
         }
       } else {
-        ElMessage.error(response.data.msg || '获取操作记录详情失败')
-        closeDetailDialog()
+        // 如果getUserInfo失败，尝试使用getUserList
+        const listResponse = await service({
+          url: API_URLS.getUserList,
+          method: 'get',
+          params: {
+            page: 1,
+            pageSize: 100 // 增加数量以提高找到目标用户的概率
+          }
+        })
+        
+        if (listResponse.data.code === 0) {
+          const users = listResponse.data.data.list || []
+          // 过滤出指定ID的用户
+          return users
+            .filter((user: any) => user.ID === userId || user.id === userId)
+            .map((user: any) => ({
+              id: Number(user.ID || user.id || 0),
+              username: String(user.userName || user.username || ''),
+              nickname: String(user.nickName || user.nickname || '')
+            }))
+        }
       }
+      return []
     } catch (error) {
-      console.error('获取操作记录详情失败:', error)
-      ElMessage.error('获取操作记录详情失败，请重试')
-      closeDetailDialog()
-    } finally {
-      detailLoading.value = false
+      console.error('获取用户信息失败:', error)
+      return []
     }
+  }
+
+  // 保留这个formatUser函数，删除后面重复的函数
+  // 修改formatUser函数，移除硬编码逻辑
+  // 修改formatUser函数，确保正确显示用户信息
+  const formatUser = (user: User | undefined, record: SysOperationRecord) => {
+  // 优先使用操作人字段
+  if (record.operator_real_name) {
+  return record.operator_real_name;
+  }
+  
+  if (record.operator_name) {
+  return record.operator_name;
+  }
+  
+  // 其次使用user对象
+  if (user) {
+  if (user.nickname) return user.nickname;
+  if (user.username) return user.username;
+  }
+  
+  // 最后使用用户ID
+  return `用户ID: ${record.user_id || 0}`;
   }
 
   // 关闭详情对话框
@@ -331,23 +366,6 @@ export function useOperationRecord() {
     }
   }
 
-  // 格式化用户信息
-  const formatUser = (user: User | undefined, record: SysOperationRecord) => {
-    if (record.operator_name) {
-      return record.operator_real_name || record.operator_name
-    }
-    
-    if (user) {
-      return user.realName || user.nickname || user.username || `用户ID: ${user.id}`
-    }
-    
-    if (record.user_id === 0) {
-      return '系统'
-    }
-    
-    return `用户ID: ${record.user_id}`
-  }
-
   // 格式化JSON
   const formatJson = (jsonStr: string) => {
     if (!jsonStr) return '-'
@@ -356,6 +374,88 @@ export function useOperationRecord() {
       return JSON.stringify(obj, null, 2)
     } catch (e) {
       return jsonStr
+    }
+  }
+
+  // 添加查看详情函数
+  const handleViewDetail = async (id: number) => {
+    // 添加ID有效性检查
+    if (!id || isNaN(Number(id))) {
+      ElMessage.error('无效的记录ID')
+      return
+    }
+    
+    detailDialogVisible.value = true
+    detailLoading.value = true
+    
+    try {
+      const response = await findSysOperationRecord(id)
+      
+      if (response.data.code === 0) {
+        // 处理后端返回的数据结构
+        const recordData = response.data.data.reSysOperationRecord
+        if (recordData) {
+          // 转换字段名称为前端使用的格式
+          currentRecord.value = {
+            id: recordData.ID || 0,
+            created_at: recordData.CreatedAt || '',
+            updated_at: recordData.UpdatedAt || '',
+            ip: recordData.ip || '',
+            method: recordData.method || '',
+            path: recordData.path || '',
+            status: recordData.status || 0,
+            latency: recordData.latency || '',
+            agent: recordData.agent || '',
+            error_message: recordData.error_message || '',
+            body: recordData.body || '',
+            resp: recordData.resp || '',
+            user_id: recordData.user_id || 0,
+            user: {
+              id: 0,
+              username: ''
+            }
+          }
+          
+          // 处理用户信息
+          if (recordData.user && (recordData.user.userName || recordData.user.username)) {
+            // 从后端返回的user对象中提取用户信息
+            currentRecord.value.user = {
+              id: Number(recordData.user.ID || recordData.user.id || 0),
+              username: String(recordData.user.userName || recordData.user.username || ''),
+              nickname: String(recordData.user.nickName || recordData.user.nickname || '')
+            }
+            
+            // 添加操作人信息
+            currentRecord.value.operator_name = recordData.user.userName || recordData.user.username || '';
+            currentRecord.value.operator_real_name = recordData.user.nickName || recordData.user.nickname || '';
+          } else if (recordData.user_id) {
+            // 如果没有user对象或user信息不完整，尝试通过user_id获取用户信息
+            const systemUsers = await getSystemUsers(recordData.user_id);
+            if (systemUsers && systemUsers.length > 0) {
+              const user = systemUsers[0];
+              currentRecord.value.user = {
+                id: user.id,
+                username: user.username,
+                nickname: user.nickname
+              };
+              currentRecord.value.operator_name = user.username;
+              currentRecord.value.operator_real_name = user.nickname;
+            }
+          }
+        } else {
+          ElMessage.error('获取操作记录详情失败：数据结构异常')
+          closeDetailDialog()
+        }
+      } else {
+        ElMessage.error(response.data.msg || '获取操作记录详情失败')
+        closeDetailDialog()
+      }
+    } catch (error) {
+      console.error('获取操作记录详情失败:', error)
+      ElMessage.error('获取操作记录详情失败，请重试')
+      closeDetailDialog()
+    } finally {
+      detailLoading.value = false
     }
   }
 

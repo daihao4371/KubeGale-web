@@ -54,13 +54,21 @@
       @selection-change="handleSelectionChange"
     >
       <el-table-column type="selection" width="55" />
+      <!-- 操作记录列表 -->
       <el-table-column label="操作人" width="120">
         <template #default="scope">
-          <span :class="{ 'system-user': scope.row.user_id === 0 }">
+          <span :class="{ 'system-user': !scope.row.user || (!scope.row.user.username && !scope.row.user.nickname) }">
             {{ formatUser(scope.row.user, scope.row) }}
           </span>
         </template>
       </el-table-column>
+      
+      <!-- 详情对话框 -->
+      <el-descriptions-item label="操作人">
+        <span :class="{ 'system-user': !currentRecord?.user || (!currentRecord.user.username && !currentRecord.user.nickname) }">
+          {{ currentRecord ? formatUser(currentRecord.user, currentRecord) : '-' }}
+        </span>
+      </el-descriptions-item>
       <el-table-column prop="created_at" label="日期" width="180">
         <template #default="scope">
           {{ formatDate(scope.row.created_at) }}
@@ -127,8 +135,11 @@
       <div v-loading="detailLoading">
         <el-descriptions :column="2" border size="small">
           <el-descriptions-item label="操作人">
-            {{ currentRecord ? formatUser(currentRecord.user, currentRecord) : '-' }}
+            <span :class="{ 'system-user': !currentRecord?.user || (!currentRecord.user.username && !currentRecord.user.nickname) }">
+              {{ currentRecord ? formatUser(currentRecord.user, currentRecord) : '-' }}
+            </span>
           </el-descriptions-item>
+          <!-- 其他描述项保持不变 -->
           <el-descriptions-item label="操作时间">
             {{ currentRecord ? formatDate(currentRecord.created_at) : '-' }}
           </el-descriptions-item>
