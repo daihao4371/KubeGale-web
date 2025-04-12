@@ -96,13 +96,38 @@
           prop="component"
         />
         
+        <!-- 替换创建时间列为操作列 -->
         <el-table-column
-          align="left"
-          label="创建时间"
-          min-width="180"
+          label="操作"
+          min-width="280"
+          fixed="right"
         >
           <template #default="scope">
-            {{ formatDate(scope.row.CreatedAt) }}
+            <div class="operation-buttons">
+              <el-button
+                type="primary"
+                link
+                @click="showDevelopingMessage('添加子菜单')"
+              >
+                <el-icon><Plus /></el-icon>添加子菜单
+              </el-button>
+              
+              <el-button
+                type="primary"
+                link
+                @click="showDevelopingMessage('编辑菜单')"
+              >
+                <el-icon><Edit /></el-icon>编辑
+              </el-button>
+              
+              <el-button
+                type="danger"
+                link
+                @click="showDevelopingMessage('删除菜单')"
+              >
+                <el-icon><Delete /></el-icon>删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -113,6 +138,8 @@
 <script lang="ts" setup>
 import { onMounted } from 'vue'
 import { useMenuManagement } from '../modules/menus/useMenuManagement'
+import { Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 
 // 使用菜单管理逻辑
 const {
@@ -126,6 +153,14 @@ const {
 // 刷新菜单列表
 const refreshMenuList = () => {
   fetchMenuList()
+}
+
+// 显示功能开发中的消息
+const showDevelopingMessage = (feature: string) => {
+  ElMessage({
+    message: `${feature}功能正在开发中，敬请期待！`,
+    type: 'info'
+  })
 }
 
 // 组件挂载时获取菜单列表
