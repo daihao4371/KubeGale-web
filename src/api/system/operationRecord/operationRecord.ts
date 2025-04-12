@@ -83,7 +83,7 @@ export function findSysOperationRecord(id: number) {
 // 删除单条操作记录
 export function deleteSysOperationRecord(data: { ID: number }) {
   return service({
-    url: '/api/sysOperationRecord/deleteSysOperationRecord',
+    url: API_URLS.deleteSysOperationRecord,
     method: 'delete',
     data
   })
@@ -92,7 +92,7 @@ export function deleteSysOperationRecord(data: { ID: number }) {
 // 批量删除操作记录
 export function batchDeleteSysOperationRecord(data: { IDs: number[] }) {
   return service({
-    url: '/api/sysOperationRecord/deleteSysOperationRecordByIds',
+    url: API_URLS.deleteSysOperationRecordByIds,
     method: 'delete',
     data
   })
