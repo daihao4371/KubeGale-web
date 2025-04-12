@@ -1,7 +1,8 @@
 import { ref, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getMenuList, MenuData, deleteMenu } from '@/api/system/menus/menu'
+import { getMenuList, MenuData, deleteMenu, createMenu } from '@/api/system/menus/menu'
 import { API_URLS } from '@/api/system/config' // 导入 API_URLS
+import allIcons, { IconItem, iconsByCategory } from './icons/iconList' // 导入图标列表
 
 export const useMenuManagement = () => {
   // 菜单列表数据
@@ -18,6 +19,52 @@ export const useMenuManagement = () => {
     'row-key': 'ID',
     'default-expand-all': true
   })
+  
+  // 使用导入的图标列表
+  const commonIcons = ref<IconItem[]>(allIcons)
+  
+  // 图标分类列表
+  const iconCategories = ref(Object.keys(iconsByCategory))
+  
+  // 当前选中的图标分类
+  const selectedCategory = ref<string>('全部')
+  
+  // 根据分类获取图标 - 修复类型错误
+  const getIconsByCategory = (category: string) => {
+    if (category === '全部') {
+      return allIcons
+    }
+    // 使用类型断言解决索引问题
+    return (iconsByCategory as Record<string, IconItem[]>)[category] || []
+  }
+  
+  // 图标选择器对话框可见性
+  const iconSelectorVisible = ref(false)
+  
+  // 当前选中的图标
+  const selectedIcon = ref('')
+  
+  // 打开图标选择器
+  const openIconSelector = () => {
+    selectedIcon.value = menuForm.value.meta.icon
+    iconSelectorVisible.value = true
+  }
+  
+  // 选择图标
+  const selectIcon = (iconName: string) => {
+    selectedIcon.value = iconName
+  }
+  
+  // 确认选择图标
+  const confirmIconSelection = () => {
+    menuForm.value.meta.icon = selectedIcon.value
+    iconSelectorVisible.value = false
+  }
+  
+  // 选择图标分类
+  const selectCategory = (category: string) => {
+    selectedCategory.value = category
+  }
   
   // 获取菜单列表
   const fetchMenuList = async () => {
@@ -165,6 +212,117 @@ export const useMenuManagement = () => {
     }
   }
   
+  // 添加菜单对话框可见性
+  const addMenuDialogVisible = ref(false)
+  
+  // 菜单表单 - 更新默认值
+  const menuForm = ref<MenuData>({
+    ID: 0,
+    parentId: 0, // 默认为根菜单，不可更改
+    path: '',
+    name: '',
+    hidden: false,
+    component: '',
+    sort: 0,
+    meta: {
+      activeName: '',
+      keepAlive: true,
+      defaultMenu: false, // 是否为基础页面
+      title: '',
+      icon: '',
+      closeTab: false
+    },
+    parameters: [],
+    menuBtn: []
+  })
+  
+  // 表单校验规则 - 移除父节点ID的校验，因为它是固定的
+  const menuFormRules = {
+    path: [
+      { required: true, message: '请输入路由Path', trigger: 'blur' }
+    ],
+    name: [
+      { required: true, message: '请输入路由Name', trigger: 'blur' }
+    ],
+    component: [
+      { required: true, message: '请输入组件路径', trigger: 'blur' }
+    ],
+    'meta.title': [
+      { required: true, message: '请输入菜单名称', trigger: 'blur' }
+    ]
+    // 移除 parentId 的校验规则
+  }
+  
+  // 重置表单 - 更新默认值
+  const resetMenuForm = () => {
+    menuForm.value = {
+      ID: 0,
+      parentId: 0, // 默认为根菜单，不可更改
+      path: '',
+      name: '',
+      hidden: false,
+      component: '',
+      sort: 0,
+      meta: {
+        activeName: '',
+        keepAlive: true,
+        defaultMenu: false, // 是否为基础页面
+        title: '',
+        icon: '',
+        closeTab: false
+      },
+      parameters: [],
+      menuBtn: []
+    }
+  }
+  
+  // 打开添加菜单对话框
+  const openAddMenuDialog = () => {
+    resetMenuForm()
+    addMenuDialogVisible.value = true
+  }
+  
+  // 提交菜单表单
+  const submitMenuForm = async (formEl: any) => {
+    if (!formEl) return
+    
+    await formEl.validate(async (valid: boolean) => {
+      if (valid) {
+        loading.value = true
+        try {
+          console.log('正在创建菜单，数据:', menuForm.value)
+          const response = await createMenu(menuForm.value)
+          console.log('创建菜单响应:', response)
+          
+          if (response.data && response.data.code === 0) {
+            ElMessage.success('创建菜单成功')
+            addMenuDialogVisible.value = false
+            // 重新获取菜单列表
+            await fetchMenuList()
+          } else {
+            ElMessage.error(response.data?.msg || '创建菜单失败')
+          }
+        } catch (error: any) {
+          console.error('创建菜单出错:', error)
+          if (error.response) {
+            console.error('错误状态码:', error.response.status)
+            console.error('错误数据:', error.response.data)
+          } else if (error.request) {
+            console.error('未收到响应，请求信息:', error.request)
+          } else {
+            console.error('错误信息:', error.message)
+          }
+          ElMessage.error('创建菜单失败，请检查网络连接')
+        } finally {
+          loading.value = false
+        }
+      } else {
+        ElMessage.warning('请完善表单信息')
+        return false
+      }
+    })
+  }
+  
   // 格式化日期
   const formatDate = (dateString: string) => {
     if (!dateString) return '-'
@@ -198,6 +356,8 @@ export const useMenuManagement = () => {
     menuBtn: []
   }
   
+  // 删除第二个 commonIcons 声明（第387-429行）
+  
   return {
     menuList,
     loading,
@@ -205,6 +365,22 @@ export const useMenuManagement = () => {
     fetchMenuList,
     formatDate,
     defaultForm,
-    handleDeleteMenu // 导出删除菜单方法
+    handleDeleteMenu,
+    addMenuDialogVisible,
+    menuForm,
+    menuFormRules,
+    openAddMenuDialog,
+    submitMenuForm,
+    commonIcons,
+    iconSelectorVisible,
+    selectedIcon,
+    openIconSelector,
+    selectIcon,
+    confirmIconSelection,
+    // 新增返回值
+    iconCategories,
+    selectedCategory,
+    selectCategory,
+    getIconsByCategory
   }
 }
