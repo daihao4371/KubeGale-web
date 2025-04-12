@@ -218,6 +218,9 @@ export const useMenuManagement = () => {
   // 添加编辑菜单对话框可见性
   const editMenuDialogVisible = ref(false)
   
+  // 添加子菜单对话框可见性
+  const addSubMenuDialogVisible = ref(false)
+  
   // 菜单表单 - 更新默认值
   const menuForm = ref<MenuData>({
     ID: 0,
@@ -290,6 +293,44 @@ export const useMenuManagement = () => {
     // 深拷贝菜单数据，避免直接修改原始数据
     menuForm.value = JSON.parse(JSON.stringify(menu))
     editMenuDialogVisible.value = true
+  }
+  
+  // 打开添加子菜单对话框
+  const openAddSubMenuDialog = (parentMenu: MenuData) => {
+    resetMenuForm()
+    // 设置父菜单ID
+    menuForm.value.parentId = parentMenu.ID
+    // 如果父菜单有activeName，可以继承
+    if (parentMenu.meta?.activeName) {
+      menuForm.value.meta.activeName = parentMenu.meta.activeName
+    }
+    addSubMenuDialogVisible.value = true
+  }
+  
+  // 获取父菜单名称
+  const getParentMenuName = (parentId: number): string => {
+    if (parentId === 0) {
+      return '根目录'
+    }
+    
+    // 递归查找菜单
+    const findMenuById = (menus: MenuData[], id: number): MenuData | null => {
+      for (const menu of menus) {
+        if (menu.ID === id) {
+          return menu
+        }
+        if (menu.children && menu.children.length > 0) {
+          const found = findMenuById(menu.children, id)
+          if (found) {
+            return found
+          }
+        }
+      }
+      return null
+    }
+    
+    const parentMenu = findMenuById(menuList.value, parentId)
+    return parentMenu ? (parentMenu.meta?.title || parentMenu.name) : `ID: ${parentId}`
   }
   
   // 提交菜单表单
@@ -418,23 +459,25 @@ export const useMenuManagement = () => {
     defaultForm,
     handleDeleteMenu,
     addMenuDialogVisible,
-    editMenuDialogVisible, // 新增
+    editMenuDialogVisible,
+    addSubMenuDialogVisible, // 添加这一行
     menuForm,
     menuFormRules,
     openAddMenuDialog,
-    openEditMenuDialog, // 新增
+    openEditMenuDialog,
+    openAddSubMenuDialog, // 添加这一行
     submitMenuForm,
-    submitEditMenuForm, // 新增
+    submitEditMenuForm,
     commonIcons,
     iconSelectorVisible,
     selectedIcon,
     openIconSelector,
     selectIcon,
     confirmIconSelection,
-    // 新增返回值
     iconCategories,
     selectedCategory,
     selectCategory,
-    getIconsByCategory
+    getIconsByCategory,
+    getParentMenuName // 添加这一行
   }
 }

@@ -208,3 +208,39 @@
     box-shadow: 0 0 0 1px #409eff inset;
   }
 }
+
+/* 子菜单表单样式 */
+.sub-menu-form {
+  .parent-menu-info {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border-left: 3px solid #409eff;
+    
+    .parent-menu-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .parent-menu-path {
+      color: #606266;
+      font-size: 13px;
+    }
+  }
+}
+
+/* 父菜单选择器样式 */
+.parent-menu-select {
+  width: 100%;
+  
+  &.is-disabled {
+    .el-input__wrapper {
+      background-color: #f5f7fa;
+    }
+    
+    .el-input__inner {
+      color: #606266;
+    }
+  }
+}

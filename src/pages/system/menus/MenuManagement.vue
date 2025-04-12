@@ -120,7 +120,7 @@
               <el-button
                 type="primary"
                 link
-                @click="showDevelopingMessage('添加子菜单')"
+                @click="openAddSubMenuDialog(scope.row)"
               >
                 <el-icon><Plus /></el-icon>添加子菜单
               </el-button>
@@ -354,6 +354,90 @@
         </div>
       </template>
     </el-dialog>
+    
+    <!-- 添加子菜单对话框 -->
+    <el-dialog
+      v-model="addSubMenuDialogVisible"
+      title="添加子菜单"
+      width="600px"
+      destroy-on-close
+    >
+      <el-form
+        ref="subMenuFormRef"
+        :model="menuForm"
+        :rules="menuFormRules"
+        label-width="100px"
+      >
+        <el-form-item label="路由Path" prop="path">
+          <el-input v-model="menuForm.path" placeholder="请输入路由路径，如: subpage" />
+        </el-form-item>
+        
+        <el-form-item label="路由Name" prop="name">
+          <el-input v-model="menuForm.name" placeholder="请输入路由名称，如: SubPage" />
+        </el-form-item>
+        
+        <el-form-item label="显示名称" prop="meta.title">
+          <el-input v-model="menuForm.meta.title" placeholder="请输入显示名称，如: 子页面" />
+        </el-form-item>
+        
+        <el-form-item label="父节点ID">
+          <el-select v-model="menuForm.parentId" disabled class="parent-select">
+            <el-option 
+              :value="menuForm.parentId" 
+              :label="getParentMenuName(menuForm.parentId)" 
+            />
+          </el-select>
+        </el-form-item>
+        
+        <!-- 其他表单项与添加根菜单相同 -->
+        <el-form-item label="图标" prop="meta.icon">
+          <div class="icon-selector-input">
+            <el-input v-model="menuForm.meta.icon" placeholder="请选择或输入图标名称">
+              <template #prepend>
+                <el-icon v-if="menuForm.meta.icon">
+                  <component :is="menuForm.meta.icon" />
+                </el-icon>
+                <span v-else>无</span>
+              </template>
+              <template #append>
+                <el-button @click="openIconSelector">选择图标</el-button>
+              </template>
+            </el-input>
+          </div>
+        </el-form-item>
+        
+        <el-form-item label="组件路径" prop="component">
+          <el-input v-model="menuForm.component" placeholder="请输入组件路径，如: view/test/subpage/index.vue" />
+        </el-form-item>
+        
+        <el-form-item label="排序" prop="sort">
+          <el-input-number v-model="menuForm.sort" :min="0" :max="999" />
+        </el-form-item>
+        
+        <el-form-item label="是否隐藏" prop="hidden">
+          <el-switch v-model="menuForm.hidden" />
+        </el-form-item>
+        
+        <el-form-item label="是否缓存" prop="meta.keepAlive">
+          <el-switch v-model="menuForm.meta.keepAlive" />
+        </el-form-item>
+        
+        <el-form-item label="是否关闭标签" prop="meta.closeTab">
+          <el-switch v-model="menuForm.meta.closeTab" />
+        </el-form-item>
+        
+        <el-form-item label="是否基础页面" prop="meta.defaultMenu">
+          <el-switch v-model="menuForm.meta.defaultMenu" />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="addSubMenuDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitMenuForm(subMenuFormRef)" :loading="loading">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -366,7 +450,8 @@ import { IconItem } from '../modules/menus/icons/iconList'
 
 // 表单引用
 const menuFormRef = ref()
-const editMenuFormRef = ref() // 新增编辑表单引用
+const editMenuFormRef = ref()
+const subMenuFormRef = ref() // 添加子菜单表单引用
 
 // 图标搜索文本
 const iconSearchText = ref('')
@@ -380,13 +465,15 @@ const {
   formatDate,
   handleDeleteMenu,
   addMenuDialogVisible,
-  editMenuDialogVisible, // 新增
+  editMenuDialogVisible,
+  addSubMenuDialogVisible,
   menuForm,
   menuFormRules,
   openAddMenuDialog,
-  openEditMenuDialog, // 新增
+  openEditMenuDialog,
+  openAddSubMenuDialog,
   submitMenuForm,
-  submitEditMenuForm, // 新增
+  submitEditMenuForm,
   commonIcons,
   iconSelectorVisible,
   selectedIcon,
@@ -396,7 +483,8 @@ const {
   iconCategories,
   selectedCategory,
   selectCategory,
-  getIconsByCategory
+  getIconsByCategory,
+  getParentMenuName
 } = useMenuManagement()
 
 // 过滤图标列表
