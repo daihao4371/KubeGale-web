@@ -80,25 +80,21 @@ export function findSysOperationRecord(id: number) {
   })
 }
 
-// 删除单条操作记录 - 简化为显示开发中提示
+// 删除单条操作记录
 export function deleteSysOperationRecord(data: { ID: number }) {
-  return Promise.resolve({
-    data: {
-      code: 0,
-      msg: '功能开发中',
-      data: {}
-    }
+  return service({
+    url: '/api/sysOperationRecord/deleteSysOperationRecord',
+    method: 'delete',
+    data
   })
 }
 
-// 批量删除操作记录 - 简化为显示开发中提示
+// 批量删除操作记录
 export function batchDeleteSysOperationRecord(data: { IDs: number[] }) {
-  return Promise.resolve({
-    data: {
-      code: 0,
-      msg: '功能开发中',
-      data: {}
-    }
+  return service({
+    url: '/api/sysOperationRecord/deleteSysOperationRecordByIds',
+    method: 'delete',
+    data
   })
 }
 

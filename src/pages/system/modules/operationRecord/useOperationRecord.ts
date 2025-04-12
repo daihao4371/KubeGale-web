@@ -1,8 +1,10 @@
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
   getSysOperationRecordList, 
   findSysOperationRecord,
+  deleteSysOperationRecord,
+  batchDeleteSysOperationRecord,
   type SysOperationRecord, 
   type PageResponse,
   type User
@@ -216,14 +218,79 @@ export function useOperationRecord() {
     currentRecord.value = null
   }
 
-  // 删除单条记录 - 简化为显示开发中提示
-  const handleDelete = () => {
-    ElMessage.info('删除功能开发中')
+  // 删除单条记录 - 实现删除功能
+  const handleDelete = (record: SysOperationRecord) => {
+    if (!record || !record.id) {
+      ElMessage.error('无效的记录ID')
+      return
+    }
+
+    ElMessageBox.confirm(
+      '确定要删除该操作记录吗？此操作不可恢复',
+      '删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    ).then(async () => {
+      try {
+        const response = await deleteSysOperationRecord({ ID: record.id })
+        
+        if (response.data.code === 0) {
+          ElMessage.success('删除成功')
+          // 刷新列表
+          fetchRecordList()
+        } else {
+          ElMessage.error(response.data.msg || '删除失败')
+        }
+      } catch (error) {
+        console.error('删除操作记录失败:', error)
+        ElMessage.error('删除操作记录失败，请重试')
+      }
+    }).catch(() => {
+      // 用户取消删除，不做任何操作
+    })
   }
 
-  // 批量删除记录 - 简化为显示开发中提示
+  // 批量删除记录 - 实现批量删除功能
   const handleBatchDelete = () => {
-    ElMessage.info('批量删除功能开发中')
+    if (selectedRecords.value.length === 0) {
+      ElMessage.warning('请先选择要删除的记录')
+      return
+    }
+
+    ElMessageBox.confirm(
+      `确定要删除选中的 ${selectedRecords.value.length} 条操作记录吗？此操作不可恢复`,
+      '批量删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    ).then(async () => {
+      try {
+        // 提取所有选中记录的ID
+        const ids = selectedRecords.value.map(record => record.id)
+        
+        const response = await batchDeleteSysOperationRecord({ IDs: ids })
+        
+        if (response.data.code === 0) {
+          ElMessage.success('批量删除成功')
+          // 清空选中记录
+          selectedRecords.value = []
+          // 刷新列表
+          fetchRecordList()
+        } else {
+          ElMessage.error(response.data.msg || '批量删除失败')
+        }
+      } catch (error) {
+        console.error('批量删除操作记录失败:', error)
+        ElMessage.error('批量删除操作记录失败，请重试')
+      }
+    }).catch(() => {
+      // 用户取消删除，不做任何操作
+    })
   }
 
   // 格式化日期

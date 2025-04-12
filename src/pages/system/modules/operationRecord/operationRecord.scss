@@ -145,3 +145,18 @@
     }
   }
 }
+
+// 可以添加删除按钮的特殊样式
+.operation-buttons {
+  .el-button--danger {
+    &:hover {
+      color: #f56c6c;
+      background-color: rgba(245, 108, 108, 0.1);
+    }
+  }
+}
+
+// 添加删除确认对话框的样式
+:deep(.el-message-box__message) {
+  word-break: break-word;
+}

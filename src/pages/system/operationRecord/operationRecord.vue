@@ -93,7 +93,7 @@
             <el-button 
               type="danger" 
               link
-              @click="handleDelete"
+              @click="handleDelete(scope.row)"
             >
               <el-icon><Delete /></el-icon>删除
             </el-button>
