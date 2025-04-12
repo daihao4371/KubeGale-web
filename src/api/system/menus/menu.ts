@@ -54,7 +54,7 @@ export const getMenuList = (data?: any) => {
 // 添加创建菜单API
 export const createMenu = (data: MenuData) => {
   return service({
-    url: '/api/menu/addBaseMenu',
+    url: API_URLS.addBaseMenu,
     method: 'post',
     data
   })
@@ -63,7 +63,7 @@ export const createMenu = (data: MenuData) => {
 // 添加更新菜单API
 export const updateMenu = (data: MenuData) => {
   return service({
-    url: '/api/menu/updateBaseMenu',
+    url: API_URLS.updateBaseMenu,
     method: 'post',
     data
   })
@@ -72,8 +72,8 @@ export const updateMenu = (data: MenuData) => {
 // 添加删除菜单API
 export const deleteMenu = (id: number) => {
   return service({
-    url: '/api/menu/deleteBaseMenu',
+    url: API_URLS.deleteBaseMenu,
     method: 'post',
-    data: { id }
+    data: { ID: id } // 注意这里使用大写的 ID
   })
 }

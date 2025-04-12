@@ -32,7 +32,9 @@ export const API_URLS = {
   
   // 菜单相关
   getMenuList: '/api/menu/getMenuList', // 获取菜单列表
-  // 移除了创建菜单、更新菜单和删除菜单的API路径
+  addBaseMenu: '/api/menu/addBaseMenu', // 添加菜单
+  updateBaseMenu: '/api/menu/updateBaseMenu', // 更新菜单
+  deleteBaseMenu: '/api/menu/deleteBaseMenu', // 删除菜单
   
   // 临时添加以解决编译错误，后续可移除
   getSysOperationRecordList: '/api/sysOperationRecord/getSysOperationRecordList',

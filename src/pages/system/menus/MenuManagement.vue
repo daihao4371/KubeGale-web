@@ -123,7 +123,7 @@
               <el-button
                 type="danger"
                 link
-                @click="showDevelopingMessage('删除菜单')"
+                @click="handleDeleteMenu(scope.row)"
               >
                 <el-icon><Delete /></el-icon>删除
               </el-button>
@@ -147,7 +147,8 @@ const {
   loading,
   tableConfig,
   fetchMenuList,
-  formatDate
+  formatDate,
+  handleDeleteMenu
 } = useMenuManagement()
 
 // 刷新菜单列表

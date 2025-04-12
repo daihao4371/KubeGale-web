@@ -1,6 +1,6 @@
 import { ref, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
-import { getMenuList, MenuData } from '@/api/system/menus/menu'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { getMenuList, MenuData, deleteMenu } from '@/api/system/menus/menu'
 import { API_URLS } from '@/api/system/config' // 导入 API_URLS
 
 export const useMenuManagement = () => {
@@ -113,6 +113,58 @@ export const useMenuManagement = () => {
     }
   }
   
+  // 删除菜单
+  const handleDeleteMenu = async (menu: MenuData) => {
+    try {
+      // 显示确认对话框
+      await ElMessageBox.confirm(
+        `确定要删除菜单 "${menu.meta?.title || menu.name}" 吗？`,
+        '删除确认',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+      
+      // 在 handleDeleteMenu 方法中
+      loading.value = true
+      // 使用 menu.ts 中的 deleteMenu 方法，而不是直接引用 API_URLS
+      console.log('正在请求删除菜单API:', '/api/menu/deleteBaseMenu')
+      console.log('删除菜单参数:', { ID: menu.ID })
+      
+      // 调用删除菜单API
+      const response = await deleteMenu(menu.ID)
+      console.log('删除菜单响应:', response)
+      
+      if (response.data && response.data.code === 0) {
+        ElMessage.success('删除菜单成功')
+        // 重新获取菜单列表
+        await fetchMenuList()
+      } else {
+        ElMessage.error(response.data?.msg || '删除菜单失败')
+      }
+    } catch (error: any) {
+      // 如果是用户取消操作，不显示错误
+      if (error === 'cancel' || error.toString().includes('cancel')) {
+        return
+      }
+      
+      console.error('删除菜单出错:', error)
+      if (error.response) {
+        console.error('错误状态码:', error.response.status)
+        console.error('错误数据:', error.response.data)
+      } else if (error.request) {
+        console.error('未收到响应，请求信息:', error.request)
+      } else {
+        console.error('错误信息:', error.message)
+      }
+      ElMessage.error('删除菜单失败，请检查网络连接')
+    } finally {
+      loading.value = false
+    }
+  }
+  
   // 格式化日期
   const formatDate = (dateString: string) => {
     if (!dateString) return '-'
@@ -152,6 +204,7 @@ export const useMenuManagement = () => {
     tableConfig,
     fetchMenuList,
     formatDate,
-    defaultForm
+    defaultForm,
+    handleDeleteMenu // 导出删除菜单方法
   }
 }
