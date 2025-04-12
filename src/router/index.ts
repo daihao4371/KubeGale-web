@@ -41,14 +41,14 @@ const routes: Array<RouteRecordRaw> = [
             component: () => import('../pages/system/menus/MenuManagement.vue'),
             meta: { title: '菜单管理' }
           },
-          // // 添加 API 管理页面路由
-          // {
-          //   path: 'apis',
-          //   name: 'Apis',
-          //   component: () => import('../pages/system/apis/ApiManagement.vue'),
-          //   meta: { title: 'API管理' }
-          // },
-          // // 添加操作记录页面路由
+          // 添加 API 管理页面路由
+          {
+            path: 'api',
+            name: 'Api',
+            component: () => import('../pages/system/api/api.vue'),
+            meta: { title: 'API管理' }
+          },
+          // 添加操作记录页面路由
           {
             path: 'operation-logs',
             name: 'OperationLogs',

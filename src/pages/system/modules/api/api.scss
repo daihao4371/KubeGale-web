@@ -1,0 +1,58 @@
+.api-container {
+  padding: 20px;
+  
+  .api-header {
+    margin-bottom: 20px;
+    
+    h2 {
+      font-size: 20px;
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+  }
+  
+  .operation-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    
+    .search-form {
+      flex: 1;
+    }
+    
+    .button-group {
+      display: flex;
+      align-items: flex-end;
+    }
+  }
+  
+  .pagination-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .operation-buttons {
+    display: flex;
+    justify-content: space-around;
+  }
+}
+
+// 请求方法标签样式
+.method-tag {
+  &.get {
+    background-color: #67C23A;
+  }
+  
+  &.post {
+    background-color: #409EFF;
+  }
+  
+  &.put {
+    background-color: #E6A23C;
+  }
+  
+  &.delete {
+    background-color: #F56C6C;
+  }
+}

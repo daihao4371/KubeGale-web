@@ -6,8 +6,8 @@ export const API_URLS = {
   // 用户相关
   login: '/api/base/login',
   
-  getUserList: '/api/user/getUserList',
-  getUserInfo: '/api/user/getUserInfo',
+  getUserList: '/api/user/getUserList', // 获取用户列表
+  getUserInfo: '/api/user/getUserInfo', // 获取用户信息
   changePassword: '/api/user/changePassword',
   adminRegister: '/api/user/admin_register',
   setUserAuthorities: '/api/user/setUserAuthorities', // 设置用户角色的API
@@ -26,6 +26,7 @@ export const API_URLS = {
 
   // API管理相关
   getApiList: '/api/api/getApiList', // 获取API列表
+  getAllApis: '/api/api/getAllApis', // 获取所有API
   createApi: '/api/api/createApi', // 创建API
   updateApi: '/api/api/updateApi', // 更新API
   deleteApi: '/api/api/deleteApi', // 删除API
