@@ -2,16 +2,18 @@ import service from '../service'
 import { API_URLS } from '../config'
 
 // 角色列表接口返回类型
+// 角色数据接口定义
+// 修改 AuthorityData 接口，使其与实际数据结构匹配
 export interface AuthorityData {
   CreatedAt: string
   UpdatedAt: string
-  DeletedAt: null | string
+  DeletedAt: string | null
   authorityId: number
   authorityName: string
   parentId: number
   dataAuthorityId: AuthorityData[] | null
   children: AuthorityData[] | null
-  menus: any | null
+  menus: any
   defaultRouter: string
 }
 

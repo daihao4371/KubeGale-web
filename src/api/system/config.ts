@@ -35,15 +35,15 @@ export const API_URLS = {
   getApiById: '/api/api/getApiById', // 获取API详情
   refreshCasbin: '/api/api/freshCasbin', // 添加刷新缓存的URL
   
-  // 暂时没有使用
-  getMenuAuthority: '/api/menu/getMenuAuthority', // 获取菜单权限
-  getApiAuthority: '/api/api/getApiAuthority', // 获取API权限
-  addMenuAuthority: '/api/menu/addMenuAuthority', // 添加菜单权限
-  addApiAuthority: '/api/api/addApiAuthority', // 添加API权限
+  // 权限相关
+  getBaseMenuTree: '/api/menu/getBaseMenuTree', // 获取菜单树
+  getMenuAuthority: '/api/menu/getMenuAuthority', // 获取指定角色menu
+  getPolicyPathByAuthorityId: '/api/casbin/getPolicyPathByAuthorityId', // 获取角色API权限路径
+  addBaseMenu: '/api/menu/addBaseMenu', // 添加菜单
+  updateCasbin: '/api/casbin/updateCasbin', // 更新Casbin策略
   
   // 菜单相关
   getMenuList: '/api/menu/getMenuList', // 获取菜单列表
-  addBaseMenu: '/api/menu/addBaseMenu', // 添加菜单
   updateBaseMenu: '/api/menu/updateBaseMenu', // 更新菜单
   deleteBaseMenu: '/api/menu/deleteBaseMenu', // 删除菜单
   

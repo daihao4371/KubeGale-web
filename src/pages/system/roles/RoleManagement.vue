@@ -364,33 +364,19 @@
           </div>
           
           <!-- 角色菜单树 -->
-          <!-- 修复角色菜单树的 @check 事件 -->
           <el-tree
+            ref="menuTreeRef"
             :data="filteredMenuPermissions"
             show-checkbox
             node-key="id"
             :default-checked-keys="selectedMenus"
             :props="{ children: 'children', label: 'label' }"
             class="permission-tree"
-            @check="(_: any, data: any) => selectedMenus = data.checkedKeys"
-          />
-          
-          <!-- 修复角色API树的 @check 事件 -->
-          <el-tree
-            :data="filteredApiPermissions"
-            show-checkbox
-            node-key="id"
-            :default-checked-keys="selectedApis"
-            :props="{ children: 'children', label: 'label' }"
-            class="permission-tree"
-            @check="(_: any, data: any) => selectedApis = data.checkedKeys"
+            @check="(data: any, checkedInfo: any) => selectedMenus = checkedInfo.checkedKeys"
           >
             <template #default="{ node, data }">
-              <span v-if="!data.path">{{ data.label }}</span>
-              <div v-else class="api-node">
-                <span>{{ data.label }}</span>
-                <span class="api-path">{{ data.path }}</span>
-              </div>
+              <span>{{ data.label }}</span>
+              <span v-if="data.path" class="menu-path">{{ data.path }}</span>
             </template>
           </el-tree>
         </el-tab-pane>
@@ -432,6 +418,9 @@
               <div v-else class="api-node">
                 <span>{{ data.label }}</span>
                 <span class="api-path">{{ data.path }}</span>
+                <el-tag v-if="data.method" size="small" :type="getMethodType(data.method)">
+                  {{ data.method }}
+                </el-tag>
               </div>
             </template>
           </el-tree>
@@ -440,7 +429,7 @@
         <el-tab-pane label="资源权限" name="资源权限">
           <div class="resource-notice">
             <el-alert
-              title="此功能仅用于创建角色和角色的many2many关系表，具体使用还需自己结合业务，。此功能不建议使用，建议使用插件市场【组织管理功能（点击前往）】来管理资源权限。"
+              title="此功能仅用于创建角色和角色的many2many关系表，具体使用还需自己结合业务。"
               type="warning"
               :closable="false"
               show-icon
@@ -479,6 +468,7 @@
 import { onMounted, ref } from 'vue'
 import { Plus, Edit, Delete, Setting, CopyDocument } from '@element-plus/icons-vue'
 import { useRoleManagement } from '../modules/roles/useRoleManagement'
+import { useRolePermission } from '../modules/roles/useRolePermission'
 import { AuthorityData } from '@/api/system/roles/authority'
 import { ElMessage } from 'element-plus'
 
@@ -486,7 +476,7 @@ import { ElMessage } from 'element-plus'
 const addRoleFormRef = ref()
 const addChildRoleFormRef = ref()
 const editRoleFormRef = ref()
-const copyRoleFormRef = ref() // 添加拷贝角色表单引用
+const copyRoleFormRef = ref()
 
 // 使用角色管理逻辑
 const {
@@ -525,17 +515,20 @@ const {
   openCopyRoleDialog,
   closeCopyRoleDialog,
   submitCopyRole,
-  // 设置权限相关
+} = useRoleManagement()
+
+// 使用角色权限管理逻辑
+const {
   setPermissionDialogVisible,
   currentRole,
   activePermissionTab,
   menuPermissions,
-  apiPermissions,
   resourcePermissions,
   selectedMenus,
-  selectedApis,
   selectedResources,
   menuSearchKeyword,
+  apiPermissions,
+  selectedApis,
   apiNameSearchKeyword,
   apiPathSearchKeyword,
   filteredMenuPermissions,
@@ -545,17 +538,18 @@ const {
   submitPermissionSettings,
   selectAllResources,
   selectCurrentRoleResources,
-  selectCurrentAndChildrenResources
-} = useRoleManagement()
+  selectCurrentAndChildrenResources,
+  getMethodType
+} = useRolePermission(roleList)
 
 // 处理资源权限选中状态变化
-const handleResourceCheckChange = (item: AuthorityData, checked: boolean) => {
+const handleResourceCheckChange = (item: AuthorityData & { checked?: boolean }, checked: boolean) => {
   if (checked) {
     if (!selectedResources.value.includes(item.authorityId)) {
       selectedResources.value.push(item.authorityId)
     }
   } else {
-    selectedResources.value = selectedResources.value.filter(id => id !== item.authorityId)
+    selectedResources.value = selectedResources.value.filter((id: number) => id !== item.authorityId)
   }
 }
 
@@ -608,4 +602,5 @@ onMounted(() => {
 
 <style lang="scss">
 @import '../modules/roles/styles/roleStyles.scss';
+@import '../modules/roles/styles/permissionStyles.scss'; // 添加权限样式导入
 </style>

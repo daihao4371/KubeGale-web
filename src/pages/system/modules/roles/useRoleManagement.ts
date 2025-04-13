@@ -440,46 +440,19 @@ export const useRoleManagement = () => {
   const currentRole = ref<AuthorityData | null>(null)
   
   // 当前激活的标签页
-  const activePermissionTab = ref('角色菜单')
-  
-  // 菜单权限数据
-  const menuPermissions = ref<any[]>([])
-  
-  // API权限数据
-  const apiPermissions = ref<any[]>([])
+  const activePermissionTab = ref('资源权限')
   
   // 资源权限数据
   const resourcePermissions = ref<any[]>([])
   
-  // 选中的菜单权限
-  const selectedMenus = ref<string[]>([])
-  
-  // 选中的API权限
-  const selectedApis = ref<string[]>([])
-  
   // 选中的资源权限
   const selectedResources = ref<number[]>([])
-  
-  // 菜单搜索关键字
-  const menuSearchKeyword = ref('')
-  
-  // API名称搜索关键字
-  const apiNameSearchKeyword = ref('')
-  
-  // API路径搜索关键字
-  const apiPathSearchKeyword = ref('')
   
   // 打开设置权限对话框
   const openSetPermissionDialog = (row: AuthorityData) => {
     currentRole.value = row
     setPermissionDialogVisible.value = true
-    activePermissionTab.value = '角色菜单'
-    
-    // 获取菜单权限数据
-    fetchMenuPermissions(row.authorityId)
-    
-    // 获取API权限数据
-    fetchApiPermissions(row.authorityId)
+    activePermissionTab.value = '资源权限'
     
     // 获取资源权限数据
     fetchResourcePermissions(row.authorityId)
@@ -489,88 +462,6 @@ export const useRoleManagement = () => {
   const closeSetPermissionDialog = () => {
     setPermissionDialogVisible.value = false
     currentRole.value = null
-  }
-  
-  // 获取菜单权限数据
-  const fetchMenuPermissions = async (authorityId: number) => {
-    try {
-      const response = await service.post<ResponseData<any>>(
-        API_URLS.getMenuAuthority,
-        { authorityId }
-      )
-      
-      if (response.data.code === 0) {
-        menuPermissions.value = response.data.data.menus || []
-        // 提取已选中的菜单ID
-        selectedMenus.value = extractSelectedMenuIds(menuPermissions.value)
-      } else {
-        ElMessage.error(response.data.msg || '获取菜单权限失败')
-      }
-    } catch (error) {
-      console.error('获取菜单权限出错:', error)
-      ElMessage.error('获取菜单权限失败，请检查网络连接')
-    }
-  }
-  
-  // 提取已选中的菜单ID
-  const extractSelectedMenuIds = (menus: any[]): string[] => {
-    const selectedIds: string[] = []
-    
-    const traverse = (items: any[]) => {
-      items.forEach(item => {
-        if (item.selected) {
-          selectedIds.push(item.id.toString())
-        }
-        
-        if (item.children && item.children.length > 0) {
-          traverse(item.children)
-        }
-      })
-    }
-    
-    traverse(menus)
-    return selectedIds
-  }
-  
-  // 获取API权限数据
-  const fetchApiPermissions = async (authorityId: number) => {
-    try {
-      const response = await service.post<ResponseData<any>>(
-        API_URLS.getApiAuthority,
-        { authorityId }
-      )
-      
-      if (response.data.code === 0) {
-        apiPermissions.value = response.data.data.apis || []
-        // 提取已选中的API ID
-        selectedApis.value = extractSelectedApiIds(apiPermissions.value)
-      } else {
-        ElMessage.error(response.data.msg || '获取API权限失败')
-      }
-    } catch (error) {
-      console.error('获取API权限出错:', error)
-      ElMessage.error('获取API权限失败，请检查网络连接')
-    }
-  }
-  
-  // 提取已选中的API ID
-  const extractSelectedApiIds = (apis: any[]): string[] => {
-    const selectedIds: string[] = []
-    
-    const traverse = (items: any[]) => {
-      items.forEach(item => {
-        if (item.selected) {
-          selectedIds.push(item.id.toString())
-        }
-        
-        if (item.children && item.children.length > 0) {
-          traverse(item.children)
-        }
-      })
-    }
-    
-    traverse(apis)
-    return selectedIds
   }
   
   // 获取资源权限数据
@@ -604,54 +495,6 @@ export const useRoleManagement = () => {
     }
   }
   
-  // 提交菜单权限设置
-  const submitMenuPermissions = async () => {
-    if (!currentRole.value) return
-    
-    try {
-      const response = await service.post<ResponseData<any>>(
-        API_URLS.addMenuAuthority,
-        {
-          authorityId: currentRole.value.authorityId,
-          menuIds: selectedMenus.value
-        }
-      )
-      
-      if (response.data.code === 0) {
-        ElMessage.success('菜单权限设置成功')
-      } else {
-        ElMessage.error(response.data.msg || '菜单权限设置失败')
-      }
-    } catch (error) {
-      console.error('设置菜单权限出错:', error)
-      ElMessage.error('设置菜单权限失败，请检查网络连接')
-    }
-  }
-  
-  // 提交API权限设置
-  const submitApiPermissions = async () => {
-    if (!currentRole.value) return
-    
-    try {
-      const response = await service.post<ResponseData<any>>(
-        API_URLS.addApiAuthority,
-        {
-          authorityId: currentRole.value.authorityId,
-          apiIds: selectedApis.value
-        }
-      )
-      
-      if (response.data.code === 0) {
-        ElMessage.success('API权限设置成功')
-      } else {
-        ElMessage.error(response.data.msg || 'API权限设置失败')
-      }
-    } catch (error) {
-      console.error('设置API权限出错:', error)
-      ElMessage.error('设置API权限失败，请检查网络连接')
-    }
-  }
-  
   // 提交资源权限设置
   const submitResourcePermissions = async () => {
     if (!currentRole.value) return
@@ -678,15 +521,9 @@ export const useRoleManagement = () => {
     }
   }
   
-  // 根据当前标签页提交权限设置
+  // 提交权限设置
   const submitPermissionSettings = () => {
-    if (activePermissionTab.value === '角色菜单') {
-      submitMenuPermissions()
-    } else if (activePermissionTab.value === '角色api') {
-      submitApiPermissions()
-    } else if (activePermissionTab.value === '资源权限') {
-      submitResourcePermissions()
-    }
+    submitResourcePermissions()
   }
   
   // 全选资源权限
@@ -729,54 +566,6 @@ export const useRoleManagement = () => {
     selectedResources.value = selectedIds
   }
   
-  // 过滤菜单权限
-  const filteredMenuPermissions = computed(() => {
-    if (!menuSearchKeyword.value) return menuPermissions.value
-    
-    const keyword = menuSearchKeyword.value.toLowerCase()
-    
-    const filterMenus = (menus: any[]): any[] => {
-      return menus.filter(menu => {
-        const matched = menu.label.toLowerCase().includes(keyword)
-        
-        if (menu.children && menu.children.length > 0) {
-          const filteredChildren = filterMenus(menu.children)
-          menu.children = filteredChildren
-          return filteredChildren.length > 0 || matched
-        }
-        
-        return matched
-      })
-    }
-    
-    return filterMenus([...menuPermissions.value])
-  })
-  
-  // 过滤API权限
-  const filteredApiPermissions = computed(() => {
-    if (!apiNameSearchKeyword.value && !apiPathSearchKeyword.value) return apiPermissions.value
-    
-    const nameKeyword = apiNameSearchKeyword.value.toLowerCase()
-    const pathKeyword = apiPathSearchKeyword.value.toLowerCase()
-    
-    const filterApis = (apis: any[]): any[] => {
-      return apis.filter(api => {
-        const nameMatched = !nameKeyword || api.label.toLowerCase().includes(nameKeyword)
-        const pathMatched = !pathKeyword || (api.path && api.path.toLowerCase().includes(pathKeyword))
-        
-        if (api.children && api.children.length > 0) {
-          const filteredChildren = filterApis(api.children)
-          api.children = filteredChildren
-          return filteredChildren.length > 0 || (nameMatched && (pathMatched || !api.path))
-        }
-        
-        return nameMatched && (pathMatched || !api.path)
-      })
-    }
-    
-    return filterApis([...apiPermissions.value])
-  })
-  
   return {
     roleList,
     loading,
@@ -818,21 +607,12 @@ export const useRoleManagement = () => {
     closeCopyRoleDialog,
     submitCopyRole,
     
-    // 设置权限相关 - 添加这些导出
+    // 设置权限相关 - 只保留资源权限相关的导出
     setPermissionDialogVisible,
     currentRole,
     activePermissionTab,
-    menuPermissions,
-    apiPermissions,
     resourcePermissions,
-    selectedMenus,
-    selectedApis,
     selectedResources,
-    menuSearchKeyword,
-    apiNameSearchKeyword,
-    apiPathSearchKeyword,
-    filteredMenuPermissions,
-    filteredApiPermissions,
     openSetPermissionDialog,
     closeSetPermissionDialog,
     submitPermissionSettings,
