@@ -401,7 +401,7 @@
             :default-checked-keys="selectedMenus"
             :props="{ children: 'children', label: 'label' }"
             class="permission-tree"
-            @check="(data: any, checkedInfo: any) => selectedMenus = checkedInfo.checkedKeys"
+            @check="handleMenuTreeCheck"
           >
             <template #default="{ node, data }">
               <span>{{ data.label }}</span>
@@ -478,6 +478,8 @@ const addRoleFormRef = ref()
 const addChildRoleFormRef = ref()
 const editRoleFormRef = ref()
 const copyRoleFormRef = ref()
+// 删除这行，因为我们将使用从 useRolePermission 中获取的 menuTreeRef
+// const menuTreeRef = ref<any>(null) // 添加菜单树的引用
 
 // 使用角色管理逻辑
 const {
@@ -540,8 +542,9 @@ const {
   selectAllResources,
   selectCurrentRoleResources,
   selectCurrentAndChildrenResources,
-  getMethodType
-} = useRolePermission(roleList)
+  getMethodType,
+  menuTreeRef // 从 useRolePermission 中获取 menuTreeRef
+} = useRolePermission(roleList as any) // 使用类型断言解决类型不兼容问题
 
 // 处理资源权限选中状态变化
 const handleResourceCheckChange = (item: ResourceAuthorityItem, checked: boolean) => {
@@ -560,8 +563,32 @@ const handleApiTreeCheck = (data: any, checkedNodes: { checkedKeys: (string | nu
 }
 
 // 处理菜单树选中状态变化
-const handleMenuTreeCheck = (data: any, checkedNodes: { checkedKeys: (string | number)[] }) => {
-  selectedMenus.value = checkedNodes.checkedKeys
+const handleMenuTreeCheck = (data: any, checkedNodes: any) => {
+  // 确保我们获取所有选中的节点ID（包括半选中的父节点）
+  if (checkedNodes && checkedNodes.checkedKeys) {
+    selectedMenus.value = checkedNodes.checkedKeys
+  } else if (checkedNodes && Array.isArray(checkedNodes)) {
+    // 兼容不同版本的Element Plus
+    selectedMenus.value = checkedNodes
+  }
+}
+
+// 获取完整菜单节点信息的方法
+const getSelectedMenuNodes = () => {
+  if (!menuTreeRef.value) return [];
+  
+  // 获取所有选中的节点（包括半选中的节点）
+  const checkedNodes = menuTreeRef.value.getCheckedNodes(true);
+  const halfCheckedNodes = menuTreeRef.value.getHalfCheckedNodes();
+  
+  // 合并所有选中的节点，确保每个节点都有path属性
+  return [...checkedNodes, ...halfCheckedNodes].map(node => ({
+    id: node.id,
+    label: node.label,
+    path: node.path || '/', // 确保path不为空，默认使用根路径
+    parentId: node.parentId,
+    children: node.children
+  }));
 }
 
 // 判断是否为子角色（防止选择自己的子角色作为父级）

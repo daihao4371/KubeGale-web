@@ -4,17 +4,18 @@ import { API_URLS } from '../config'
 // 角色列表接口返回类型
 // 角色数据接口定义
 // 修改 AuthorityData 接口，使其与实际数据结构匹配
+// 确保 AuthorityData 接口包含所有必要的字段
 export interface AuthorityData {
-  CreatedAt: string
-  UpdatedAt: string
-  DeletedAt: string | null
   authorityId: number
   authorityName: string
-  parentId: number | null // 修改为可能为 null
-  dataAuthorityId: AuthorityData[] | null
-  children: AuthorityData[] | null
-  menus: any
-  defaultRouter: string
+  parentId: number
+  dataAuthorityId?: AuthorityData[]
+  children?: AuthorityData[]
+  defaultRouter?: string
+  CreatedAt?: string
+  UpdatedAt?: string
+  DeletedAt?: string | null
+  menus?: any[]
 }
 
 // 接口返回数据类型

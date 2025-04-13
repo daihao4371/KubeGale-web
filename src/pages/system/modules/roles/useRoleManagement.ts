@@ -497,14 +497,19 @@ export const useRoleManagement = () => {
   
   // 提交资源权限设置
   const submitResourcePermissions = async () => {
-    if (!currentRole.value) return
+    if (!currentRole.value) return false
     
     try {
+      // 将选中的资源ID转换为对象数组格式
+      const dataAuthorityIdObjects = selectedResources.value.map(id => ({
+        authorityId: id
+      }))
+      
       const response = await service.post<ResponseData<any>>(
         API_URLS.setDataAuthority,
         {
           authorityId: currentRole.value.authorityId,
-          dataAuthorityId: selectedResources.value
+          dataAuthorityId: dataAuthorityIdObjects
         }
       )
       
@@ -512,12 +517,15 @@ export const useRoleManagement = () => {
         ElMessage.success('资源权限设置成功')
         closeSetPermissionDialog()
         fetchRoleList() // 刷新角色列表
+        return true
       } else {
         ElMessage.error(response.data.msg || '资源权限设置失败')
+        return false
       }
     } catch (error) {
       console.error('设置资源权限出错:', error)
       ElMessage.error('设置资源权限失败，请检查网络连接')
+      return false
     }
   }
   

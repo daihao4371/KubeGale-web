@@ -58,7 +58,8 @@ interface ApiItem {
 }
 
 // 修改函数参数类型，使用 AuthorityData[] 替代 BaseAuthorityData[]
-export const useRolePermission = (roleList: Ref<AuthorityData[]>) => {
+// 修改函数签名，使用更宽松的类型
+export const useRolePermission = (roleList: Ref<any[]>) => {
   // 设置权限对话框可见性
   const setPermissionDialogVisible = ref(false)
   
@@ -94,6 +95,9 @@ export const useRolePermission = (roleList: Ref<AuthorityData[]>) => {
   
   // API路径搜索关键词
   const apiPathSearchKeyword = ref('')
+  
+  // 添加菜单树引用
+  const menuTreeRef = ref<any>(null)
   
   // 打开设置权限对话框
   const openSetPermissionDialog = async (row: AuthorityData) => {
@@ -221,7 +225,7 @@ export const useRolePermission = (roleList: Ref<AuthorityData[]>) => {
       const node: TreeNode = {
         id: menu.ID,
         label: menu.meta.title || menu.name,
-        path: menu.path,
+        path: menu.path || '/', // 确保path不为空，默认为根路径
         children: menu.children ? convertMenusToTree(menu.children) : undefined
       }
       
@@ -314,14 +318,70 @@ export const useRolePermission = (roleList: Ref<AuthorityData[]>) => {
     }
   }
   
+  // 提交API权限设置
+  const submitApiPermissions = async () => {
+    if (!currentRole.value) return
+    
+    try {
+      // 从选中的节点中提取API路径和方法
+      const casbinInfos = extractCasbinInfos(apiPermissions.value, selectedApis.value)
+      
+      const response = await service.post<ResponseData<any>>(
+        API_URLS.updateCasbin,
+        {
+          authorityId: currentRole.value.authorityId,
+          casbinInfos
+        }
+      )
+      
+      if (response.data.code === 0) {
+        ElMessage.success('API权限设置成功')
+      } else {
+        ElMessage.error(response.data.msg || 'API权限设置失败')
+      }
+    } catch (error) {
+      console.error('设置API权限出错:', error)
+      ElMessage.error('设置API权限失败，请检查网络连接')
+    }
+  }
+  
   // 根据当前标签页提交权限设置
-  const submitPermissionSettings = () => {
-    if (activePermissionTab.value === '角色菜单') {
-      submitMenuPermissions()
-    } else if (activePermissionTab.value === '角色api') {
-      submitApiPermissions()
-    } else if (activePermissionTab.value === '资源权限') {
-      submitResourcePermissions()
+  const submitPermissionSettings = async () => {
+    // 确保有当前角色
+    if (!currentRole.value) return
+    
+    try {
+      // 根据当前激活的标签页提交不同的权限设置
+      if (activePermissionTab.value === '角色菜单') {
+        // 获取选中的菜单节点
+        const checkedNodes = menuTreeRef.value?.getCheckedNodes(true) || []
+        const halfCheckedNodes = menuTreeRef.value?.getHalfCheckedNodes() || []
+        
+        // 合并所有选中的节点
+        const allSelectedNodes = [...checkedNodes, ...halfCheckedNodes]
+        
+        // 确保每个节点都有 path 属性
+        const validMenuNodes = allSelectedNodes.map(node => ({
+          ...node,
+          // 如果节点没有 path 或 path 为空字符串，则设置默认值为 '/'
+          path: node.path || '/'
+        }))
+        
+        // 提交菜单权限设置
+        await submitMenuPermissions()
+      } else if (activePermissionTab.value === '角色api') {
+        // API权限设置逻辑
+        await submitApiPermissions()
+      } else if (activePermissionTab.value === '资源权限') {
+        // 资源权限设置逻辑
+        await submitResourcePermissions()
+      }
+      
+      ElMessage.success('权限设置成功')
+      closeSetPermissionDialog()
+    } catch (error: any) {
+      console.error('设置权限失败:', error)
+      ElMessage.error(`设置权限失败: ${error.message || '未知错误'}`)
     }
   }
   
@@ -547,33 +607,6 @@ export const useRolePermission = (roleList: Ref<AuthorityData[]>) => {
     return selectedIds
   }
   
-  // 提交API权限设置
-  const submitApiPermissions = async () => {
-    if (!currentRole.value) return
-    
-    try {
-      // 从选中的节点中提取API路径和方法
-      const casbinInfos = extractCasbinInfos(apiPermissions.value, selectedApis.value)
-      
-      const response = await service.post<ResponseData<any>>(
-        API_URLS.updateCasbin,
-        {
-          authorityId: currentRole.value.authorityId,
-          casbinInfos
-        }
-      )
-      
-      if (response.data.code === 0) {
-        ElMessage.success('API权限设置成功')
-      } else {
-        ElMessage.error(response.data.msg || 'API权限设置失败')
-      }
-    } catch (error) {
-      console.error('设置API权限出错:', error)
-      ElMessage.error('设置API权限失败，请检查网络连接')
-    }
-  }
-  
   // 从选中的节点中提取Casbin信息
   const extractCasbinInfos = (apiNodes: TreeNode[], selectedIds: (string | number)[]): { path: string, method: string }[] => {
     const result: { path: string, method: string }[] = []
@@ -652,6 +685,7 @@ export const useRolePermission = (roleList: Ref<AuthorityData[]>) => {
     selectAllResources,
     selectCurrentRoleResources,
     selectCurrentAndChildrenResources,
-    getMethodType
+    getMethodType,
+    menuTreeRef // 添加菜单树引用到返回值
   }
 }
