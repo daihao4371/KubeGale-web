@@ -10,7 +10,7 @@ export interface AuthorityData {
   DeletedAt: string | null
   authorityId: number
   authorityName: string
-  parentId: number
+  parentId: number | null // 修改为可能为 null
   dataAuthorityId: AuthorityData[] | null
   children: AuthorityData[] | null
   menus: any
@@ -84,6 +84,20 @@ export interface CopyAuthorityParams {
 export const copyAuthority = (data: CopyAuthorityParams) => {
   return service.post<ResponseData<AuthorityData>>(
     API_URLS.copyAuthority,
+    data
+  ).then(res => res.data)
+}
+
+// 设置数据权限请求参数接口
+export interface SetDataAuthorityParams {
+  authorityId: number;
+  dataAuthorityId: { authorityId: number }[]; // 使用对象数组格式
+}
+
+// 设置数据权限
+export const setDataAuthority = (data: SetDataAuthorityParams) => {
+  return service.post<ResponseData<AuthorityData>>(
+    API_URLS.setDataAuthority,
     data
   ).then(res => res.data)
 }

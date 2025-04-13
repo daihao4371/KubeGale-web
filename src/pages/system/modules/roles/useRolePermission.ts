@@ -10,7 +10,12 @@ interface ResponseData<T> {
   msg: string
 }
 // 只导入 AuthorityData，移除 BaseAuthorityData
-import { AuthorityData } from '@/api/system/roles/authority'
+import { AuthorityData, SetDataAuthorityParams, setDataAuthority } from '@/api/system/roles/authority'
+
+// 定义资源权限项类型，扩展 AuthorityData
+interface ResourceAuthorityItem extends AuthorityData {
+  checked?: boolean
+}
 
 // 定义树节点类型
 interface TreeNode {
@@ -67,7 +72,7 @@ export const useRolePermission = (roleList: Ref<AuthorityData[]>) => {
   const menuPermissions = ref<TreeNode[]>([])
   
   // 资源权限数据
-  const resourcePermissions = ref<any[]>([])
+  const resourcePermissions = ref<ResourceAuthorityItem[]>([])
   
   // 选中的菜单权限
   const selectedMenus = ref<(string | number)[]>([])
@@ -121,16 +126,42 @@ export const useRolePermission = (roleList: Ref<AuthorityData[]>) => {
       )
       
       if (response.data.code === 0) {
+        // 获取所有角色数据（扁平化处理）
+        const allRoles: ResourceAuthorityItem[] = []
+        
+        // 递归函数，用于扁平化角色树
+        const flattenRoles = (roles: AuthorityData[]) => {
+          roles.forEach(role => {
+            // 添加当前角色到扁平列表，使用类型断言确保类型安全
+            allRoles.push({...role, checked: false} as ResourceAuthorityItem)
+            
+            // 递归处理子角色
+            if (role.children && role.children.length > 0) {
+              flattenRoles(role.children)
+            }
+          })
+        }
+        
+        // 扁平化角色树
+        flattenRoles(response.data.data)
+        
         // 过滤掉当前角色自身
-        resourcePermissions.value = response.data.data.filter((role: AuthorityData) => 
-          role.authorityId !== authorityId
-        ) || []
+        resourcePermissions.value = allRoles.filter(role => role.authorityId !== authorityId)
         
         // 获取当前角色的数据权限
         if (currentRole.value && currentRole.value.dataAuthorityId) {
-          selectedResources.value = currentRole.value.dataAuthorityId.map(
+          // 提取已选中的资源ID
+          const selectedIds = currentRole.value.dataAuthorityId.map(
             (auth: AuthorityData) => auth.authorityId
           )
+          
+          // 更新选中状态
+          selectedResources.value = selectedIds
+          
+          // 更新资源列表中的选中状态
+          resourcePermissions.value.forEach(role => {
+            role.checked = selectedIds.includes(role.authorityId)
+          })
         } else {
           selectedResources.value = []
         }
@@ -257,20 +288,25 @@ export const useRolePermission = (roleList: Ref<AuthorityData[]>) => {
     if (!currentRole.value) return
     
     try {
-      const response = await service.post<ResponseData<any>>(
-        API_URLS.setDataAuthority,
-        {
-          authorityId: currentRole.value.authorityId,
-          dataAuthorityId: selectedResources.value
-        }
-      )
+      // 将选中的资源ID转换为对象数组格式
+      const dataAuthorityIdObjects = selectedResources.value.map(id => ({
+        authorityId: id
+      }))
       
-      if (response.data.code === 0) {
+      // 使用新定义的接口和函数
+      const params: SetDataAuthorityParams = {
+        authorityId: currentRole.value.authorityId,
+        dataAuthorityId: dataAuthorityIdObjects
+      }
+      
+      const response = await setDataAuthority(params)
+      
+      if (response.code === 0) {
         ElMessage.success('资源权限设置成功')
         closeSetPermissionDialog()
         // 刷新角色列表 - 这里需要确保有刷新角色列表的方法
       } else {
-        ElMessage.error(response.data.msg || '资源权限设置失败')
+        ElMessage.error(response.msg || '资源权限设置失败')
       }
     } catch (error) {
       console.error('设置资源权限出错:', error)
@@ -291,8 +327,13 @@ export const useRolePermission = (roleList: Ref<AuthorityData[]>) => {
   
   // 全选资源权限
   const selectAllResources = () => {
-    // 确保只选择可用的资源权限
-    selectedResources.value = resourcePermissions.value.map((role: AuthorityData) => role.authorityId)
+    // 选择所有可用的资源权限
+    selectedResources.value = resourcePermissions.value.map((role: ResourceAuthorityItem) => role.authorityId)
+    
+    // 更新所有资源的选中状态
+    resourcePermissions.value.forEach((role: ResourceAuthorityItem) => {
+      role.checked = true
+    })
   }
   
   // 选择本角色资源权限
@@ -306,6 +347,11 @@ export const useRolePermission = (roleList: Ref<AuthorityData[]>) => {
     if (currentRole.value.authorityId) {
       selectedResources.value.push(currentRole.value.authorityId)
     }
+    
+    // 更新所有资源的选中状态
+    resourcePermissions.value.forEach((role: ResourceAuthorityItem) => {
+      role.checked = role.authorityId === currentRole.value?.authorityId
+    })
   }
   
   // 选择本角色及子角色资源权限
@@ -320,25 +366,29 @@ export const useRolePermission = (roleList: Ref<AuthorityData[]>) => {
       selectedResources.value.push(currentRole.value.authorityId)
     }
     
-    // 递归查找子角色
+    // 递归查找子角色ID
     const findChildrenIds = (roles: AuthorityData[], parentId: number) => {
       roles.forEach(role => {
         if (role.parentId === parentId) {
+          // 添加子角色ID
           selectedResources.value.push(role.authorityId)
           
           // 递归处理子角色的子角色
           if (role.children && role.children.length > 0) {
             findChildrenIds(role.children, role.authorityId)
           }
-        } else if (role.children && role.children.length > 0) {
-          // 在子角色中继续查找
-          findChildrenIds(role.children, parentId)
         }
       })
     }
     
-    // 查找所有子角色
-    findChildrenIds(roleList.value, currentRole.value.authorityId)
+    // 在原始角色列表中查找子角色
+    const originalRoleList = roleList.value
+    findChildrenIds(originalRoleList, currentRole.value.authorityId)
+    
+    // 更新所有资源的选中状态
+    resourcePermissions.value.forEach((role: ResourceAuthorityItem) => {
+      role.checked = selectedResources.value.includes(role.authorityId)
+    })
   }
   
   // 获取API方法类型对应的样式
@@ -396,25 +446,31 @@ export const useRolePermission = (roleList: Ref<AuthorityData[]>) => {
         // 将API数据转换为树形结构
         apiPermissions.value = convertApisToTree(apiData)
         
-        // 获取当前角色已有的API权限
-        const roleApiResponse = await service.post<ResponseData<PolicyPath[]>>(
-          API_URLS.getPolicyPathByAuthorityId,
-          { authorityId }
-        )
-        
-        if (roleApiResponse.data.code === 0) {
-          // 提取已选中的API ID
-          const selectedApiIds = extractSelectedApiIds(apiPermissions.value, roleApiResponse.data.data)
-          selectedApis.value = selectedApiIds
-        } else {
-          ElMessage.error(roleApiResponse.data.msg || '获取角色API权限失败')
+        try {
+          // 获取当前角色已有的API权限
+          const roleApiResponse = await service.post<ResponseData<PolicyPath[]>>(
+            API_URLS.getPolicyPathByAuthorityId,
+            { authorityId }
+          )
+          
+          if (roleApiResponse.data.code === 0) {
+            // 提取已选中的API ID
+            const selectedApiIds = extractSelectedApiIds(apiPermissions.value, roleApiResponse.data.data)
+            selectedApis.value = selectedApiIds
+          } else {
+            console.warn('获取角色API权限返回错误:', roleApiResponse.data.msg)
+            // 不显示错误消息，因为API列表已经获取成功
+          }
+        } catch (apiError) {
+          console.error('获取角色API权限出错:', apiError)
+          // 不显示错误消息，因为API列表已经获取成功
         }
       } else {
         ElMessage.error(response.data.msg || '获取API列表失败')
       }
     } catch (error) {
       console.error('获取API权限出错:', error)
-      ElMessage.error('获取API权限失败，请检查网络连接')
+      ElMessage.error('获取API列表失败，请检查网络连接')
     }
   }
   
