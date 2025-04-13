@@ -6,7 +6,9 @@ import {
   createApi, 
   updateApi, 
   deleteApi,
+  deleteApisByIds, // 导入批量删除API函数
   getApiGroups,
+  refreshCasbin, // 导入刷新缓存函数
   type ApiInfo,
   type PageResponse
 } from '@/api/system/api/api'
@@ -297,6 +299,67 @@ export function useApi() {
     fetchApiGroups()
   })
 
+  // 刷新Casbin缓存
+  const handleRefreshCasbin = async () => {
+    try {
+      const response = await refreshCasbin()
+      
+      if (response.data.code === 0) {
+        ElMessage.success('刷新缓存成功')
+      } else {
+        ElMessage.error(response.data.msg || '刷新缓存失败')
+      }
+    } catch (error) {
+      console.error('刷新缓存失败:', error)
+      ElMessage.error('刷新缓存失败，请重试')
+    }
+  }
+
+  // 多选相关
+  const multipleSelection = ref<ApiInfo[]>([])
+  
+  // 处理表格多选
+  const handleSelectionChange = (selection: ApiInfo[]) => {
+    multipleSelection.value = selection
+  }
+  
+  // 批量删除API
+  const handleBatchDelete = () => {
+    if (multipleSelection.value.length === 0) {
+      ElMessage.warning('请至少选择一条记录')
+      return
+    }
+    
+    const ids = multipleSelection.value.map(item => item.ID)
+    
+    ElMessageBox.confirm(
+      `确定要删除选中的 ${multipleSelection.value.length} 条API记录吗？此操作不可恢复`,
+      '批量删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    ).then(async () => {
+      try {
+        const response = await deleteApisByIds(ids)
+        
+        if (response.data.code === 0) {
+          ElMessage.success('批量删除成功')
+          fetchApiList() // 刷新列表
+          multipleSelection.value = [] // 清空选择
+        } else {
+          ElMessage.error(response.data.msg || '批量删除失败')
+        }
+      } catch (error) {
+        console.error('批量删除API失败:', error)
+        ElMessage.error('批量删除API失败，请重试')
+      }
+    }).catch(() => {
+      // 用户取消删除，不做任何操作
+    })
+  }
+
   return {
     // 数据
     searchForm,
@@ -308,7 +371,8 @@ export function useApi() {
     dialogLoading,
     currentApi,
     isEdit,
-    apiGroups, // 添加API分组列表
+    apiGroups,
+    multipleSelection, // 添加多选数据
     
     // 方法
     fetchApiList,
@@ -322,7 +386,10 @@ export function useApi() {
     closeDialog,
     submitForm,
     handleDelete,
-    fetchApiGroups, // 添加获取API分组的方法
+    fetchApiGroups,
+    handleRefreshCasbin,
+    handleSelectionChange, // 添加多选变化处理方法
+    handleBatchDelete, // 添加批量删除方法
     
     // 辅助函数
     getMethodType

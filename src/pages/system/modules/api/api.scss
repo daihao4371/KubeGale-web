@@ -23,6 +23,7 @@
     .button-group {
       display: flex;
       align-items: flex-end;
+      gap: 10px; // 添加按钮之间的间距
     }
   }
   
@@ -75,6 +76,25 @@
   
   &:hover {
     background-color: #F5F7FA;
+  }
+}
+
+// 下拉选择器弹出层样式
+.api-group-dropdown {
+  max-height: 300px;
+  overflow-y: auto;
+  
+  .el-select-dropdown__item {
+    padding: 8px 15px;
+    
+    &:hover {
+      background-color: #F5F7FA;
+    }
+    
+    &.selected {
+      background-color: #ecf5ff;
+      color: #409EFF;
+    }
   }
 }
 

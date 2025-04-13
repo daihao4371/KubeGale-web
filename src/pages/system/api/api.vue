@@ -52,6 +52,12 @@
           <el-button type="primary" @click="openAddDialog">
             <el-icon><Plus /></el-icon>新增API
           </el-button>
+          <el-button type="danger" @click="handleBatchDelete" :disabled="multipleSelection.length === 0">
+            <el-icon><Delete /></el-icon>批量删除
+          </el-button>
+          <el-button type="success" @click="handleRefreshCasbin">
+            <el-icon><Refresh /></el-icon>刷新缓存
+          </el-button>
         </div>
       </div>
     </div>
@@ -63,7 +69,9 @@
       style="width: 100%"
       border
       stripe
+      @selection-change="handleSelectionChange"
     >
+      <el-table-column type="selection" width="55" />
       <el-table-column prop="ID" label="ID" width="80" />
       <el-table-column prop="name" label="API名称" width="150" show-overflow-tooltip />
       <el-table-column prop="path" label="API路径" min-width="200" show-overflow-tooltip />
@@ -186,6 +194,7 @@ const {
   currentApi,
   isEdit,
   apiGroups,
+  multipleSelection,
   
   fetchApiList,
   handleSearch,
@@ -197,6 +206,9 @@ const {
   closeDialog,
   submitForm,
   handleDelete,
+  handleRefreshCasbin,
+  handleSelectionChange,
+  handleBatchDelete,
   
   getMethodType
 } = useApi()
@@ -215,38 +227,4 @@ const getMethodText = (method: string) => {
 
 <style lang="scss">
 @import '../modules/api/api.scss';
-
-.api-container {
-  padding: 20px;
-}
-
-.api-header {
-  margin-bottom: 20px;
-}
-
-.operation-bar {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-}
-
-.search-form {
-  flex: 1;
-}
-
-.button-group {
-  display: flex;
-  align-items: flex-end;
-}
-
-.pagination-container {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.operation-buttons {
-  display: flex;
-  justify-content: space-around;
-}
 </style>

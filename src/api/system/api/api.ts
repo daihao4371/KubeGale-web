@@ -81,6 +81,15 @@ export function deleteApi(id: number) {
   })
 }
 
+// 批量删除API
+export function deleteApisByIds(ids: number[]) {
+  return service({
+    url: API_URLS.deleteApisByIds,
+    method: 'delete',
+    data: { ids }
+  })
+}
+
 // 获取API分组列表
 // 添加新的接口类型定义，用于API分组响应
 // 修改API分组响应接口定义，匹配实际返回的数据结构
@@ -97,6 +106,14 @@ export interface ApiGroupResponse {
 export function getApiGroups() {
   return service<ApiGroupResponse>({
     url: API_URLS.getApiGroups,
+    method: 'get'
+  })
+}
+
+// 刷新Casbin缓存
+export function refreshCasbin() {
+  return service({
+    url: API_URLS.refreshCasbin,
     method: 'get'
   })
 }
