@@ -583,6 +583,8 @@ const handleMenuTreeCheck = (data: any, checkedInfo: any) => {
     // 检查并确保所有节点都有path属性
     allNodes.forEach(node => {
       if (!node.path) {
+        // 为空path设置默认值，并记录日志
+        console.log(`为节点 ${node.id} (${node.label}) 设置默认path值: /`)
         node.path = '/'
       }
     })
