@@ -30,6 +30,7 @@ export const API_URLS = {
   createApi: '/api/api/createApi', // 创建API
   updateApi: '/api/api/updateApi', // 更新API
   deleteApi: '/api/api/deleteApi', // 删除API
+  getApiGroups: '/api/api/getApiGroups', // 获取API分组列表
   
   // 暂时没有使用
   getMenuAuthority: '/api/menu/getMenuAuthority', // 获取菜单权限

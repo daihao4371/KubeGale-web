@@ -6,6 +6,7 @@ import {
   createApi, 
   updateApi, 
   deleteApi,
+  getApiGroups,
   type ApiInfo,
   type PageResponse
 } from '@/api/system/api/api'
@@ -16,7 +17,8 @@ export function useApi() {
     path: '',
     method: '',
     apiGroup: '',
-    description: ''
+    description: '',
+    name: '' // 添加name字段
   })
 
   // API列表数据
@@ -41,8 +43,8 @@ export function useApi() {
     path: '',
     description: '',
     apiGroup: '',
-    method: 'GET'
-    // 不需要name字段
+    method: 'GET',
+    name: '' // 添加name字段
   })
   
   // 是否为编辑模式
@@ -114,6 +116,7 @@ export function useApi() {
     searchForm.method = ''
     searchForm.apiGroup = ''
     searchForm.description = ''
+    searchForm.name = '' // 重置name字段
     
     pagination.page = 1 // 重置到第一页
     fetchApiList()
@@ -143,6 +146,7 @@ export function useApi() {
     currentApi.description = ''
     currentApi.apiGroup = ''
     currentApi.method = 'GET'
+    currentApi.name = '' // 重置name字段
     
     dialogVisible.value = true
   }
@@ -158,6 +162,7 @@ export function useApi() {
     currentApi.description = api.description
     currentApi.apiGroup = api.apiGroup
     currentApi.method = api.method
+    currentApi.name = api.name // 填充name字段
     
     dialogVisible.value = true
   }
@@ -182,6 +187,11 @@ export function useApi() {
     
     if (!currentApi.apiGroup) {
       ElMessage.warning('请输入API分组')
+      return
+    }
+
+    if (!currentApi.name) {
+      ElMessage.warning('请输入API名称')
       return
     }
     
@@ -253,9 +263,38 @@ export function useApi() {
     }
   }
 
-  // 在组件挂载时获取API列表
+  // API分组列表
+  const apiGroups = ref<string[]>([])
+    
+  // 获取API分组列表
+  const fetchApiGroups = async () => {
+    try {
+      const response = await getApiGroups()
+      
+      if (response.data.code === 0) {
+        // 请求成功，从response.data.data.groups中获取分组列表
+        apiGroups.value = response.data.data.groups || []
+        
+        // 如果没有分组数据，添加一个默认分组
+        if (apiGroups.value.length === 0) {
+          apiGroups.value = ['默认分组']
+        }
+      } else {
+        // 请求失败
+        ElMessage.error(response.data.msg || '获取API分组失败')
+      }
+    } catch (error) {
+      console.error('获取API分组失败:', error)
+      ElMessage.error('获取API分组失败，请重试')
+      // 出错时设置默认分组
+      apiGroups.value = ['默认分组']
+    }
+  }
+
+  // 在组件挂载时获取API列表和API分组
   onMounted(() => {
     fetchApiList()
+    fetchApiGroups()
   })
 
   return {
@@ -269,6 +308,7 @@ export function useApi() {
     dialogLoading,
     currentApi,
     isEdit,
+    apiGroups, // 添加API分组列表
     
     // 方法
     fetchApiList,
@@ -282,6 +322,7 @@ export function useApi() {
     closeDialog,
     submitForm,
     handleDelete,
+    fetchApiGroups, // 添加获取API分组的方法
     
     // 辅助函数
     getMethodType

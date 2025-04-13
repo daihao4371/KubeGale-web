@@ -10,7 +10,7 @@ export interface ApiInfo {
   description: string;
   apiGroup: string;
   method: string;
-  // 移除name字段，因为后端没有这个字段
+  name: string; // 添加name字段
 }
 
 // API响应数据类型
@@ -78,5 +78,25 @@ export function deleteApi(id: number) {
     url: API_URLS.deleteApi,
     method: 'post',
     data: { ID: id }
+  })
+}
+
+// 获取API分组列表
+// 添加新的接口类型定义，用于API分组响应
+// 修改API分组响应接口定义，匹配实际返回的数据结构
+export interface ApiGroupResponse {
+  code: number;
+  data: {
+    apiGroupMap: Record<string, string>; // API分组映射表
+    groups: string[]; // API分组列表
+  };
+  msg: string;
+}
+
+// 确保getApiGroups函数返回类型正确
+export function getApiGroups() {
+  return service<ApiGroupResponse>({
+    url: API_URLS.getApiGroups,
+    method: 'get'
   })
 }

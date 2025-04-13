@@ -5,6 +5,9 @@
       <div class="operation-bar">
         <!-- 搜索区域 -->
         <el-form :inline="true" :model="searchForm" class="search-form">
+          <el-form-item label="API名称">
+            <el-input v-model="searchForm.name" placeholder="请输入API名称" clearable />
+          </el-form-item>
           <el-form-item label="API路径">
             <el-input v-model="searchForm.path" placeholder="请输入API路径" clearable />
           </el-form-item>
@@ -16,8 +19,23 @@
               <el-option label="删除(DELETE)" value="DELETE" />
             </el-select>
           </el-form-item>
+          <!-- API分组选择器 -->
           <el-form-item label="API分组">
-            <el-input v-model="searchForm.apiGroup" placeholder="请输入API分组" clearable />
+            <el-select 
+              v-model="searchForm.apiGroup" 
+              placeholder="请选择API分组" 
+              clearable 
+              class="api-group-select"
+              filterable
+              popper-class="api-group-dropdown"
+            >
+              <el-option 
+                v-for="group in apiGroups" 
+                :key="group" 
+                :label="group" 
+                :value="group" 
+              />
+            </el-select>
           </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="handleSearch">
@@ -47,7 +65,7 @@
       stripe
     >
       <el-table-column prop="ID" label="ID" width="80" />
-      <!-- 移除name字段的列 -->
+      <el-table-column prop="name" label="API名称" width="150" show-overflow-tooltip />
       <el-table-column prop="path" label="API路径" min-width="200" show-overflow-tooltip />
       <el-table-column prop="apiGroup" label="API分组" width="150" />
       <el-table-column prop="description" label="API简介" min-width="200" show-overflow-tooltip />
@@ -105,7 +123,9 @@
     >
       <div v-loading="dialogLoading">
         <el-form :model="currentApi" label-width="100px">
-          <!-- 移除name字段的输入框 -->
+          <el-form-item label="API名称" required>
+            <el-input v-model="currentApi.name" placeholder="请输入API名称" />
+          </el-form-item>
           <el-form-item label="API路径" required>
             <el-input v-model="currentApi.path" placeholder="请输入API路径，例如：/api/user/getUserInfo" />
           </el-form-item>
@@ -117,8 +137,24 @@
               <el-option label="删除(DELETE)" value="DELETE" />
             </el-select>
           </el-form-item>
+          <!-- API分组选择器 -->
           <el-form-item label="API分组" required>
-            <el-input v-model="currentApi.apiGroup" placeholder="请输入API分组，例如：用户管理" />
+            <el-select 
+              v-model="currentApi.apiGroup" 
+              placeholder="请选择API分组" 
+              filterable 
+              allow-create
+              default-first-option
+              class="api-group-select"
+              popper-class="api-group-dropdown"
+            >
+              <el-option 
+                v-for="group in apiGroups" 
+                :key="group" 
+                :label="group" 
+                :value="group" 
+              />
+            </el-select>
           </el-form-item>
           <el-form-item label="API简介">
             <el-input v-model="currentApi.description" placeholder="请输入API简介" />
@@ -149,6 +185,7 @@ const {
   dialogLoading,
   currentApi,
   isEdit,
+  apiGroups,
   
   fetchApiList,
   handleSearch,
@@ -176,7 +213,9 @@ const getMethodText = (method: string) => {
 }
 </script>
 
-<style scoped>
+<style lang="scss">
+@import '../modules/api/api.scss';
+
 .api-container {
   padding: 20px;
 }

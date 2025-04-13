@@ -56,3 +56,64 @@
     background-color: #F56C6C;
   }
 }
+
+// API分组选择器样式
+.api-group-select {
+  width: 100%;
+}
+
+// 下拉选择器样式优化
+.el-select-dropdown__item {
+  padding: 0 15px;
+  height: 34px;
+  line-height: 34px;
+  
+  &.selected {
+    color: #409EFF;
+    font-weight: bold;
+  }
+  
+  &:hover {
+    background-color: #F5F7FA;
+  }
+}
+
+// 删除以下折叠面板相关样式
+.api-group-collapse {
+  width: 100%;
+  border: 1px solid #DCDFE6;
+  border-radius: 4px;
+  
+  .el-collapse-item__header {
+    padding: 0 15px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 14px;
+    color: #606266;
+    background-color: #FFF;
+  }
+  
+  .el-collapse-item__content {
+    padding: 0;
+  }
+}
+
+.api-group-list {
+  max-height: 200px;
+  overflow-y: auto;
+  
+  .api-group-item {
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    
+    &:hover {
+      background-color: #F5F7FA;
+    }
+    
+    &.active {
+      background-color: #ecf5ff;
+      color: #409EFF;
+    }
+  }
+}
