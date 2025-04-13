@@ -137,3 +137,18 @@
     }
   }
 }
+
+// API详情样式
+.api-detail {
+  text-align: left;
+  
+  p {
+    margin: 8px 0;
+    line-height: 1.5;
+  }
+  
+  strong {
+    font-weight: 500;
+    margin-right: 5px;
+  }
+}

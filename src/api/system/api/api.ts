@@ -102,11 +102,29 @@ export interface ApiGroupResponse {
   msg: string;
 }
 
+// API详情响应类型
+export interface ApiDetailResponse {
+  code: number;
+  data: {
+    api: ApiInfo;
+  };
+  msg: string;
+}
+
 // 确保getApiGroups函数返回类型正确
 export function getApiGroups() {
   return service<ApiGroupResponse>({
     url: API_URLS.getApiGroups,
     method: 'get'
+  })
+}
+
+// 获取API详情
+export function getApiById(id: number) {
+  return service<ApiDetailResponse>({
+    url: API_URLS.getApiById,
+    method: 'post',
+    data: { id }
   })
 }
 

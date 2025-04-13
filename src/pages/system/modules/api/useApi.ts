@@ -6,9 +6,10 @@ import {
   createApi, 
   updateApi, 
   deleteApi,
-  deleteApisByIds, // 导入批量删除API函数
+  deleteApisByIds,
   getApiGroups,
-  refreshCasbin, // 导入刷新缓存函数
+  getApiById, // 导入获取API详情函数
+  refreshCasbin,
   type ApiInfo,
   type PageResponse
 } from '@/api/system/api/api'
@@ -154,19 +155,44 @@ export function useApi() {
   }
 
   // 打开编辑对话框
-  const openEditDialog = (api: ApiInfo) => {
+  const openEditDialog = async (api: ApiInfo) => {
     isEdit.value = true
     dialogTitle.value = '编辑API'
+    dialogLoading.value = true
     
-    // 填充表单
-    currentApi.ID = api.ID
-    currentApi.path = api.path
-    currentApi.description = api.description
-    currentApi.apiGroup = api.apiGroup
-    currentApi.method = api.method
-    currentApi.name = api.name // 填充name字段
-    
-    dialogVisible.value = true
+    try {
+      // 获取API详情
+      const response = await getApiById(api.ID)
+      
+      if (response.data.code === 0) {
+        const apiDetail = response.data.data.api
+        
+        // 填充表单
+        currentApi.ID = apiDetail.ID
+        currentApi.path = apiDetail.path
+        currentApi.description = apiDetail.description
+        currentApi.apiGroup = apiDetail.apiGroup
+        currentApi.method = apiDetail.method
+        currentApi.name = apiDetail.name || '' // 填充name字段，如果为空则设为空字符串
+        
+        dialogVisible.value = true
+      } else {
+        ElMessage.error(response.data.msg || '获取API详情失败')
+      }
+    } catch (error) {
+      console.error('获取API详情失败:', error)
+      ElMessage.error('获取API详情失败，请重试')
+      
+      // 出错时仍然使用表格中的数据填充
+      currentApi.ID = api.ID
+      currentApi.path = api.path
+      currentApi.description = api.description
+      currentApi.apiGroup = api.apiGroup
+      currentApi.method = api.method
+      currentApi.name = api.name
+    } finally {
+      dialogLoading.value = false
+    }
   }
 
   // 关闭对话框
@@ -360,6 +386,24 @@ export function useApi() {
     })
   }
 
+  // 查看API详情
+  const viewApiDetail = async (id: number) => {
+    try {
+      const response = await getApiById(id)
+      
+      if (response.data.code === 0) {
+        return response.data.data.api
+      } else {
+        ElMessage.error(response.data.msg || '获取API详情失败')
+        return null
+      }
+    } catch (error) {
+      console.error('获取API详情失败:', error)
+      ElMessage.error('获取API详情失败，请重试')
+      return null
+    }
+  }
+
   return {
     // 数据
     searchForm,
@@ -372,7 +416,7 @@ export function useApi() {
     currentApi,
     isEdit,
     apiGroups,
-    multipleSelection, // 添加多选数据
+    multipleSelection,
     
     // 方法
     fetchApiList,
@@ -388,8 +432,9 @@ export function useApi() {
     handleDelete,
     fetchApiGroups,
     handleRefreshCasbin,
-    handleSelectionChange, // 添加多选变化处理方法
-    handleBatchDelete, // 添加批量删除方法
+    handleSelectionChange,
+    handleBatchDelete,
+    viewApiDetail, // 添加查看API详情方法
     
     // 辅助函数
     getMethodType

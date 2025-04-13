@@ -32,6 +32,7 @@ export const API_URLS = {
   deleteApi: '/api/api/deleteApi', // 删除API
   deleteApisByIds: '/api/api/deleteApisByIds', // 批量删除API
   getApiGroups: '/api/api/getApiGroups', // 获取API分组列表
+  getApiById: '/api/api/getApiById', // 获取API详情
   refreshCasbin: '/api/api/freshCasbin', // 添加刷新缓存的URL
   
   // 暂时没有使用

@@ -86,9 +86,16 @@
       </el-table-column>
       
       <!-- 操作列 -->
-      <el-table-column label="操作" fixed="right" width="180">
+      <el-table-column label="操作" fixed="right" width="240">
         <template #default="scope">
           <div class="operation-buttons">
+            <el-button 
+              type="info" 
+              link
+              @click="handleViewDetail(scope.row)"
+            >
+              <el-icon><View /></el-icon>详情
+            </el-button>
             <el-button 
               type="primary" 
               link
@@ -180,8 +187,10 @@
 </template>
 
 <script setup lang="ts">
-import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { Search, Refresh, Plus, Edit, Delete, View } from '@element-plus/icons-vue'
 import { useApi } from '../modules/api/useApi'
+import { ElMessageBox } from 'element-plus'
+import type { ApiInfo } from '@/api/system/api/api' // 导入 ApiInfo 类型
 
 const {
   searchForm,
@@ -209,9 +218,39 @@ const {
   handleRefreshCasbin,
   handleSelectionChange,
   handleBatchDelete,
+  viewApiDetail,
   
   getMethodType
 } = useApi()
+
+// 查看API详情 - 添加类型注解
+const handleViewDetail = async (api: ApiInfo) => {
+  const apiDetail = await viewApiDetail(api.ID)
+  if (apiDetail) {
+    // 格式化创建时间和更新时间
+    const createdAt = new Date(apiDetail.CreatedAt).toLocaleString()
+    const updatedAt = new Date(apiDetail.UpdatedAt).toLocaleString()
+    
+    // 使用对话框展示详情
+    ElMessageBox.alert(
+      `<div class="api-detail">
+        <p><strong>ID:</strong> ${apiDetail.ID}</p>
+        <p><strong>API名称:</strong> ${apiDetail.name || '无'}</p>
+        <p><strong>API路径:</strong> ${apiDetail.path}</p>
+        <p><strong>请求方法:</strong> ${apiDetail.method}</p>
+        <p><strong>API分组:</strong> ${apiDetail.apiGroup}</p>
+        <p><strong>API简介:</strong> ${apiDetail.description || '无'}</p>
+        <p><strong>创建时间:</strong> ${createdAt}</p>
+        <p><strong>更新时间:</strong> ${updatedAt}</p>
+      </div>`,
+      'API详情',
+      {
+        dangerouslyUseHTMLString: true,
+        confirmButtonText: '关闭'
+      }
+    )
+  }
+}
 
 // 获取请求方法的中文文本
 const getMethodText = (method: string) => {
