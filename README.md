@@ -115,7 +115,11 @@ kubegale-front/
 ![img.png](image/操作记录.png)
 
 
+## 后端地址
+[kubegale](https://github.com/daihao4371/KubeGale )
 
+## 文档
+[KubeGale 使用手册](docs/README.md)
 
 
 ## 贡献指南
