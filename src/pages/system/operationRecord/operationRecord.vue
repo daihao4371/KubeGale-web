@@ -54,13 +54,21 @@
       @selection-change="handleSelectionChange"
     >
       <el-table-column type="selection" width="55" />
+      <!-- 操作记录列表 -->
       <el-table-column label="操作人" width="120">
         <template #default="scope">
-          <span :class="{ 'system-user': scope.row.user_id === 0 }">
+          <span :class="{ 'system-user': !scope.row.user || (!scope.row.user.username && !scope.row.user.nickname) }">
             {{ formatUser(scope.row.user, scope.row) }}
           </span>
         </template>
       </el-table-column>
+      
+      <!-- 详情对话框 -->
+      <el-descriptions-item label="操作人">
+        <span :class="{ 'system-user': !currentRecord?.user || (!currentRecord.user.username && !currentRecord.user.nickname) }">
+          {{ currentRecord ? formatUser(currentRecord.user, currentRecord) : '-' }}
+        </span>
+      </el-descriptions-item>
       <el-table-column prop="created_at" label="日期" width="180">
         <template #default="scope">
           {{ formatDate(scope.row.created_at) }}
@@ -78,23 +86,26 @@
         </template>
       </el-table-column>
       <el-table-column prop="path" label="请求路径" min-width="180" show-overflow-tooltip />
-      <!-- 移除请求和响应的数据展示列 -->
+      
+      <!-- 修改操作列样式，使用link类型按钮 -->
       <el-table-column label="操作" fixed="right" width="180">
         <template #default="scope">
-          <el-button 
-            type="primary" 
-            size="small" 
-            @click="handleViewDetail(scope.row.id)"
-          >
-            <el-icon><View /></el-icon>详情
-          </el-button>
-          <el-button 
-            type="danger" 
-            size="small" 
-            @click="handleDelete(scope.row)"
-          >
-            <el-icon><Delete /></el-icon>删除
-          </el-button>
+          <div class="operation-buttons">
+            <el-button 
+              type="primary" 
+              link
+              @click="handleViewDetail(Number(scope.row.id))"
+            >
+              <el-icon><View /></el-icon>详情
+            </el-button>
+            <el-button 
+              type="danger" 
+              link
+              @click="handleDelete(scope.row)"
+            >
+              <el-icon><Delete /></el-icon>删除
+            </el-button>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -124,8 +135,11 @@
       <div v-loading="detailLoading">
         <el-descriptions :column="2" border size="small">
           <el-descriptions-item label="操作人">
-            {{ currentRecord ? formatUser(currentRecord.user, currentRecord) : '-' }}
+            <span :class="{ 'system-user': !currentRecord?.user || (!currentRecord.user.username && !currentRecord.user.nickname) }">
+              {{ currentRecord ? formatUser(currentRecord.user, currentRecord) : '-' }}
+            </span>
           </el-descriptions-item>
+          <!-- 其他描述项保持不变 -->
           <el-descriptions-item label="操作时间">
             {{ currentRecord ? formatDate(currentRecord.created_at) : '-' }}
           </el-descriptions-item>
@@ -176,9 +190,9 @@
   </div>
 </template>
 
-<script lang="ts" setup name="SystemOperationRecord">
-import { Search, Refresh, Delete, InfoFilled, View } from '@element-plus/icons-vue'
-import { useOperationRecord } from './modules/operationRecord/useOperationRecord'
+<script setup lang="ts" name="SystemOperationRecord">
+import { Search, Refresh, Delete, View } from '@element-plus/icons-vue'
+import { useOperationRecord } from '../modules/operationRecord/useOperationRecord'
 
 // 使用解耦后的逻辑
 const {
@@ -209,5 +223,5 @@ const {
 </script>
 
 <style lang="scss" scoped>
-@import './modules/operationRecord/operationRecord.scss';
+@import '../modules/operationRecord/operationRecord.scss';
 </style>

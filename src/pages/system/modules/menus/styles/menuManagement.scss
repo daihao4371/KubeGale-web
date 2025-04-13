@@ -1,0 +1,246 @@
+.menu-management-container {
+  padding: 20px;
+  
+  .menu-card {
+    margin-bottom: 20px;
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      .header-title {
+        font-size: 18px;
+        font-weight: bold;
+      }
+    }
+    
+    .menu-table {
+      margin-top: 15px;
+      
+      .operation-buttons {
+        display: flex;
+        gap: 8px;
+      }
+      
+      .icon-column {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+    }
+  }
+}
+
+:deep(.el-cascader) {
+  width: 100%;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.icon-column {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  .el-icon {
+    font-size: 16px;
+  }
+}
+
+:deep(.el-descriptions__label) {
+  width: 120px;
+  font-weight: bold;
+}
+
+:deep(.el-form-item) {
+  margin-bottom: 18px;
+}
+
+:deep(.el-input-number) {
+  width: 100%;
+}
+
+/* 图标选择器样式 */
+.icon-selector-input {
+  display: flex;
+  align-items: center;
+  
+  .el-input-group__prepend {
+    padding: 0 10px;
+    width: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+/* 图标选择器样式 */
+.icon-selector-container {
+  .icon-search-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+    
+    .icon-search {
+      width: 100%;
+    }
+    
+    .category-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 10px;
+    }
+  }
+  
+  .icon-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+    
+    .icon-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 8px;
+      border: 1px solid #e4e7ed;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+      
+      &:hover {
+        background-color: #f5f7fa;
+        border-color: #c0c4cc;
+      }
+      
+      &.is-selected {
+        background-color: #ecf5ff;
+        border-color: #409eff;
+        color: #409eff;
+      }
+      
+      .el-icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+      
+      .icon-name {
+        font-size: 12px;
+        margin-bottom: 4px;
+        word-break: break-all;
+        text-align: center;
+      }
+      
+      .icon-label {
+        font-size: 12px;
+        color: #909399;
+        text-align: center;
+      }
+    }
+  }
+}
+
+/* 禁用输入框样式 */
+.disabled-input {
+  .el-input__inner {
+    background-color: #f5f7fa;
+    color: #909399;
+  }
+}
+
+
+/* 父节点选择器样式 */
+.parent-select {
+  width: 100%;
+  
+  :deep(.el-input__wrapper) {
+    background-color: #f5f7fa;
+  }
+  
+  :deep(.el-input__inner) {
+    color: #606266;
+  }
+  
+  :deep(.el-select__caret) {
+    color: #c0c4cc;
+  }
+}
+
+/* 表格中父节点ID的显示 */
+.el-table {
+  .parent-node-cell {
+    .parent-tag {
+      background-color: #f0f9eb;
+      color: #67c23a;
+      border-color: #e1f3d8;
+    }
+  }
+}
+
+/* 编辑表单样式 */
+.edit-form-container {
+  .el-form-item {
+    margin-bottom: 18px;
+  }
+}
+
+/* 表单项高亮样式 - 用于标识已修改的字段 */
+.form-item-modified {
+  :deep(.el-form-item__label) {
+    color: #409eff;
+    font-weight: bold;
+  }
+  
+  :deep(.el-input__wrapper) {
+    box-shadow: 0 0 0 1px #409eff inset;
+  }
+}
+
+/* 子菜单表单样式 */
+.sub-menu-form {
+  .parent-menu-info {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border-left: 3px solid #409eff;
+    
+    .parent-menu-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .parent-menu-path {
+      color: #606266;
+      font-size: 13px;
+    }
+  }
+}
+
+/* 父菜单选择器样式 */
+.parent-menu-select {
+  width: 100%;
+  
+  &.is-disabled {
+    .el-input__wrapper {
+      background-color: #f5f7fa;
+    }
+    
+    .el-input__inner {
+      color: #606266;
+    }
+  }
+}

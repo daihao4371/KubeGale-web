@@ -1,0 +1,154 @@
+.api-container {
+  padding: 20px;
+  
+  .api-header {
+    margin-bottom: 20px;
+    
+    h2 {
+      font-size: 20px;
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+  }
+  
+  .operation-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    
+    .search-form {
+      flex: 1;
+    }
+    
+    .button-group {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px; // 添加按钮之间的间距
+    }
+  }
+  
+  .pagination-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .operation-buttons {
+    display: flex;
+    justify-content: space-around;
+  }
+}
+
+// 请求方法标签样式
+.method-tag {
+  &.get {
+    background-color: #67C23A;
+  }
+  
+  &.post {
+    background-color: #409EFF;
+  }
+  
+  &.put {
+    background-color: #E6A23C;
+  }
+  
+  &.delete {
+    background-color: #F56C6C;
+  }
+}
+
+// API分组选择器样式
+.api-group-select {
+  width: 100%;
+}
+
+// 下拉选择器样式优化
+.el-select-dropdown__item {
+  padding: 0 15px;
+  height: 34px;
+  line-height: 34px;
+  
+  &.selected {
+    color: #409EFF;
+    font-weight: bold;
+  }
+  
+  &:hover {
+    background-color: #F5F7FA;
+  }
+}
+
+// 下拉选择器弹出层样式
+.api-group-dropdown {
+  max-height: 300px;
+  overflow-y: auto;
+  
+  .el-select-dropdown__item {
+    padding: 8px 15px;
+    
+    &:hover {
+      background-color: #F5F7FA;
+    }
+    
+    &.selected {
+      background-color: #ecf5ff;
+      color: #409EFF;
+    }
+  }
+}
+
+// 删除以下折叠面板相关样式
+.api-group-collapse {
+  width: 100%;
+  border: 1px solid #DCDFE6;
+  border-radius: 4px;
+  
+  .el-collapse-item__header {
+    padding: 0 15px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 14px;
+    color: #606266;
+    background-color: #FFF;
+  }
+  
+  .el-collapse-item__content {
+    padding: 0;
+  }
+}
+
+.api-group-list {
+  max-height: 200px;
+  overflow-y: auto;
+  
+  .api-group-item {
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    
+    &:hover {
+      background-color: #F5F7FA;
+    }
+    
+    &.active {
+      background-color: #ecf5ff;
+      color: #409EFF;
+    }
+  }
+}
+
+// API详情样式
+.api-detail {
+  text-align: left;
+  
+  p {
+    margin: 8px 0;
+    line-height: 1.5;
+  }
+  
+  strong {
+    font-weight: 500;
+    margin-right: 5px;
+  }
+}

@@ -63,11 +63,11 @@
                 <el-icon><Edit /></el-icon>编辑
               </el-button>
               
-              <!-- 新增的设置权限按钮 -->
+              <!-- 修改设置权限按钮的点击事件 -->
               <el-button
                 type="primary"
                 link
-                @click="showDevelopingMessage('设置权限')"
+                @click="openSetPermissionDialog(scope.row)"
               >
                 <el-icon><Setting /></el-icon>设置权限
               </el-button>
@@ -85,7 +85,7 @@
               <el-button
                 type="primary"
                 link
-                @click="showDevelopingMessage('拷贝角色')"
+                @click="openCopyRoleDialog(scope.row)"
               >
                 <el-icon><CopyDocument /></el-icon>拷贝
               </el-button>
@@ -270,6 +270,193 @@
         </div>
       </template>
     </el-dialog>
+    
+    <!-- 拷贝角色对话框 -->
+    <el-dialog
+      v-model="copyRoleDialogVisible"
+      title="拷贝角色"
+      width="500px"
+      class="role-edit-dialog"
+    >
+      <el-form
+        ref="copyRoleFormRef"
+        :model="copyRoleForm"
+        :rules="copyRoleRules"
+        label-width="100px"
+      >
+        <el-form-item label="原角色">
+          <el-input v-model="copyRoleForm.oldAuthorityName" disabled />
+        </el-form-item>
+        
+        <el-form-item label="父级角色" prop="parentId">
+          <el-cascader
+            v-model="copyRoleForm.parentId"
+            :options="cascaderRoleOptions"
+            :props="{
+              checkStrictly: true,
+              value: 'authorityId',
+              label: 'authorityName',
+              emitPath: false,
+              disabled: (data: any) => data.authorityId === copyRoleForm.oldAuthorityId
+            }"
+            placeholder="请选择父级角色"
+            clearable
+            class="w-full"
+          >
+            <template #default="{ node, data }">
+              <span>{{ data.authorityName }}</span>
+            </template>
+          </el-cascader>
+        </el-form-item>
+        
+        <el-form-item label="角色ID" prop="authorityId">
+          <el-input-number
+            v-model="copyRoleForm.authorityId"
+            :min="1"
+            :max="9999"
+            class="w-full"
+            placeholder="请输入角色ID"
+          />
+        </el-form-item>
+        
+        <el-form-item label="角色名称" prop="authorityName">
+          <el-input
+            v-model="copyRoleForm.authorityName"
+            placeholder="请输入角色名称"
+            maxlength="20"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="closeCopyRoleDialog">取消</el-button>
+          <el-button type="primary" @click="submitCopyRole(copyRoleFormRef)">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
+    
+    <!-- 添加设置权限对话框 -->
+    <el-dialog
+      v-model="setPermissionDialogVisible"
+      :title="`设置权限 - ${currentRole?.authorityName || ''}`"
+      width="700px"
+      class="role-permission-dialog"
+      @closed="closeSetPermissionDialog"
+    >
+      <el-tabs v-model="activePermissionTab" class="permission-tabs">
+        <!-- 资源权限标签页 -->
+        <el-tab-pane label="资源权限" name="资源权限">
+          <div class="resource-notice">
+            <el-alert
+              title="资源权限用于控制角色可访问的数据范围"
+              type="info"
+              :closable="false"
+              show-icon
+            />
+          </div>
+          
+          <div class="resource-buttons">
+            <el-button type="primary" @click="selectAllResources">全选</el-button>
+            <el-button type="primary" @click="selectCurrentRoleResources">本角色</el-button>
+            <el-button type="primary" @click="selectCurrentAndChildrenResources">本角色及子角色</el-button>
+            <el-button type="primary" class="confirm-btn" @click="submitPermissionSettings">确定</el-button>
+          </div>
+          
+          <div class="resource-list">
+            <el-checkbox
+              v-for="item in resourcePermissions"
+              :key="item.authorityId"
+              v-model="item.checked"
+              :label="item.authorityName"
+              @change="(checked: boolean) => handleResourceCheckChange(item, checked)"
+            />
+          </div>
+        </el-tab-pane>
+        
+        <el-tab-pane label="角色菜单" name="角色菜单">
+          <div class="menu-search">
+            <el-input 
+              v-model="menuSearchKeyword" 
+              placeholder="筛选" 
+              clearable 
+              class="search-input" 
+            />
+            <el-button 
+              type="primary" 
+              class="confirm-btn"
+              @click="submitPermissionSettings"
+            >
+              确定
+            </el-button>
+          </div>
+          
+          <!-- 角色菜单树 -->
+          <el-tree
+            ref="menuTreeRef"
+            :data="filteredMenuPermissions"
+            show-checkbox
+            node-key="id"
+            :default-checked-keys="selectedMenus"
+            :props="{ children: 'children', label: 'label' }"
+            class="permission-tree"
+            @check="handleMenuTreeCheck"
+          >
+            <template #default="{ node, data }">
+              <span>{{ data.label }}</span>
+              <span v-if="data.path" class="menu-path">{{ data.path }}</span>
+            </template>
+          </el-tree>
+        </el-tab-pane>
+        
+        <el-tab-pane label="角色api" name="角色api">
+          <div class="api-search">
+            <el-input 
+              v-model="apiNameSearchKeyword" 
+              placeholder="筛选名字" 
+              clearable 
+              class="search-input" 
+            />
+            <el-input 
+              v-model="apiPathSearchKeyword" 
+              placeholder="筛选路径" 
+              clearable 
+              class="search-input" 
+            />
+            <el-button 
+              type="primary" 
+              class="confirm-btn"
+              @click="submitPermissionSettings"
+            >
+              确定
+            </el-button>
+          </div>
+          
+          <el-tree
+            ref="apiTreeRef"
+            :data="filteredApiPermissions"
+            show-checkbox
+            node-key="id"
+            :default-checked-keys="selectedApis"
+            :props="{ children: 'children', label: 'label' }"
+            class="permission-tree"
+            @check="handleApiTreeCheck"
+          >
+            <template #default="{ node, data }">
+              <span v-if="!data.path">{{ data.label }}</span>
+              <div v-else class="api-node">
+                <span>{{ data.label }}</span>
+                <span class="api-path">{{ data.path }}</span>
+                <el-tag v-if="data.method" size="small" :type="getMethodType(data.method)">
+                  {{ data.method }}
+                </el-tag>
+              </div>
+            </template>
+          </el-tree>
+        </el-tab-pane>
+      </el-tabs>
+    </el-dialog>
   </div>
 </template>
 
@@ -277,13 +464,22 @@
 import { onMounted, ref } from 'vue'
 import { Plus, Edit, Delete, Setting, CopyDocument } from '@element-plus/icons-vue'
 import { useRoleManagement } from '../modules/roles/useRoleManagement'
+import { useRolePermission } from '../modules/roles/useRolePermission'
 import { AuthorityData } from '@/api/system/roles/authority'
 import { ElMessage } from 'element-plus'
+
+// 导入 ResourceAuthorityItem 类型或在此定义
+interface ResourceAuthorityItem extends AuthorityData {
+  checked?: boolean
+}
 
 // 表单引用
 const addRoleFormRef = ref()
 const addChildRoleFormRef = ref()
 const editRoleFormRef = ref()
+const copyRoleFormRef = ref()
+// 删除这行，因为我们将使用从 useRolePermission 中获取的 menuTreeRef
+// const menuTreeRef = ref<any>(null) // 添加菜单树的引用
 
 // 使用角色管理逻辑
 const {
@@ -293,7 +489,7 @@ const {
   fetchRoleList,
   editRole,
   deleteRole,
-  cascaderRoleOptions, // 添加级联选择器选项
+  cascaderRoleOptions,
   // 新增角色相关
   addRoleDialogVisible,
   addRoleForm,
@@ -314,8 +510,106 @@ const {
   editRoleRules,
   openEditRoleDialog,
   closeEditRoleDialog,
-  submitEditRole
+  submitEditRole,
+  // 拷贝角色相关
+  copyRoleDialogVisible,
+  copyRoleForm,
+  copyRoleRules,
+  openCopyRoleDialog,
+  closeCopyRoleDialog,
+  submitCopyRole,
 } = useRoleManagement()
+
+// 使用角色权限管理逻辑
+const {
+  setPermissionDialogVisible,
+  currentRole,
+  activePermissionTab,
+  menuPermissions,
+  resourcePermissions,
+  selectedMenus,
+  selectedResources,
+  menuSearchKeyword,
+  apiPermissions,
+  selectedApis,
+  apiNameSearchKeyword,
+  apiPathSearchKeyword,
+  filteredMenuPermissions,
+  filteredApiPermissions,
+  openSetPermissionDialog,
+  closeSetPermissionDialog,
+  submitPermissionSettings,
+  selectAllResources,
+  selectCurrentRoleResources,
+  selectCurrentAndChildrenResources,
+  getMethodType,
+  menuTreeRef // 从 useRolePermission 中获取 menuTreeRef
+} = useRolePermission(roleList as any) // 使用类型断言解决类型不兼容问题
+
+// 处理资源权限选中状态变化
+const handleResourceCheckChange = (item: ResourceAuthorityItem, checked: boolean) => {
+  if (checked) {
+    if (!selectedResources.value.includes(item.authorityId)) {
+      selectedResources.value.push(item.authorityId)
+    }
+  } else {
+    selectedResources.value = selectedResources.value.filter(id => id !== item.authorityId)
+  }
+}
+
+// 处理API树选中状态变化
+const handleApiTreeCheck = (data: any, checkedNodes: { checkedKeys: (string | number)[] }) => {
+  selectedApis.value = checkedNodes.checkedKeys
+}
+
+// 处理菜单树选中状态变化
+const handleMenuTreeCheck = (data: any, checkedInfo: any) => {
+  // 确保我们获取所有选中的节点ID（包括半选中的父节点）
+  if (checkedInfo && checkedInfo.checkedKeys) {
+    selectedMenus.value = checkedInfo.checkedKeys
+  } else if (checkedInfo && Array.isArray(checkedInfo)) {
+    // 兼容不同版本的Element Plus
+    selectedMenus.value = checkedInfo
+  }
+  
+  // 确保每个选中的节点都有path属性
+  if (menuTreeRef.value) {
+    // 获取所有选中和半选中的节点
+    const allNodes = [
+      ...menuTreeRef.value.getCheckedNodes(true),
+      ...menuTreeRef.value.getHalfCheckedNodes()
+    ]
+    
+    // 检查并确保所有节点都有path属性
+    allNodes.forEach(node => {
+      if (!node.path) {
+        // 为空path设置默认值，并记录日志
+        console.log(`为节点 ${node.id} (${node.label}) 设置默认path值: /`)
+        node.path = '/'
+      }
+    })
+  }
+}
+
+// 获取完整菜单节点信息的方法
+const getSelectedMenuNodes = () => {
+  if (!menuTreeRef.value) return [];
+  
+  // 获取所有选中和半选中的节点
+  const allNodes = [
+    ...menuTreeRef.value.getCheckedNodes(true),
+    ...menuTreeRef.value.getHalfCheckedNodes()
+  ]
+  
+  // 合并所有选中的节点，确保每个节点都有path属性
+  return allNodes.map(node => ({
+    id: node.id,
+    label: node.label,
+    path: node.path || '/', // 确保path不为空，默认使用根路径
+    parentId: node.parentId,
+    children: node.children
+  }));
+}
 
 // 判断是否为子角色（防止选择自己的子角色作为父级）
 const isChildRole = (role: AuthorityData, parentId: number): boolean => {
@@ -366,4 +660,5 @@ onMounted(() => {
 
 <style lang="scss">
 @import '../modules/roles/styles/roleStyles.scss';
+@import '../modules/roles/styles/permissionStyles.scss'; // 添加权限样式导入
 </style>

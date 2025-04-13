@@ -2,17 +2,20 @@ import service from '../service'
 import { API_URLS } from '../config'
 
 // 角色列表接口返回类型
+// 角色数据接口定义
+// 修改 AuthorityData 接口，使其与实际数据结构匹配
+// 确保 AuthorityData 接口包含所有必要的字段
 export interface AuthorityData {
-  CreatedAt: string
-  UpdatedAt: string
-  DeletedAt: null | string
   authorityId: number
   authorityName: string
   parentId: number
-  dataAuthorityId: AuthorityData[] | null
-  children: AuthorityData[] | null
-  menus: any | null
-  defaultRouter: string
+  dataAuthorityId?: AuthorityData[]
+  children?: AuthorityData[]
+  defaultRouter?: string
+  CreatedAt?: string
+  UpdatedAt?: string
+  DeletedAt?: string | null
+  menus?: any[]
 }
 
 // 接口返回数据类型
@@ -66,3 +69,54 @@ export const deleteAuthority = (authorityId: number) => {
     { authorityId }
   ).then(res => res.data)
 }
+
+// 拷贝角色请求参数接口
+export interface CopyAuthorityParams {
+  authority: {
+    authorityId: number;
+    authorityName: string;
+    parentId: number;
+    defaultRouter: string;
+  };
+  oldAuthorityId: number; // 原角色ID
+}
+
+// 拷贝角色
+export const copyAuthority = (data: CopyAuthorityParams) => {
+  return service.post<ResponseData<AuthorityData>>(
+    API_URLS.copyAuthority,
+    data
+  ).then(res => res.data)
+}
+
+// 设置数据权限请求参数接口
+export interface SetDataAuthorityParams {
+  authorityId: number;
+  dataAuthorityId: { authorityId: number }[]; // 使用对象数组格式
+}
+
+// 设置数据权限
+export const setDataAuthority = (data: SetDataAuthorityParams) => {
+  return service.post<ResponseData<AuthorityData>>(
+    API_URLS.setDataAuthority,
+    data
+  ).then(res => res.data)
+}
+
+// 添加或修改菜单权限的接口参数定义
+export interface AddMenuAuthorityParams {
+  authorityId: number;
+  menus: {
+    ID: number | string;
+    path: string;  // 确保path是必需的
+    name: string;
+    meta: {
+      title: string;
+    };
+  }[];
+}
+
+// 修改相应的API函数
+export const addMenuAuthority = (params: AddMenuAuthorityParams) => {
+  return service.post<ResponseData<any>>(API_URLS.addBaseMenu, params);
+};

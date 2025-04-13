@@ -6,8 +6,8 @@ export const API_URLS = {
   // 用户相关
   login: '/api/base/login',
   
-  getUserList: '/api/user/getUserList',
-  getUserInfo: '/api/user/getUserInfo',
+  getUserList: '/api/user/getUserList', // 获取用户列表
+  getUserInfo: '/api/user/getUserInfo', // 获取用户信息
   changePassword: '/api/user/changePassword',
   adminRegister: '/api/user/admin_register',
   setUserAuthorities: '/api/user/setUserAuthorities', // 设置用户角色的API
@@ -21,10 +21,35 @@ export const API_URLS = {
   createAuthority: '/api/authority/createAuthority', // 创建角色
   updateAuthority: '/api/authority/updateAuthority', // 更新角色
   deleteAuthority: '/api/authority/deleteAuthority', // 删除角色
+  copyAuthority: '/api/authority/copyAuthority', // 拷贝角色
+  setDataAuthority: '/api/authority/setDataAuthority', // 设置数据权限
+
+  // API管理相关
+  getApiList: '/api/api/getApiList', // 获取API列表
+  getAllApis: '/api/api/getAllApis', // 获取所有API
+  createApi: '/api/api/createApi', // 创建API
+  updateApi: '/api/api/updateApi', // 更新API
+  deleteApi: '/api/api/deleteApi', // 删除API
+  deleteApisByIds: '/api/api/deleteApisByIds', // 批量删除API
+  getApiGroups: '/api/api/getApiGroups', // 获取API分组列表
+  getApiById: '/api/api/getApiById', // 获取API详情
+  refreshCasbin: '/api/api/freshCasbin', // 添加刷新缓存的URL
   
-  // 临时添加以解决编译错误，后续可移除
-  getSysOperationRecordList: '/api/sysOperationRecord/getSysOperationRecordList',
-  deleteSysOperationRecord: '/api/sysOperationRecord/deleteSysOperationRecord',
-  batchDeleteSysOperationRecord: '/api/sysOperationRecord/batchDeleteSysOperationRecord',
-  findSysOperationRecord: '/api/sysOperationRecord/findSysOperationRecord',
+  // 权限相关
+  getBaseMenuTree: '/api/menu/getBaseMenuTree', // 获取菜单树
+  getMenuAuthority: '/api/menu/getMenuAuthority', // 获取指定角色menu
+  getPolicyPathByAuthorityId: '/api/casbin/getPolicyPathByAuthorityId', // 获取角色API权限路径
+  addBaseMenu: '/api/menu/addBaseMenu', // 添加菜单
+  updateCasbin: '/api/casbin/updateCasbin', // 更新Casbin策略
+  
+  // 菜单相关
+  getMenuList: '/api/menu/getMenuList', // 获取菜单列表
+  updateBaseMenu: '/api/menu/updateBaseMenu', // 更新菜单
+  deleteBaseMenu: '/api/menu/deleteBaseMenu', // 删除菜单
+  
+  // 操作记录相关
+  getSysOperationRecordList: '/api/sysOperationRecord/getSysOperationRecordList', // 获取操作记录列表
+  deleteSysOperationRecord: '/api/sysOperationRecord/deleteSysOperationRecord', // 删除一条操作记录
+  deleteSysOperationRecordByIds: '/api/sysOperationRecord/deleteSysOperationRecordByIds', // 删除多条操作记录
+  findSysOperationRecord: '/api/sysOperationRecord/findSysOperationRecord', // 通过ID查询操作记录
 }

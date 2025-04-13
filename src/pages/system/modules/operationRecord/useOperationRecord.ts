@@ -2,15 +2,16 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
   getSysOperationRecordList, 
+  findSysOperationRecord,
   deleteSysOperationRecord,
   batchDeleteSysOperationRecord,
-  // 添加新API导入
-  findSysOperationRecord,
   type SysOperationRecord, 
-  type ApiResponse,
   type PageResponse,
   type User
-} from '@/api/system/operationRecord'
+} from '@/api/system/operationRecord/operationRecord'
+// 导入用户API
+import service from '@/api/system/service'
+import { API_URLS } from '@/api/system/config'
 
 export function useOperationRecord() {
   // 搜索表单
@@ -37,6 +38,11 @@ export function useOperationRecord() {
 
   // 选中的记录
   const selectedRecords = ref<SysOperationRecord[]>([])
+  
+  // 详情对话框相关
+  const detailDialogVisible = ref(false)
+  const detailLoading = ref(false)
+  const currentRecord = ref<SysOperationRecord | null>(null)
 
   // 获取操作记录列表
   const fetchRecordList = async () => {
@@ -54,10 +60,44 @@ export function useOperationRecord() {
       
       if (response.data.code === 0) {
         // 请求成功
-        const responseData = response.data.data as PageResponse<SysOperationRecord>
-        recordList.value = responseData.list || []
+        const responseData = response.data.data as PageResponse<any>
+        
+        // 处理返回的数据，确保字段名称正确
+        recordList.value = (responseData.list || []).map(item => {
+          // 确保必要字段存在
+          const record: SysOperationRecord = {
+            id: item.id || item.ID || 0,
+            created_at: item.created_at || item.CreatedAt || '',
+            updated_at: item.updated_at || item.UpdatedAt || '',
+            ip: item.ip || '',
+            method: item.method || '',
+            path: item.path || '',
+            status: item.status || 0,
+            latency: item.latency || '',
+            agent: item.agent || '',
+            error_message: item.error_message || '',
+            body: item.body || '',
+            resp: item.resp || '',
+            user_id: item.user_id || 0,
+            user: {
+              id: 0,
+              username: ''
+            }
+          }
+          
+          // 处理用户信息，不再使用realName
+          if (item.user) {
+            record.user = {
+              id: Number(item.user.ID || item.user.id || 0),
+              username: String(item.user.userName || item.user.username || ''),
+              nickname: String(item.user.nickName || item.user.nickname || '')
+            }
+          }
+          
+          return record
+        })
+        
         pagination.total = responseData.total
-        console.log('操作记录列表数据:', recordList.value)
       } else {
         // 请求失败
         ElMessage.error(response.data.msg || '获取操作记录列表失败')
@@ -109,228 +149,333 @@ export function useOperationRecord() {
     selectedRecords.value = selection
   }
 
-  // 删除单条记录
-  const handleDelete = (row: SysOperationRecord) => {
-    ElMessageBox.confirm(`确定要删除该操作记录吗？`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }).then(async () => {
-      loading.value = true
-      try {
-        // 调用修改后的API，传递ID
-        const response = await deleteSysOperationRecord(row.id)
-        
-        if (response.data.code === 0) {
-          ElMessage.success(response.data.msg || '删除成功')
-          fetchRecordList() // 刷新列表
-          // 如果当前有打开的详情对话框且是当前删除的记录，则关闭对话框
-          if (detailDialogVisible.value && currentRecord.value?.id === row.id) {
-            closeDetailDialog()
-          }
-        } else {
-          ElMessage.error(response.data.msg || '删除操作记录失败')
-        }
-      } catch (error) {
-        console.error('删除操作记录失败:', error)
-        ElMessage.error('删除操作记录失败，请重试')
-      } finally {
-        loading.value = false
-      }
-    }).catch(() => {
-      // 取消删除
-    })
-  }
-
-  // 批量删除记录
-  const handleBatchDelete = () => {
-    if (selectedRecords.value.length === 0) {
-      ElMessage.warning('请选择要删除的记录')
-      return
-    }
-  
-    ElMessageBox.confirm(`确定要删除选中的 ${selectedRecords.value.length} 条操作记录吗？`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }).then(async () => {
-      loading.value = true
-      try {
-        const ids = selectedRecords.value.map(record => record.id)
-        const response = await batchDeleteSysOperationRecord(ids)
-        
-        if (response.data.code === 0) {
-          ElMessage.success(response.data.msg || '批量删除成功')
-          fetchRecordList() // 刷新列表
-          // 如果当前有打开的详情对话框且是当前删除的记录之一，则关闭对话框
-          if (detailDialogVisible.value && currentRecord.value && 
-              ids.includes(currentRecord.value.id)) {
-            closeDetailDialog()
-          }
-        } else {
-          ElMessage.error(response.data.msg || '批量删除操作记录失败')
-        }
-      } catch (error) {
-        console.error('批量删除操作记录失败:', error)
-        ElMessage.error('批量删除操作记录失败，请重试')
-      } finally {
-        loading.value = false
-      }
-    }).catch(() => {
-      // 取消删除
-    })
-  }
-
-  // 格式化日期
-  const formatDate = (timestamp: string) => {
-    if (!timestamp) return '-'
-    const date = new Date(timestamp)
-    return date.toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    })
-  }
-
-  // 格式化延迟时间
-  const formatLatency = (latency: string) => {
-    if (!latency) return '-'
-    // 假设延迟是纳秒格式
-    const ns = parseInt(latency)
-    if (isNaN(ns)) return latency
-    
-    if (ns < 1000) {
-      return `${ns}ns`
-    } else if (ns < 1000000) {
-      return `${(ns / 1000).toFixed(2)}µs`
-    } else if (ns < 1000000000) {
-      return `${(ns / 1000000).toFixed(2)}ms`
-    } else {
-      return `${(ns / 1000000000).toFixed(2)}s`
-    }
-  }
-
-  // 获取请求方法标签类型
-  const getMethodType = (method: string | undefined) => {
-    // 添加空值检查
-    if (!method) return 'info'
-    
-    switch (method.toUpperCase()) {
-      case 'GET':
-        return 'success'
-      case 'POST':
-        return 'primary'
-      case 'PUT':
-        return 'warning'
-      case 'DELETE':
-        return 'danger'
-      default:
-        return 'info'
-    }
-  }
-
-  // 获取状态标签类型
-  const getStatusType = (status: number | undefined) => {
-    // 添加空值检查
-    if (status === undefined || status === null) return ''
-    
-    if (status < 200) return ''
-    if (status < 300) return 'success'
-    if (status < 400) return 'warning'
-    return 'danger'
-  }
-
-  // 格式化JSON字符串
-  const formatJson = (jsonString: string) => {
-    if (!jsonString) return '-';
-    try {
-      const obj = JSON.parse(jsonString);
-      // 限制JSON字符串的长度，避免过长导致性能问题
-      const formatted = JSON.stringify(obj, null, 2);
-      // 如果JSON太长，截断显示
-      return formatted.length > 10000 ? formatted.substring(0, 10000) + '...(内容过长已截断)' : formatted;
-    } catch (e) {
-      return jsonString;
-    }
-  };
-
-  // 格式化用户信息
-  const formatUser = (user: User | undefined, record?: SysOperationRecord) => {
-    // 优先使用新增的操作人字段
-    if (record?.operator_real_name && record?.operator_name) {
-      return `${record.operator_name}(${record.operator_real_name})`;
-    }
-    
-    if (record?.operator_name) {
-      return record.operator_name;
-    }
-    
-    // 如果是系统用户(user_id为0)但有操作人信息，则显示操作人信息
-    if (record?.user_id === 0 && record?.user?.username === '') {
-      // 尝试从其他字段获取操作人信息
-      const agentInfo = record.agent || '';
-      if (agentInfo.includes('User-Agent')) {
-        // 从User-Agent中提取可能的用户信息
-        return '系统操作';
-      }
-      return '系统';
-    }
-    
-    // 兼容旧版本，使用user对象
-    if (!user) return '-';
-    if (user.realName) {
-      return `${user.username}(${user.realName})`;
-    }
-    return user.username || '-';
-  };
-
-  // 组件挂载时加载数据
-  onMounted(() => {
-    fetchRecordList()
-  })
-
-  // 添加查看详情相关的状态变量
-  const currentRecord = ref<SysOperationRecord | null>(null)
-  const detailDialogVisible = ref(false)
-  const detailLoading = ref(false)
-  
-  // 添加查看详情的方法
-  const handleViewDetail = async (id: number) => {
-    detailLoading.value = true
-    detailDialogVisible.value = true
+  // 修改为使用getUserInfo API获取用户信息
+  const getSystemUsers = async (userId: number) => {
+    if (!userId) return []
     
     try {
-      const response = await findSysOperationRecord(id)
+      // 尝试使用getUserInfo API获取用户信息，不需要传入用户ID
+      const response = await service({
+        url: API_URLS.getUserInfo,
+        method: 'get'
+      })
       
-      if (response.data.code === 0) {
-        // 修改这里，从 reSysOperationRecord 字段中获取数据
-        currentRecord.value = response.data.data.reSysOperationRecord
+      if (response.data.code === 0 && response.data.data) {
+        // 从userInfo中获取用户数据
+        const userData = response.data.data.userInfo || response.data.data;
+        
+        // 检查获取到的用户ID是否与需要的用户ID匹配
+        if (userData.ID === userId || userData.id === userId) {
+          return [{
+            id: Number(userData.ID || userData.id || 0),
+            username: String(userData.userName || userData.username || ''),
+            nickname: String(userData.nickName || userData.nickname || '')
+          }];
+        } else {
+          // 如果当前登录用户不是我们需要的用户，尝试使用getUserList
+          const listResponse = await service({
+            url: API_URLS.getUserList,
+            method: 'get',
+            params: {
+              page: 1,
+              pageSize: 100 // 增加数量以提高找到目标用户的概率
+            }
+          })
+          
+          if (listResponse.data.code === 0) {
+            const users = listResponse.data.data.list || []
+            // 过滤出指定ID的用户
+            return users
+              .filter((user: any) => user.ID === userId || user.id === userId)
+              .map((user: any) => ({
+                id: Number(user.ID || user.id || 0),
+                username: String(user.userName || user.username || ''),
+                nickname: String(user.nickName || user.nickname || '')
+              }))
+          }
+        }
       } else {
-        ElMessage.error(response.data.msg || '获取操作记录详情失败')
+        // 如果getUserInfo失败，尝试使用getUserList
+        const listResponse = await service({
+          url: API_URLS.getUserList,
+          method: 'get',
+          params: {
+            page: 1,
+            pageSize: 100 // 增加数量以提高找到目标用户的概率
+          }
+        })
+        
+        if (listResponse.data.code === 0) {
+          const users = listResponse.data.data.list || []
+          // 过滤出指定ID的用户
+          return users
+            .filter((user: any) => user.ID === userId || user.id === userId)
+            .map((user: any) => ({
+              id: Number(user.ID || user.id || 0),
+              username: String(user.userName || user.username || ''),
+              nickname: String(user.nickName || user.nickname || '')
+            }))
+        }
       }
+      return []
     } catch (error) {
-      console.error('获取操作记录详情失败:', error)
-      ElMessage.error('获取操作记录详情失败，请重试')
-    } finally {
-      detailLoading.value = false
+      console.error('获取用户信息失败:', error)
+      return []
     }
   }
+
+  // 保留这个formatUser函数，删除后面重复的函数
+  // 修改formatUser函数，移除硬编码逻辑
+  // 修改formatUser函数，确保正确显示用户信息
+  const formatUser = (user: User | undefined, record: SysOperationRecord) => {
+  // 优先使用操作人字段
+  if (record.operator_real_name) {
+  return record.operator_real_name;
+  }
   
-  // 添加关闭详情对话框的方法
+  if (record.operator_name) {
+  return record.operator_name;
+  }
+  
+  // 其次使用user对象
+  if (user) {
+  if (user.nickname) return user.nickname;
+  if (user.username) return user.username;
+  }
+  
+  // 最后使用用户ID
+  return `用户ID: ${record.user_id || 0}`;
+  }
+
+  // 关闭详情对话框
   const closeDetailDialog = () => {
     detailDialogVisible.value = false
     currentRecord.value = null
   }
 
+  // 删除单条记录 - 实现删除功能
+  const handleDelete = (record: SysOperationRecord) => {
+    if (!record || !record.id) {
+      ElMessage.error('无效的记录ID')
+      return
+    }
+
+    ElMessageBox.confirm(
+      '确定要删除该操作记录吗？此操作不可恢复',
+      '删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    ).then(async () => {
+      try {
+        const response = await deleteSysOperationRecord({ ID: record.id })
+        
+        if (response.data.code === 0) {
+          ElMessage.success('删除成功')
+          // 刷新列表
+          fetchRecordList()
+        } else {
+          ElMessage.error(response.data.msg || '删除失败')
+        }
+      } catch (error) {
+        console.error('删除操作记录失败:', error)
+        ElMessage.error('删除操作记录失败，请重试')
+      }
+    }).catch(() => {
+      // 用户取消删除，不做任何操作
+    })
+  }
+
+  // 批量删除记录 - 实现批量删除功能
+  const handleBatchDelete = () => {
+    if (selectedRecords.value.length === 0) {
+      ElMessage.warning('请先选择要删除的记录')
+      return
+    }
+
+    ElMessageBox.confirm(
+      `确定要删除选中的 ${selectedRecords.value.length} 条操作记录吗？此操作不可恢复`,
+      '批量删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    ).then(async () => {
+      try {
+        // 提取所有选中记录的ID
+        const ids = selectedRecords.value.map(record => record.id)
+        
+        const response = await batchDeleteSysOperationRecord({ IDs: ids })
+        
+        if (response.data.code === 0) {
+          ElMessage.success('批量删除成功')
+          // 清空选中记录
+          selectedRecords.value = []
+          // 刷新列表
+          fetchRecordList()
+        } else {
+          ElMessage.error(response.data.msg || '批量删除失败')
+        }
+      } catch (error) {
+        console.error('批量删除操作记录失败:', error)
+        ElMessage.error('批量删除操作记录失败，请重试')
+      }
+    }).catch(() => {
+      // 用户取消删除，不做任何操作
+    })
+  }
+
+  // 格式化日期
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '-'
+    const date = new Date(dateStr)
+    return date.toLocaleString()
+  }
+
+  // 格式化延迟时间
+  const formatLatency = (latency: string | number) => {
+    if (!latency) return '-'
+    
+    // 如果是数字，转换为更友好的格式（纳秒转为毫秒）
+    if (typeof latency === 'number') {
+      return `${(latency / 1000000).toFixed(2)} ms`
+    }
+    
+    return latency
+  }
+
+  // 获取状态码类型
+  const getStatusType = (status: number) => {
+    if (status >= 200 && status < 300) return 'success'
+    if (status >= 300 && status < 400) return 'warning'
+    if (status >= 400) return 'danger'
+    return 'info'
+  }
+
+  // 获取请求方法类型
+  const getMethodType = (method: string) => {
+    switch (method.toUpperCase()) {
+      case 'GET': return 'success'
+      case 'POST': return 'primary'
+      case 'PUT': return 'warning'
+      case 'DELETE': return 'danger'
+      default: return 'info'
+    }
+  }
+
+  // 格式化JSON
+  const formatJson = (jsonStr: string) => {
+    if (!jsonStr) return '-'
+    try {
+      const obj = JSON.parse(jsonStr)
+      return JSON.stringify(obj, null, 2)
+    } catch (e) {
+      return jsonStr
+    }
+  }
+
+  // 添加查看详情函数
+  const handleViewDetail = async (id: number) => {
+    // 添加ID有效性检查
+    if (!id || isNaN(Number(id))) {
+      ElMessage.error('无效的记录ID')
+      return
+    }
+    
+    detailDialogVisible.value = true
+    detailLoading.value = true
+    
+    try {
+      const response = await findSysOperationRecord(id)
+      
+      if (response.data.code === 0) {
+        // 处理后端返回的数据结构
+        const recordData = response.data.data.reSysOperationRecord
+        if (recordData) {
+          // 转换字段名称为前端使用的格式
+          currentRecord.value = {
+            id: recordData.ID || 0,
+            created_at: recordData.CreatedAt || '',
+            updated_at: recordData.UpdatedAt || '',
+            ip: recordData.ip || '',
+            method: recordData.method || '',
+            path: recordData.path || '',
+            status: recordData.status || 0,
+            latency: recordData.latency || '',
+            agent: recordData.agent || '',
+            error_message: recordData.error_message || '',
+            body: recordData.body || '',
+            resp: recordData.resp || '',
+            user_id: recordData.user_id || 0,
+            user: {
+              id: 0,
+              username: ''
+            }
+          }
+          
+          // 处理用户信息
+          if (recordData.user && (recordData.user.userName || recordData.user.username)) {
+            // 从后端返回的user对象中提取用户信息
+            currentRecord.value.user = {
+              id: Number(recordData.user.ID || recordData.user.id || 0),
+              username: String(recordData.user.userName || recordData.user.username || ''),
+              nickname: String(recordData.user.nickName || recordData.user.nickname || '')
+            }
+            
+            // 添加操作人信息
+            currentRecord.value.operator_name = recordData.user.userName || recordData.user.username || '';
+            currentRecord.value.operator_real_name = recordData.user.nickName || recordData.user.nickname || '';
+          } else if (recordData.user_id) {
+            // 如果没有user对象或user信息不完整，尝试通过user_id获取用户信息
+            const systemUsers = await getSystemUsers(recordData.user_id);
+            if (systemUsers && systemUsers.length > 0) {
+              const user = systemUsers[0];
+              currentRecord.value.user = {
+                id: user.id,
+                username: user.username,
+                nickname: user.nickname
+              };
+              currentRecord.value.operator_name = user.username;
+              currentRecord.value.operator_real_name = user.nickname;
+            }
+          }
+        } else {
+          ElMessage.error('获取操作记录详情失败：数据结构异常')
+          closeDetailDialog()
+        }
+      } else {
+        ElMessage.error(response.data.msg || '获取操作记录详情失败')
+        closeDetailDialog()
+      }
+    } catch (error) {
+      console.error('获取操作记录详情失败:', error)
+      ElMessage.error('获取操作记录详情失败，请重试')
+      closeDetailDialog()
+    } finally {
+      detailLoading.value = false
+    }
+  }
+
+  // 在组件挂载时获取操作记录列表
+  onMounted(() => {
+    fetchRecordList()
+  })
+
   return {
+    // 数据
     searchForm,
     recordList,
     loading,
     pagination,
     selectedRecords,
+    detailDialogVisible,
+    detailLoading,
+    currentRecord,
+    
+    // 方法
     fetchRecordList,
     handleSearch,
     resetSearch,
@@ -339,17 +484,15 @@ export function useOperationRecord() {
     handleSelectionChange,
     handleDelete,
     handleBatchDelete,
-    formatDate,
-    formatLatency,
-    getStatusType,
-    getMethodType,
-    formatJson,
-    formatUser,  // 确保更新后的formatUser函数被正确导出
-    // 添加新的返回值
-    currentRecord,
-    detailDialogVisible,
-    detailLoading,
     handleViewDetail,
     closeDetailDialog,
+    
+    // 辅助函数
+    formatDate,
+    formatLatency,
+    formatUser,
+    getStatusType,
+    getMethodType,
+    formatJson
   }
 }

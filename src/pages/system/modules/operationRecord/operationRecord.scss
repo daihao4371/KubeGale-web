@@ -126,7 +126,38 @@
 }
 
 // 系统用户样式
+// 修改系统用户样式，不再针对特定ID
 .system-user {
   color: #909399;
   font-style: italic;
+}
+
+// 添加操作按钮样式
+.operation-buttons {
+  display: flex;
+  align-items: center;
+  
+  .el-button {
+    padding: 4px 8px;
+    margin-right: 8px;
+    
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+}
+
+// 可以添加删除按钮的特殊样式
+.operation-buttons {
+  .el-button--danger {
+    &:hover {
+      color: #f56c6c;
+      background-color: rgba(245, 108, 108, 0.1);
+    }
+  }
+}
+
+// 添加删除确认对话框的样式
+:deep(.el-message-box__message) {
+  word-break: break-word;
 }
