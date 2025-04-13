@@ -10,10 +10,10 @@
           </el-form-item>
           <el-form-item label="请求方法">
             <el-select v-model="searchForm.method" placeholder="请选择请求方法" clearable>
-              <el-option label="GET" value="GET" />
-              <el-option label="POST" value="POST" />
-              <el-option label="PUT" value="PUT" />
-              <el-option label="DELETE" value="DELETE" />
+              <el-option label="创建(POST)" value="POST" />
+              <el-option label="查看(GET)" value="GET" />
+              <el-option label="更新(PUT)" value="PUT" />
+              <el-option label="删除(DELETE)" value="DELETE" />
             </el-select>
           </el-form-item>
           <el-form-item label="API分组">
@@ -47,12 +47,15 @@
       stripe
     >
       <el-table-column prop="ID" label="ID" width="80" />
+      <!-- 移除name字段的列 -->
       <el-table-column prop="path" label="API路径" min-width="200" show-overflow-tooltip />
       <el-table-column prop="apiGroup" label="API分组" width="150" />
       <el-table-column prop="description" label="API简介" min-width="200" show-overflow-tooltip />
-      <el-table-column prop="method" label="请求" width="100">
+      <el-table-column prop="method" label="请求" width="120">
         <template #default="scope">
-          <el-tag :type="getMethodType(scope.row.method)">{{ scope.row.method }}</el-tag>
+          <el-tag :type="getMethodType(scope.row.method)">
+            {{ getMethodText(scope.row.method) }}
+          </el-tag>
         </template>
       </el-table-column>
       
@@ -102,15 +105,16 @@
     >
       <div v-loading="dialogLoading">
         <el-form :model="currentApi" label-width="100px">
+          <!-- 移除name字段的输入框 -->
           <el-form-item label="API路径" required>
             <el-input v-model="currentApi.path" placeholder="请输入API路径，例如：/api/user/getUserInfo" />
           </el-form-item>
           <el-form-item label="请求方法" required>
             <el-select v-model="currentApi.method" placeholder="请选择请求方法">
-              <el-option label="GET" value="GET" />
-              <el-option label="POST" value="POST" />
-              <el-option label="PUT" value="PUT" />
-              <el-option label="DELETE" value="DELETE" />
+              <el-option label="创建(POST)" value="POST" />
+              <el-option label="查看(GET)" value="GET" />
+              <el-option label="更新(PUT)" value="PUT" />
+              <el-option label="删除(DELETE)" value="DELETE" />
             </el-select>
           </el-form-item>
           <el-form-item label="API分组" required>
@@ -159,6 +163,17 @@ const {
   
   getMethodType
 } = useApi()
+
+// 获取请求方法的中文文本
+const getMethodText = (method: string) => {
+  switch (method.toUpperCase()) {
+    case 'GET': return '查看(GET)'
+    case 'POST': return '创建(POST)'
+    case 'PUT': return '更新(PUT)'
+    case 'DELETE': return '删除(DELETE)'
+    default: return method
+  }
+}
 </script>
 
 <style scoped>

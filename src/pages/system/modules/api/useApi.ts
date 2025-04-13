@@ -42,6 +42,7 @@ export function useApi() {
     description: '',
     apiGroup: '',
     method: 'GET'
+    // 不需要name字段
   })
   
   // 是否为编辑模式

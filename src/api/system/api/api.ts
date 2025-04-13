@@ -10,6 +10,7 @@ export interface ApiInfo {
   description: string;
   apiGroup: string;
   method: string;
+  // 移除name字段，因为后端没有这个字段
 }
 
 // API响应数据类型
