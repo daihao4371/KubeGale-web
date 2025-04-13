@@ -268,11 +268,29 @@ export const useRolePermission = (roleList: Ref<any[]>) => {
     if (!currentRole.value) return
     
     try {
+      // 获取选中的菜单节点的完整信息
+      const checkedNodes = menuTreeRef.value?.getCheckedNodes(true) || []
+      const halfCheckedNodes = menuTreeRef.value?.getHalfCheckedNodes() || []
+      
+      // 合并所有选中的节点
+      const allSelectedNodes = [...checkedNodes, ...halfCheckedNodes]
+      
+      // 确保每个节点都有path属性
+      const menuNodes = allSelectedNodes.map(node => ({
+        ID: node.id,
+        path: node.path || '/',  // 确保path不为空
+        name: node.label,
+        meta: {
+          title: node.label
+        }
+      }))
+      
+      // 提交完整的菜单节点信息
       const response = await service.post<ResponseData<any>>(
         API_URLS.addBaseMenu,
         {
           authorityId: currentRole.value.authorityId,
-          menuIds: selectedMenus.value
+          menus: menuNodes  // 提交完整的菜单节点信息，而不仅仅是ID
         }
       )
       
@@ -353,21 +371,7 @@ export const useRolePermission = (roleList: Ref<any[]>) => {
     try {
       // 根据当前激活的标签页提交不同的权限设置
       if (activePermissionTab.value === '角色菜单') {
-        // 获取选中的菜单节点
-        const checkedNodes = menuTreeRef.value?.getCheckedNodes(true) || []
-        const halfCheckedNodes = menuTreeRef.value?.getHalfCheckedNodes() || []
-        
-        // 合并所有选中的节点
-        const allSelectedNodes = [...checkedNodes, ...halfCheckedNodes]
-        
-        // 确保每个节点都有 path 属性
-        const validMenuNodes = allSelectedNodes.map(node => ({
-          ...node,
-          // 如果节点没有 path 或 path 为空字符串，则设置默认值为 '/'
-          path: node.path || '/'
-        }))
-        
-        // 提交菜单权限设置
+        // 直接调用修改后的submitMenuPermissions方法
         await submitMenuPermissions()
       } else if (activePermissionTab.value === '角色api') {
         // API权限设置逻辑

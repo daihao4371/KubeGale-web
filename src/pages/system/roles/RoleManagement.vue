@@ -563,13 +563,29 @@ const handleApiTreeCheck = (data: any, checkedNodes: { checkedKeys: (string | nu
 }
 
 // 处理菜单树选中状态变化
-const handleMenuTreeCheck = (data: any, checkedNodes: any) => {
+const handleMenuTreeCheck = (data: any, checkedInfo: any) => {
   // 确保我们获取所有选中的节点ID（包括半选中的父节点）
-  if (checkedNodes && checkedNodes.checkedKeys) {
-    selectedMenus.value = checkedNodes.checkedKeys
-  } else if (checkedNodes && Array.isArray(checkedNodes)) {
+  if (checkedInfo && checkedInfo.checkedKeys) {
+    selectedMenus.value = checkedInfo.checkedKeys
+  } else if (checkedInfo && Array.isArray(checkedInfo)) {
     // 兼容不同版本的Element Plus
-    selectedMenus.value = checkedNodes
+    selectedMenus.value = checkedInfo
+  }
+  
+  // 确保每个选中的节点都有path属性
+  if (menuTreeRef.value) {
+    // 获取所有选中和半选中的节点
+    const allNodes = [
+      ...menuTreeRef.value.getCheckedNodes(true),
+      ...menuTreeRef.value.getHalfCheckedNodes()
+    ]
+    
+    // 检查并确保所有节点都有path属性
+    allNodes.forEach(node => {
+      if (!node.path) {
+        node.path = '/'
+      }
+    })
   }
 }
 
@@ -577,12 +593,14 @@ const handleMenuTreeCheck = (data: any, checkedNodes: any) => {
 const getSelectedMenuNodes = () => {
   if (!menuTreeRef.value) return [];
   
-  // 获取所有选中的节点（包括半选中的节点）
-  const checkedNodes = menuTreeRef.value.getCheckedNodes(true);
-  const halfCheckedNodes = menuTreeRef.value.getHalfCheckedNodes();
+  // 获取所有选中和半选中的节点
+  const allNodes = [
+    ...menuTreeRef.value.getCheckedNodes(true),
+    ...menuTreeRef.value.getHalfCheckedNodes()
+  ]
   
   // 合并所有选中的节点，确保每个节点都有path属性
-  return [...checkedNodes, ...halfCheckedNodes].map(node => ({
+  return allNodes.map(node => ({
     id: node.id,
     label: node.label,
     path: node.path || '/', // 确保path不为空，默认使用根路径

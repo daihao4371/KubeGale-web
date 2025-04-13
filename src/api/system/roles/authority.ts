@@ -102,3 +102,21 @@ export const setDataAuthority = (data: SetDataAuthorityParams) => {
     data
   ).then(res => res.data)
 }
+
+// 添加或修改菜单权限的接口参数定义
+export interface AddMenuAuthorityParams {
+  authorityId: number;
+  menus: {
+    ID: number | string;
+    path: string;  // 确保path是必需的
+    name: string;
+    meta: {
+      title: string;
+    };
+  }[];
+}
+
+// 修改相应的API函数
+export const addMenuAuthority = (params: AddMenuAuthorityParams) => {
+  return service.post<ResponseData<any>>(API_URLS.addBaseMenu, params);
+};
