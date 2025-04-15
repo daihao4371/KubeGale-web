@@ -5,6 +5,7 @@ export const API_BASE_URL = ''  // 移除基础URL前缀，避免路径重复
 export const API_URLS = {
   // 用户相关
   login: '/api/base/login',
+  logout: '/api/jwt/jsonInBlacklist', // JWT加入黑名单（退出登录）
   
   getUserList: '/api/user/getUserList', // 获取用户列表
   getUserInfo: '/api/user/getUserInfo', // 获取用户信息

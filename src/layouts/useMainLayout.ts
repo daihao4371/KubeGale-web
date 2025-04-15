@@ -1,8 +1,7 @@
-import { ref, computed, inject } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { logout } from '@/api/user'
-import { removeToken } from '@/utils/auth'
+import { useStore } from 'vuex'
 import { usePasswordDialog } from '@/api/system/usePasswordDialog'
 
 export function useMainLayout() {
@@ -17,6 +16,7 @@ export function useMainLayout() {
   const isCollapse = ref(false)
   const route = useRoute()
   const router = useRouter()
+  const store = useStore()
 
   const activeMenu = computed(() => {
     return route.path
@@ -69,22 +69,8 @@ export function useMainLayout() {
       type: 'warning'
     }).then(async () => {
       try {
-        // 调用退出登录函数（现在只在前端处理）
-        await logout()
-        
-        // 清除token
-        removeToken()
-        
-        // 清除localStorage中的用户信息
-        localStorage.removeItem('userInfo')
-        
-        // 清除其他可能存在的用户相关数据
-        localStorage.removeItem('rememberMe')
-        sessionStorage.clear()
-        
-        // 提示用户
-        ElMessage.success('退出登录成功')
-        
+        // 使用Vuex中的logout action
+        await store.dispatch('logout')
         // 跳转到登录页
         router.push('/login')
       } catch (error) {
@@ -104,6 +90,6 @@ export function useMainLayout() {
     toggleSidebar,
     handleCommand,
     handleLogout,
-    handlePasswordSubmit // 添加这个方法到返回值中
+    handlePasswordSubmit
   }
 }
