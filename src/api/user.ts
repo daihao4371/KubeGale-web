@@ -1,5 +1,4 @@
 import axios from 'axios'
-// 修改导入路径，避免重复导入
 import { API_URLS } from '@/api/system/config'
 import { getToken } from '@/utils/auth'
 
@@ -50,16 +49,13 @@ export function login(data: { username: string; password: string }) {
   })
 }
 
-// 修改退出登录函数，不再依赖API_URLS.logout
+// 退出登录函数，调用后端接口
 export function logout() {
-  console.log('前端处理退出登录')
-  // 这里不再调用后端接口，直接返回一个成功的Promise
-  return Promise.resolve({
-    data: {
-      code: 0,
-      msg: '退出成功',
-      data: null
-    }
+  console.log('调用退出登录API:', API_URLS.logout)
+  return service({
+    url: API_URLS.logout,
+    method: 'post'
   })
 }
+
 export default service

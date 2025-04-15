@@ -100,12 +100,8 @@ const handleLogin = async () => {
       loading.value = true
       try {
         console.log('开始登录请求...')
-        console.log('登录参数:', {
-          username: loginForm.username,
-          password: loginForm.password
-        })
         
-        // 使用新的API服务
+        // 使用API服务
         const result = await login({
           username: loginForm.username,
           password: loginForm.password
@@ -113,40 +109,47 @@ const handleLogin = async () => {
         
         console.log('登录响应数据:', result)
         
-        // 根据实际后端返回的数据结构调整
+        // 处理后端返回的数据
         if (result && result.data) {
-          // 处理后端返回的标准格式 {code: 0, data: {...}, msg: '登录成功'}
-          if (result.data.code === 0 && result.data.data) {
-            const userData = result.data.data;
-            // 使用accessToken作为token
-            handleLoginSuccess(userData.accessToken, userData.username, userData.realName)
+          const responseData = result.data;
+          
+          // 检查返回的数据结构是否符合预期
+          if (responseData.code === 0 && responseData.data) {
+            // 提取用户信息和token
+            const { user, token, expiresAt } = responseData.data;
+            
+            // 保存token到cookie
+            setToken(token)
+            
+            // 保存用户信息到localStorage
+            localStorage.setItem(
+              'userInfo',
+              JSON.stringify({
+                id: user.ID,
+                uuid: user.uuid,
+                username: user.userName,
+                realName: user.nickName,
+                avatar: user.headerImg,
+                authorityId: user.authorityId,
+                authorities: user.authorities,
+                phone: user.phone,
+                email: user.email,
+                expiresAt: expiresAt
+              })
+            )
+            
+            ElMessage.success(responseData.msg || '登录成功')
+            router.push('/')
+          } else {
+            ElMessage.error(responseData.msg || '用户名或密码错误')
           }
-          // 兼容其他可能的数据结构
-          else if (result.data.token) {
-            handleLoginSuccess(result.data.token, loginForm.username, loginForm.username)
-          } 
-          else if (result.data.data && result.data.data.token) {
-            handleLoginSuccess(result.data.data.token, loginForm.username, loginForm.username)
-          }
-          else if (result.data.system) {
-            const { accessToken, username, realName } = result.data.system
-            handleLoginSuccess(accessToken, username, realName)
-          }
-          else {
-            console.error('无法从响应中提取token:', result.data)
-            // 修改错误提示为更友好的信息
-            ElMessage.error(result.data.msg || '用户名或密码错误')
-          }
-        } 
-        else {
-          // 修改错误提示为更友好的信息
-          ElMessage.error('用户名或密码错误')
+        } else {
+          ElMessage.error('登录失败，请稍后重试')
           console.error('无效的响应数据结构:', result)
         }
       } catch (error) {
         console.error('登录请求失败:', error)
-        // 修改错误提示为更友好的信息
-        ElMessage.error('用户名或密码错误')
+        ElMessage.error('登录失败，请稍后重试')
       } finally {
         loading.value = false
       }
@@ -154,23 +157,7 @@ const handleLogin = async () => {
   })
 }
 
-// 提取登录成功处理逻辑为单独函数
-const handleLoginSuccess = (accessToken: string, username: string, realName: string) => {
-  // 保存token到cookie
-  setToken(accessToken)
-  
-  // 保存用户信息到localStorage
-  localStorage.setItem(
-    'userInfo',
-    JSON.stringify({
-      username,
-      realName
-    })
-  )
-  
-  ElMessage.success('登录成功')
-  router.push('/')
-}
+// 移除原来的handleLoginSuccess函数，直接在handleLogin中处理
 
 // 切换密码可见性
 const togglePasswordVisibility = () => {

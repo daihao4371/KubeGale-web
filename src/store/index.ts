@@ -34,13 +34,31 @@ export default createStore({
       return new Promise((resolve, reject) => {
         service.post(API_URLS.login, userInfo)
           .then(response => {
-            const { data } = response
-            if (data.code === 0) {
-              commit('SET_TOKEN', data.data.token)
-              setToken(data.data.token)
-              resolve(data)
+            const responseData = response.data
+            if (responseData.code === 0 && responseData.data) {
+              const { user, token } = responseData.data
+              
+              // 保存token
+              commit('SET_TOKEN', token)
+              setToken(token)
+              
+              // 保存用户信息
+              const userInfoData = {
+                id: user.ID,
+                uuid: user.uuid,
+                username: user.userName,
+                realName: user.nickName,
+                avatar: user.headerImg,
+                authorityId: user.authorityId,
+                authorities: user.authorities,
+                phone: user.phone,
+                email: user.email
+              }
+              commit('SET_USER_INFO', userInfoData)
+              
+              resolve(responseData)
             } else {
-              reject(data.msg || '登录失败')
+              reject(responseData.msg || '登录失败')
             }
           })
           .catch(error => {
