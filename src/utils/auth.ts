@@ -4,15 +4,15 @@ const TokenKey = 'kubegale_token'
 
 // 获取 token
 export function getToken() {
-  return Cookies.get('token')
+  return Cookies.get(TokenKey)
 }
 
 // 设置 token
 export function setToken(token: string) {
-  return Cookies.set('token', token)
+  return Cookies.set(TokenKey, token)
 }
 
 // 清除 token
 export function removeToken() {
-  return Cookies.remove('token')
+  return Cookies.remove(TokenKey)
 }

@@ -5,11 +5,12 @@ export const API_BASE_URL = ''  // 移除基础URL前缀，避免路径重复
 export const API_URLS = {
   // 用户相关
   login: '/api/base/login',
+  logout: '/api/jwt/jsonInBlacklist', // JWT加入黑名单（退出登录）
   
   getUserList: '/api/user/getUserList', // 获取用户列表
   getUserInfo: '/api/user/getUserInfo', // 获取用户信息
-  changePassword: '/api/user/changePassword',
-  adminRegister: '/api/user/admin_register',
+  changePassword: '/api/user/changePassword', // 用户修改密码
+  adminRegister: '/api/user/admin_register', //  管理员注册账号
   setUserAuthorities: '/api/user/setUserAuthorities', // 设置用户角色的API
   setUserInfo: '/api/user/setUserInfo', // 添加设置用户信息的API
   setSelfInfo: '/api/user/setSelfInfo', // 添加设置个人信息的API
