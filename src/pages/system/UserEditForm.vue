@@ -12,23 +12,26 @@
       <el-input v-model="form.email" placeholder="请输入邮箱" />
     </el-form-item>
     
-    <!-- 用户角色 -->
+    <!-- 用户角色 - 替换为级联选择器 -->
     <el-form-item label="用户角色" prop="authorityIds">
-      <el-select 
-        v-model="form.authorityIds" 
-        placeholder="请选择用户角色" 
-        multiple
+      <el-cascader
+        v-model="form.authorityIds"
+        :options="cascaderRoleOptions"
+        :props="{
+          multiple: true,
+          checkStrictly: true,
+          emitPath: false,
+          value: 'authorityId',
+          label: 'authorityName'
+        }"
+        :show-all-levels="false"
         collapse-tags
+        collapse-tags-tooltip
+        clearable
+        placeholder="请选择用户角色"
         style="width: 100%"
         :loading="roleLoading"
-      >
-        <el-option
-          v-for="role in roleOptions"
-          :key="role.authorityId"
-          :label="role.authorityName"
-          :value="role.authorityId"
-        />
-      </el-select>
+      />
     </el-form-item>
     
     <el-form-item label="启用状态" prop="enable">
@@ -58,7 +61,26 @@ const props = defineProps({
 
 // 角色数据
 const roleOptions = ref<AuthorityInfo[]>([])
+const cascaderRoleOptions = ref<any[]>([]) // 添加级联选择器选项
 const roleLoading = ref(false)
+
+// 处理角色数据为级联选择器格式
+const processRolesForCascader = (roles: AuthorityInfo[]): any[] => {
+  return roles.map(role => {
+    const result: any = {
+      authorityId: role.authorityId,
+      authorityName: role.authorityName,
+      value: role.authorityId,
+      label: role.authorityName
+    };
+    
+    if (role.children && role.children.length > 0) {
+      result.children = processRolesForCascader(role.children);
+    }
+    
+    return result;
+  });
+};
 
 // 获取角色列表
 const fetchRoleList = async () => {
@@ -67,7 +89,10 @@ const fetchRoleList = async () => {
     const res = await getAuthorityList()
     if (res.data && res.data.code === 0 && Array.isArray(res.data.data)) {
       roleOptions.value = res.data.data
+      // 处理级联选择器数据
+      cascaderRoleOptions.value = processRolesForCascader(res.data.data)
       console.log('获取角色列表成功:', roleOptions.value)
+      console.log('级联角色选项:', cascaderRoleOptions.value)
     } else {
       console.error('获取角色列表失败:', res.data)
       ElMessage.error('获取角色列表失败')
@@ -105,6 +130,20 @@ const rules = reactive<FormRules>({
   ],
   email: [
     { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
+  ],
+  authorityIds: [
+    { 
+      required: true, 
+      message: '请选择用户角色', 
+      trigger: 'change',
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value || (Array.isArray(value) && value.length === 0)) {
+          callback(new Error('请至少选择一个用户角色'))
+        } else {
+          callback()
+        }
+      }
+    }
   ]
 })
 
@@ -194,16 +233,23 @@ const submitForm = async () => {
       }
       
       try {
+        // 确保至少选择了一个角色
+        if (!form.authorityIds || form.authorityIds.length === 0) {
+          ElMessage.warning('请至少选择一个用户角色')
+          reject(new Error('未选择用户角色'))
+          return
+        }
+        
         // 发送更新用户请求
         const response = await service({
-          url: '/user/setUserInfo',
+          url: '/api/user/setUserInfo',
           method: 'put',
           data: {
             ID: form.ID,
             nickName: form.nickName,
             phone: form.phone,
             email: form.email,
-            authorityIds: form.authorityIds,
+            authorityIds: form.authorityIds.map(id => Number(id)), // 确保是数字数组
             enable: form.enable
           }
         })
