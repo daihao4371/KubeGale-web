@@ -20,18 +20,14 @@
         multiple
         collapse-tags
         style="width: 100%"
+        :loading="roleLoading"
       >
         <el-option
-          :key="888"
-          label="普通用户"
-          :value="888"
+          v-for="role in roleOptions"
+          :key="role.authorityId"
+          :label="role.authorityName"
+          :value="role.authorityId"
         />
-        <el-option
-          :key="9528"
-          label="测试角色"
-          :value="9528"
-        />
-        <!-- 可以根据需要添加更多角色选项 -->
       </el-select>
     </el-form-item>
     
@@ -46,10 +42,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, defineExpose, watch } from 'vue'
+import { ref, reactive, defineExpose, watch, onMounted } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import service from '@/api/system/service'
+import { getAuthorityList, type AuthorityInfo } from '@/api/system/userManage'
 
 // 定义props接收用户数据
 const props = defineProps({
@@ -57,6 +54,35 @@ const props = defineProps({
     type: Object,
     default: () => ({})
   }
+})
+
+// 角色数据
+const roleOptions = ref<AuthorityInfo[]>([])
+const roleLoading = ref(false)
+
+// 获取角色列表
+const fetchRoleList = async () => {
+  roleLoading.value = true
+  try {
+    const res = await getAuthorityList()
+    if (res.data && res.data.code === 0 && Array.isArray(res.data.data)) {
+      roleOptions.value = res.data.data
+      console.log('获取角色列表成功:', roleOptions.value)
+    } else {
+      console.error('获取角色列表失败:', res.data)
+      ElMessage.error('获取角色列表失败')
+    }
+  } catch (error) {
+    console.error('获取角色列表异常:', error)
+    ElMessage.error('获取角色列表失败')
+  } finally {
+    roleLoading.value = false
+  }
+}
+
+// 组件挂载时获取角色列表
+onMounted(() => {
+  fetchRoleList()
 })
 
 // 表单数据

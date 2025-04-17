@@ -174,6 +174,25 @@ export function setSelfInfo(data: SetSelfInfoParams) {
   })
 }
 
+// 角色信息类型
+export interface AuthorityInfo {
+  authorityId: number;
+  authorityName: string;
+  parentId?: number;
+  dataAuthorityId?: number;
+  children?: AuthorityInfo[];
+  [key: string]: any;
+}
+
+// 获取角色列表
+export function getAuthorityList() {
+  console.log('调用获取角色列表API:', API_URLS.getAuthorityList)
+  return service({
+    url: API_URLS.getAuthorityList,
+    method: 'post'
+  })
+}
+
 // 重置用户密码
 export const resetUserPassword = (data: { ID: number }) => {
   return service({
