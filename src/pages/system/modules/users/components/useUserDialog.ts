@@ -17,7 +17,13 @@ export function useUserDialog() {
 
   // 控制用户表单对话框显示
   const showUserFormDialog = ref(false)
-  const userFormRef = ref<{ resetForm: () => void, validate: () => Promise<{ valid: boolean, data: any }> } | null>(null)
+  // 修复类型定义，添加 submitForm 方法
+  const userFormRef = ref<{ 
+    formRef: any,
+    resetForm: () => void, 
+    validate: () => Promise<{ valid: boolean, data: any }>,
+    submitForm: () => Promise<any>
+  } | null>(null)
   const formTitle = ref('新增用户')
   const formLoading = ref(false)
 
@@ -92,36 +98,33 @@ export function useUserDialog() {
 
   // 提交用户表单
   const submitUserForm = async () => {
-    if (!userFormRef.value) return
+    if (!userFormRef.value) {
+      ElMessage.error('表单组件未加载')
+      return
+    }
     
-    const { valid, data } = await userFormRef.value.validate()
-    
-    if (valid && data) {
-      formLoading.value = true
-      try {
-        // 确保 authorityId 是数字类型且不为空
-        const userData = data as UserFormData;
-        if (!userData.authorityId) {
-          userData.authorityId = 9528; // 默认设置为测试角色
-        }
-        
-        // 调用注册用户API
-        const response = await registerUser(userData)
-        
-        if (response.data && response.data.code === 0) {
-          ElMessage.success('用户添加成功')
-          showUserFormDialog.value = false
-          // 触发刷新用户列表事件
-          window.dispatchEvent(new CustomEvent('refresh-user-list'))
-        } else {
-          ElMessage.error(response.data?.msg || '用户添加失败')
-        }
-      } catch (error) {
-        console.error('添加用户失败:', error)
-        ElMessage.error('添加用户失败，请重试')
-      } finally {
-        formLoading.value = false
-      }
+    formLoading.value = true
+    try {
+      // 调用组件暴露的 submitForm 方法
+      const result = await userFormRef.value.submitForm()
+      
+      // 提交成功后关闭对话框
+      showUserFormDialog.value = false
+      
+      // 触发刷新用户列表事件
+      window.dispatchEvent(new CustomEvent('refresh-user-list'))
+      
+      // 添加一个额外的直接刷新调用，确保数据更新
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('refresh-user-list'))
+      }, 1000)
+      
+      return true
+    } catch (error) {
+      console.error('提交用户表单失败:', error)
+      return false
+    } finally {
+      formLoading.value = false
     }
   }
 

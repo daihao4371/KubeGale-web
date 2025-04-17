@@ -54,7 +54,7 @@
     
     <!-- 用户列表 -->
     <el-card shadow="hover" class="table-card">
-      <div v-if="userList.length === 2 && !loading" class="empty-data">
+      <div v-if="userList.length === 0 && !loading" class="empty-data">
         <el-empty description="暂无用户数据" />
       </div>
       
@@ -210,6 +210,7 @@
     </el-dialog>
     
     <!-- 用户表单对话框 -->
+    <!-- 用户表单对话框 -->
     <el-dialog
       v-model="showUserFormDialog"
       :title="formTitle"
@@ -218,7 +219,9 @@
       destroy-on-close
       class="user-form-dialog"
     >
-      <UserForm ref="userFormRef" />
+      <div v-loading="formLoading" style="min-height: 200px;">
+        <UserForm ref="userFormRef" />
+      </div>
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="showUserFormDialog = false">取消</el-button>
@@ -399,6 +402,8 @@ const handleMultiRoleChange = async (user: any, selectedRoles: number[]) => {
 
 // 初始化用户角色选择
 const initUserRoles = (user: any) => {
+  if (!user) return;
+  
   if (!user.selectedRoles) {
     user.selectedRoles = []
   }
@@ -415,29 +420,32 @@ const initUserRoles = (user: any) => {
   else if (user.authorityId) {
     user.selectedRoles = [Number(user.authorityId)]
   }
+  
+  // 确保 ID 字段一致性
+  if (!user.id && user.ID) {
+    user.id = user.ID
+  }
+  
+  // 标记为已初始化
+  user._rolesInitialized = true
 }
 
-// 监听用户列表变化，初始化角色选择
+// 添加额外的监听，确保用户列表更新后重新初始化角色
 watch(() => userList.value, (newList) => {
-  if (newList && newList.length) {
+  if (newList) {
+    console.log('用户列表更新，当前数量:', newList.length)
     // 使用一个标记来防止递归更新
     newList.forEach(user => {
       if (!user._rolesInitialized) {
         initUserRoles(user)
-        // 添加一个标记，表示已经初始化过角色
-        user._rolesInitialized = true
       }
     })
   }
 }, { immediate: true, deep: true })
 
-// 导出方法供外部调用 - 保留此方法以便布局组件可以调用
-defineExpose({
-  toggleUserInfo
-})
-
 // 确保组件挂载时加载数据
 onMounted(() => {
+  console.log('用户管理组件挂载，开始加载数据')
   fetchUserList()
   fetchRoleList() // 获取角色列表
 })

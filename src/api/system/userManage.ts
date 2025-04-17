@@ -67,7 +67,7 @@ export function getUserInfo(id?: number) {
   })
 }
 
-// 注册用户接口参数类型
+// 修改注册用户接口参数类型
 export interface RegisterUserParams {
   userName: string;
   password: string;
@@ -75,15 +75,19 @@ export interface RegisterUserParams {
   phone?: string;
   email?: string;
   authorityId: number;
-  enable: number;
+  authorityIds?: number[]; // 添加多角色支持
+  enable?: number;
 }
 
 // 注册用户
 export function registerUser(data: RegisterUserParams) {
-  // 确保 authorityId 是数字类型
+  // 确保 authorityId 和 authorityIds 是数字类型
   const postData = {
     ...data,
-    authorityId: Number(data.authorityId)
+    authorityId: Number(data.authorityId),
+    authorityIds: data.authorityIds 
+      ? data.authorityIds.map(id => Number(id))
+      : [Number(data.authorityId)]
   };
   
   console.log('调用注册用户API:', API_URLS.adminRegister, postData)

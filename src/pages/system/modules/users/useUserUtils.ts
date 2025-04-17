@@ -1,6 +1,6 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { setUserInfo, deleteUser } from '@/api/system/userManage'
+import { setUserInfo, deleteUser, getAuthorityList, type AuthorityInfo } from '@/api/system/userManage'
 import type { UserInfo } from '@/api/system/userManage'
 
 /**
@@ -75,6 +75,31 @@ export function useUserEvents(fetchUserList: () => void) {
  * 用户角色相关逻辑
  */
 export function useUserRole() {
+  // 角色列表数据
+  const roleList = ref<AuthorityInfo[]>([])
+  // 角色加载状态
+  const roleLoading = ref(false)
+  
+  // 获取角色列表
+  const fetchRoleList = async () => {
+    roleLoading.value = true
+    try {
+      const res = await getAuthorityList()
+      if (res.data && res.data.code === 0 && Array.isArray(res.data.data)) {
+        roleList.value = res.data.data
+        console.log('获取角色列表成功:', roleList.value)
+      } else {
+        console.error('获取角色列表失败:', res.data)
+        ElMessage.error('获取角色列表失败')
+      }
+    } catch (error) {
+      console.error('获取角色列表异常:', error)
+      ElMessage.error('获取角色列表失败')
+    } finally {
+      roleLoading.value = false
+    }
+  }
+  
   // 检查用户是否拥有指定角色
   const hasRole = (authorities: any[], roleId: number | string) => {
     if (!authorities || !Array.isArray(authorities)) return false
@@ -84,16 +109,27 @@ export function useUserRole() {
     )
   }
 
-  // 获取角色名称
+  // 获取角色名称 - 从实际角色列表中获取
   const getRoleName = (roleId: number | string) => {
-    switch (String(roleId)) {
-      case '888':
-        return '普通用户'
-      case '9528':
-        return '测试角色'
-      default:
-        return '未知角色'
+    // 在角色列表中查找匹配的角色
+    const role = roleList.value.find(r => String(r.authorityId) === String(roleId))
+    if (role) {
+      return role.authorityName
     }
+    
+    // 如果在顶级角色中找不到，尝试在子角色中查找
+    for (const parentRole of roleList.value) {
+      if (parentRole.children) {
+        const childRole = parentRole.children.find(
+          child => String(child.authorityId) === String(roleId)
+        )
+        if (childRole) {
+          return childRole.authorityName
+        }
+      }
+    }
+    
+    return `角色(${roleId})`
   }
 
   // 处理角色变更
@@ -143,7 +179,15 @@ export function useUserRole() {
     }
   }
 
+  // 组件挂载时获取角色列表
+  onMounted(() => {
+    fetchRoleList()
+  })
+
   return {
+    roleList,
+    roleLoading,
+    fetchRoleList,
     hasRole,
     getRoleName,
     handleRoleChange
