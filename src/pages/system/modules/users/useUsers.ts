@@ -31,67 +31,107 @@ export function useUsers() {
     total: 0
   })
   
+  // 添加计算属性，统计启用和禁用的用户数量
+  const enabledUserCount = computed(() => {
+    return userList.value.filter(user => user.enable === 1).length
+  })
+  
+  const disabledUserCount = computed(() => {
+    return userList.value.filter(user => user.enable === 2).length
+  })
+  
+  // 初始化用户角色选择函数
+  const initUserRoles = (user: any) => {
+    if (!user) return;
+    
+    if (!user.selectedRoles) {
+      user.selectedRoles = []
+    }
+    
+    // 从 authorities 数组获取角色
+    if (user.authorities && Array.isArray(user.authorities)) {
+      user.selectedRoles = user.authorities.map((auth: any) => Number(auth.authorityId))
+    } 
+    // 如果只有单个 authority 对象
+    else if (user.authority && user.authority.authorityId) {
+      user.selectedRoles = [Number(user.authority.authorityId)]
+    }
+    // 如果只有 authorityId 字段
+    else if (user.authorityId) {
+      user.selectedRoles = [Number(user.authorityId)]
+    }
+    
+    // 标记为已初始化
+    user._rolesInitialized = true
+  }
+  
   // 获取用户列表
   const fetchUserList = async () => {
     loading.value = true
     try {
-      const params = {
+      const response = await getUserList({
         page: pagination.page,
         pageSize: pagination.pageSize,
-        username: searchForm.username || undefined,
-        nickName: searchForm.nickName || undefined,
-        phone: searchForm.phone || undefined,
-        email: searchForm.email || undefined
-      }
+        ...searchForm
+      })
       
-      const response = await getUserList(params)
       console.log('获取用户列表响应:', response)
       
-      // 检查响应结构，适配不同的后端返回格式
-      if (response.data && (response.data.code === 0 || response.data.code === 200)) {
-        // 标准响应格式
-        let listData = response.data.data
-        
-        // 处理不同的数据结构
-        if (Array.isArray(listData)) {
-          // 直接返回数组
-          userList.value = listData.map(formatUserData)
-          pagination.total = listData.length
-        } else if (listData && typeof listData === 'object') {
-          // 分页数据结构
-          if (listData.list && Array.isArray(listData.list)) {
-            userList.value = listData.list.map(formatUserData)
-            pagination.total = listData.total || listData.list.length
-          } else if (listData.records && Array.isArray(listData.records)) {
-            // 适配另一种常见的分页结构
-            userList.value = listData.records.map(formatUserData)
-            pagination.total = listData.total || listData.records.length
-          } else {
-            // 尝试将整个对象作为列表
-            const entries = Object.values(listData)
-            if (entries.length > 0 && typeof entries[0] === 'object') {
-              userList.value = entries.map(formatUserData)
-              pagination.total = entries.length
-            } else {
-              userList.value = []
-              pagination.total = 0
-              console.error('未识别的数据结构:', listData)
+      if (response.data && response.data.code === 0) {
+        // 确保 response.data.data 存在且包含 list 属性
+        if (response.data.data && Array.isArray(response.data.data.list)) {
+          userList.value = response.data.data.list
+          pagination.total = response.data.data.total || 0
+          
+          // 初始化用户角色选择
+          userList.value.forEach(user => {
+            // 确保 ID 字段一致
+            if (!user.id && user.ID) {
+              user.id = user.ID
+            } else if (!user.ID && user.id) {
+              user.ID = user.id
             }
+            
+            // 初始化角色选择
+            if (!user._rolesInitialized) {
+              // 从 authorities 数组获取角色
+              if (user.authorities && Array.isArray(user.authorities)) {
+                user.selectedRoles = user.authorities.map((auth: any) => Number(auth.authorityId))
+              } 
+              // 如果只有单个 authority 对象
+              else if (user.authority && user.authority.authorityId) {
+                user.selectedRoles = [Number(user.authority.authorityId)]
+              }
+              // 如果只有 authorityId 字段
+              else if (user.authorityId) {
+                user.selectedRoles = [Number(user.authorityId)]
+              } else {
+                user.selectedRoles = []
+              }
+              
+              // 标记为已初始化
+              user._rolesInitialized = true
+            }
+          })
+          
+          // 确保即使列表为空也正确处理
+          if (userList.value.length === 0) {
+            console.log('用户列表为空')
           }
         } else {
+          console.error('用户列表数据格式不正确:', response.data)
           userList.value = []
           pagination.total = 0
-          console.error('未识别的数据结构:', listData)
         }
       } else {
-        // 处理错误响应
+        console.error('获取用户列表失败:', response.data)
         ElMessage.error(response.data?.msg || '获取用户列表失败')
         userList.value = []
         pagination.total = 0
       }
     } catch (error) {
-      console.error('获取用户列表失败:', error)
-      ElMessage.error('获取用户列表失败，请重试')
+      console.error('获取用户列表异常:', error)
+      ElMessage.error('获取用户列表失败')
       userList.value = []
       pagination.total = 0
     } finally {
@@ -191,15 +231,6 @@ export function useUsers() {
   // 组件卸载时移除事件监听
   onUnmounted(() => {
     window.removeEventListener('refresh-user-list', fetchUserList)
-  })
-  
-  // 添加计算属性，统计启用和禁用的用户数量
-  const enabledUserCount = computed(() => {
-    return userList.value.filter(user => user.enable === 1).length
-  })
-  
-  const disabledUserCount = computed(() => {
-    return userList.value.filter(user => user.enable === 2).length
   })
 
   return {
