@@ -9,12 +9,6 @@
           <h2 v-show="!isCollapse">KubeGale</h2>
         </div>
         
-        <!-- 添加用户信息到菜单顶部 -->
-        <div class="user-profile">
-          <el-avatar size="small">管</el-avatar>
-          <span class="username" v-if="!isCollapse">管理员</span>
-        </div>
-        
         <!-- 其余部分保持不变 -->
         <el-menu
           :default-active="activeMenu"

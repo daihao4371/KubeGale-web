@@ -19,5 +19,3 @@ export function login(data: { username: string; password: string }) {
 //     method: 'post'
 //   })
 // }
-
-// 可以添加更多用户相关API...
